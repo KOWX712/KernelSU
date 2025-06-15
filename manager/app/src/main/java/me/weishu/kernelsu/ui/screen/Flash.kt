@@ -1,5 +1,6 @@
 package me.weishu.kernelsu.ui.screen
 
+import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.os.Parcelable
@@ -39,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,6 +56,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.component.KeyEventBlocker
+import me.weishu.kernelsu.ui.component.rememberConfirmDialog
+import me.weishu.kernelsu.ui.component.ConfirmResult
 import me.weishu.kernelsu.ui.util.FlashResult
 import me.weishu.kernelsu.ui.util.LkmSelection
 import me.weishu.kernelsu.ui.util.LocalSnackbarHost
@@ -112,12 +116,49 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
         mutableStateOf(FlashingStatus.FLASHING)
     }
 
-    LaunchedEffect(Unit) {
-        if (text.isNotEmpty()) {
+    val context = LocalContext.current
+
+    val confirmDialog = rememberConfirmDialog()
+    var confirmed by rememberSaveable { mutableStateOf(flashIt !is FlashIt.FlashModules) }
+    var pendingFlashIt by rememberSaveable { mutableStateOf<FlashIt?>(null) }
+
+    LaunchedEffect(flashIt) {
+        if (flashIt is FlashIt.FlashModules && !confirmed) {
+            val uris = flashIt.uris
+            val moduleNames =
+                uris.mapIndexed { index, uri -> "\n${index + 1}. ${uri.getFileName(context)}" }
+                    .joinToString("")
+            val confirmContent =
+                context.getString(R.string.module_install_prompt_with_name, moduleNames)
+            val confirmTitle = context.getString(R.string.module)
+            val result = confirmDialog.awaitConfirm(
+                title = confirmTitle,
+                content = confirmContent,
+                markdown = true
+            )
+
+            if (result == ConfirmResult.Confirmed) {
+                confirmed = true
+                pendingFlashIt = flashIt
+            } else {
+                // User cancelled, go back
+                navigator.popBackStack()
+            }
+        } else {
+            confirmed = true
+            pendingFlashIt = flashIt
+        }
+    }
+
+    var flashingStarted by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(confirmed, pendingFlashIt) {
+        if (!confirmed || pendingFlashIt == null || flashingStarted) {
             return@LaunchedEffect
         }
+        flashingStarted = true
         withContext(Dispatchers.IO) {
-            flashIt(flashIt, onStdout = {
+            flashIt(pendingFlashIt!!, onStdout = {
                 tempText = "$it\n"
                 if (tempText.startsWith("[H[J")) { // clear command
                     text = tempText.substring(6)
@@ -203,6 +244,19 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
             )
         }
     }
+}
+
+fun Uri.getFileName(context: Context): String {
+    val contentResolver = context.contentResolver
+    val cursor = contentResolver.query(this, null, null, null, null)
+    return cursor?.use {
+        val nameIndex = it.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+        if (it.moveToFirst() && nameIndex != -1) {
+            it.getString(nameIndex)
+        } else {
+            this.lastPathSegment ?: "unknown.zip"
+        }
+    } ?: (this.lastPathSegment ?: "unknown.zip")
 }
 
 @Parcelize
