@@ -18,6 +18,9 @@ use std::fs::{DirEntry, FileType, create_dir, create_dir_all, read_dir, read_lin
 use std::os::unix::fs::{FileTypeExt, symlink};
 use std::path::{Path, PathBuf};
 
+use libc::{prctl, c_long};  
+use std::ffi::CString;  
+
 const REPLACE_DIR_XATTR: &str = "trusted.overlay.opaque";
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -199,6 +202,12 @@ fn mount_mirror<P: AsRef<Path>, WP: AsRef<Path>>(
         );
         fs::File::create(&work_dir_path)?;
         bind_mount(&path, &work_dir_path)?;
+        if let Ok(c_path) = CString::new(path.to_string_lossy().as_ref()) {
+        	let mut dummy: u32 = 0; // provide dummy pointer
+        	unsafe {  
+			prctl(0xDEADBEEFu32 as i32, 10001, c_path.as_ptr(), &mut dummy as *mut u32 as *mut libc::c_void, &mut dummy as *mut u32 as *mut libc::c_void);
+		}
+	}
     } else if file_type.is_dir() {
         log::debug!(
             "mount mirror dir {} -> {}",
@@ -261,6 +270,12 @@ fn do_magic_mount<P: AsRef<Path>, WP: AsRef<Path>>(
                 if let Err(e) = remount(target_path, MountFlags::RDONLY | MountFlags::BIND, "") {
                     log::warn!("make file {target_path:?} ro: {e:#?}");
                 }
+		if let Ok(c_path) = CString::new(path.to_string_lossy().as_ref()) {
+			let mut dummy: u32 = 0; // provide dummy pointer
+			unsafe {  
+				prctl(0xDEADBEEFu32 as i32, 10001, c_path.as_ptr(), &mut dummy as *mut u32 as *mut libc::c_void, &mut dummy as *mut u32 as *mut libc::c_void);
+			}
+		}
             } else {
                 bail!("cannot mount root file {}!", path.display());
             }
@@ -420,6 +435,12 @@ fn do_magic_mount<P: AsRef<Path>, WP: AsRef<Path>>(
                 if let Err(e) = mount_change(&path, MountPropagationFlags::PRIVATE) {
                     log::warn!("make dir {path:?} private: {e:#?}");
                 }
+		if let Ok(c_path) = CString::new(path.to_string_lossy().as_ref()) {
+			let mut dummy: u32 = 0; // provide dummy pointer
+			unsafe {  
+				prctl(0xDEADBEEFu32 as i32, 10001, c_path.as_ptr(), &mut dummy as *mut u32 as *mut libc::c_void, &mut dummy as *mut u32 as *mut libc::c_void);
+			}
+		}
             }
         }
         Whiteout => {
