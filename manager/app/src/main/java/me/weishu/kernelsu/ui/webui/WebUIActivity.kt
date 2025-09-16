@@ -84,7 +84,30 @@ class WebUIActivity : ComponentActivity() {
             settings.allowFileAccess = false
             webviewInterface = WebViewInterface(this@WebUIActivity, this, moduleDir)
             addJavascriptInterface(webviewInterface, "ksu")
-            setWebViewClient(webViewClient)
+            setWebViewClient(object : WebViewClient() {
+                override fun shouldInterceptRequest(
+                    view: WebView,
+                    request: WebResourceRequest
+                ): WebResourceResponse? {
+                    val url = request.url
+
+                    //POC: Handle ksu://icon/[packageName] to serve app icon via WebView
+                    if (url.scheme.equals("ksu", ignoreCase = true) && url.host.equals("icon", ignoreCase = true)) {
+                        val packageName = url.path?.substring(1)
+                        if (!packageName.isNullOrEmpty()) {
+                            val icon = AppIconUtil.loadAppIconSync(this@WebUIActivity, packageName, 512)
+                            if (icon != null) {
+                                val stream = java.io.ByteArrayOutputStream()
+                                icon.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, stream)
+                                val inputStream = java.io.ByteArrayInputStream(stream.toByteArray())
+                                return WebResourceResponse("image/png", null, inputStream)
+                            }
+                        }
+                    }
+
+                    return webViewAssetLoader.shouldInterceptRequest(url)
+                }
+            })
             loadUrl("https://mui.kernelsu.org/index.html")
         }
 
