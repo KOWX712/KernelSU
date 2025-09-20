@@ -138,4 +138,10 @@
     <string name="log_saved">Logs saved</string>
     <string name="settings_disable_su">Disable su compatibility</string>
     <string name="settings_disable_su_summary">Temporarily disable the ability of any app to gain root privileges via the ⁠su command (existing root processes won\'t be affected).</string>
+    <string name="settings_enable_nomount">Disable module mounting</string>
+    <string name="settings_enable_nomount_summary">Don\'t mount systemless modules. Reboot required to take effect.</string>
+    <string name="settings_failed_to_update_nomount">Failed to update .nomount</string>
+    <string name="settings_enable_notmpfs">Disable tmpfs mounting</string>
+    <string name="settings_enable_notmpfs_summary">Don\'t mount tmpfs. Reboot required to take effect.</string>
+    <string name="settings_failed_to_update_notmpfs">Failed to update .notmpfs</string>
 </resources>
