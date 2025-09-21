@@ -128,6 +128,7 @@
     <string name="flash_success">Schreiben erfolgreich</string>
     <string name="flash_failed">Schreiben fehlgeschlagen</string>
     <string name="selected_lkm">Wähle LKM: %s</string>
+    <string name="shrink_sparse_image">Spärliches Bild minimieren</string>
     <string name="action">Aktion</string>
     <string name="log_saved">Protokolle gespeichert</string>
     <string name="module_install_prompt_with_name">Folgende Module werden installiert: %1$s</string>
