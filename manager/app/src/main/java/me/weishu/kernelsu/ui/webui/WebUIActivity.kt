@@ -1,22 +1,30 @@
 package me.weishu.kernelsu.ui.webui
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.ActivityManager
+import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.webkit.WebViewAssetLoader
 import com.topjohnwu.superuser.Shell
 import me.weishu.kernelsu.ui.util.createRootShell
 import java.io.File
+import androidx.core.net.toUri
 
 @SuppressLint("SetJavaScriptEnabled")
 class WebUIActivity : ComponentActivity() {
@@ -24,6 +32,9 @@ class WebUIActivity : ComponentActivity() {
 
     private var rootShell: Shell? = null
     private lateinit var insets: Insets
+
+    private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
+    private var filePathCallback: ValueCallback<Array<Uri>>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -34,6 +45,24 @@ class WebUIActivity : ComponentActivity() {
         }
 
         super.onCreate(savedInstanceState)
+
+        fileChooserLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data = result.data
+                var uris: Array<Uri>? = null
+                data?.dataString?.let {
+                    uris = arrayOf(it.toUri())
+                }
+                data?.clipData?.let { clipData ->
+                    uris = Array(clipData.itemCount) { i -> clipData.getItemAt(i).uri }
+                }
+                filePathCallback?.onReceiveValue(uris)
+                filePathCallback = null
+            } else {
+                filePathCallback?.onReceiveValue(null)
+                filePathCallback = null
+            }
+        }
 
         val moduleId = intent.getStringExtra("id")!!
         val name = intent.getStringExtra("name")!!
@@ -89,6 +118,29 @@ class WebUIActivity : ComponentActivity() {
             settings.allowFileAccess = false
             webviewInterface = WebViewInterface(this@WebUIActivity, this, moduleDir)
             addJavascriptInterface(webviewInterface, "ksu")
+
+            webChromeClient = object : WebChromeClient() {
+                override fun onShowFileChooser(
+                    webView: WebView?,
+                    filePathCallback: ValueCallback<Array<Uri>>?,
+                    fileChooserParams: FileChooserParams?
+                ): Boolean {
+                    this@WebUIActivity.filePathCallback = filePathCallback
+                    val intent = fileChooserParams?.createIntent() ?: Intent(Intent.ACTION_GET_CONTENT).apply { type = "*/*" }
+                    if (fileChooserParams?.mode == FileChooserParams.MODE_OPEN_MULTIPLE) {
+                        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                    }
+                    try {
+                        fileChooserLauncher.launch(intent)
+                    } catch (e: Exception) {
+                        this@WebUIActivity.filePathCallback?.onReceiveValue(null)
+                        this@WebUIActivity.filePathCallback = null
+                        return false
+                    }
+                    return true
+                }
+            }
+
             setWebViewClient(object : WebViewClient() {
                 override fun shouldInterceptRequest(
                     view: WebView,
