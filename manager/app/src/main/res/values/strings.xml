@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">KernelSU</string>
+    <string name="app_name" translatable="false">KowSU</string>
+    <string name="app_name_official" translatable="false">KernelSU</string>
     <string name="home">Home</string>
     <string name="home_not_installed">Not installed</string>
     <string name="home_click_to_install">Click to install</string>
@@ -144,4 +145,6 @@
     <string name="settings_enable_notmpfs">Disable tmpfs mounting</string>
     <string name="settings_enable_notmpfs_summary">Don\'t mount tmpfs. Reboot required to take effect.</string>
     <string name="settings_failed_to_update_notmpfs">Failed to update .notmpfs</string>
+    <string name="settings_use_official_app_name">Use official app name</string>
+    <string name="settings_use_official_app_name_summary">Display KernelSU instead of KowSU in home page.</string>
 </resources>

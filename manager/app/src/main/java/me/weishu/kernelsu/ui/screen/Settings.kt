@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.filled.ExtensionOff
 import androidx.compose.material.icons.filled.LayersClear
+import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -97,6 +98,7 @@ import me.weishu.kernelsu.ui.util.LocalSnackbarHost
 import me.weishu.kernelsu.ui.util.getBugreportFile
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import androidx.core.content.edit
 
 /**
  * @author weishu
@@ -254,6 +256,21 @@ fun SettingScreen(navigator: DestinationsNavigator) {
             }
 
             val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+            var officialAppName by rememberSaveable {
+                mutableStateOf(
+                    prefs.getBoolean("use_official_app_name", false)
+                )
+            }
+            SwitchItem(
+                icon = Icons.Filled.Title,
+                title = stringResource(id = R.string.settings_use_official_app_name),
+                summary = stringResource(id = R.string.settings_use_official_app_name_summary),
+                checked = officialAppName
+            ) { checked ->
+                prefs.edit { putBoolean("use_official_app_name", checked) }
+                officialAppName = checked
+            }
+            
             var checkUpdate by rememberSaveable {
                 mutableStateOf(
                     prefs.getBoolean("check_update", true)
@@ -265,7 +282,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 summary = stringResource(id = R.string.settings_check_update_summary),
                 checked = checkUpdate
             ) {
-                prefs.edit().putBoolean("check_update", it).apply()
+                prefs.edit { putBoolean("check_update", it) }
                 checkUpdate = it
             }
 
@@ -282,7 +299,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     summary = stringResource(id = R.string.enable_web_debugging_summary),
                     checked = enableWebDebugging
                 ) {
-                    prefs.edit().putBoolean("enable_web_debugging", it).apply()
+                    prefs.edit { putBoolean("enable_web_debugging", it) }
                     enableWebDebugging = it
                 }
             }
