@@ -243,8 +243,8 @@ private fun StatusCard(
 
                     val workingMode = when (lkmMode) {
                         null -> ""
-                        true -> " <LKM>"
-                        else -> " <GKI>"
+                        true -> " | LKM"
+                        else -> " | GKI"
                     }
 
                     val workingText =
