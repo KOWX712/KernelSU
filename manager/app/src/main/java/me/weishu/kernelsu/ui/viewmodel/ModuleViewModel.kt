@@ -59,7 +59,7 @@ class ModuleViewModel : ViewModel() {
             compareBy<ModuleInfo>(
                 { if (sortEnabledFirst) !it.enabled else 0 },
                 { if (sortActionFirst) !it.hasWebUi && !it.hasActionScript else 0 },
-            ).thenBy(Collator.getInstance(Locale.getDefault()), ModuleInfo::id)
+            ).thenBy(Collator.getInstance(Locale.getDefault()), ModuleInfo::name)
         modules.filter {
             it.id.contains(search, true) || it.name.contains(search, true) || HanziToPinyin.getInstance()
                 .toPinyinString(it.name).contains(search, true)
