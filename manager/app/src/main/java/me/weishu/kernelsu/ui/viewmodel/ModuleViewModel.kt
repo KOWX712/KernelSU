@@ -131,7 +131,7 @@ class ModuleViewModel : ViewModel() {
 
     fun checkUpdate(m: ModuleInfo): Triple<String, String, String> {
         val empty = Triple("", "", "")
-        if (m.updateJson.isEmpty() || m.remove || m.update || !m.enabled) {
+        if (m.updateJson.isEmpty() || m.remove || !m.enabled) {
             return empty
         }
         // download updateJson
