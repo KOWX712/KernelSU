@@ -101,7 +101,7 @@ fun flashModulesSequentially(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Destination<RootGraph>
-fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
+fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt, skipConfirmation: Boolean = false) {
 
     var text by rememberSaveable { mutableStateOf("") }
     var tempText: String
@@ -119,10 +119,10 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
     val context = LocalContext.current
 
     val confirmDialog = rememberConfirmDialog()
-    var confirmed by rememberSaveable { mutableStateOf(flashIt !is FlashIt.FlashModules) }
+    var confirmed by rememberSaveable(flashIt, skipConfirmation) { mutableStateOf(skipConfirmation || flashIt !is FlashIt.FlashModules) }
     var pendingFlashIt by rememberSaveable { mutableStateOf<FlashIt?>(null) }
 
-    LaunchedEffect(flashIt) {
+    LaunchedEffect(flashIt, confirmed) {
         if (flashIt is FlashIt.FlashModules && !confirmed) {
             val uris = flashIt.uris
             val moduleNames =
@@ -145,7 +145,6 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
                 navigator.popBackStack()
             }
         } else {
-            confirmed = true
             pendingFlashIt = flashIt
         }
     }
@@ -336,5 +335,5 @@ private fun TopBar(
 @Preview
 @Composable
 fun InstallPreview() {
-    InstallScreen(EmptyDestinationsNavigator)
+    FlashScreen(navigator = EmptyDestinationsNavigator, flashIt = FlashIt.FlashRestore)
 }

@@ -225,7 +225,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                         data.data?.let { uris.add(it) }
                     }
 
-                    navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(uris)))
+                    navigator.navigate(FlashScreenDestination(flashIt = FlashIt.FlashModules(uris), skipConfirmation = uris.size == 1))
                     viewModel.markNeedRefresh()
                 }
 
@@ -269,7 +269,8 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                     boxModifier = Modifier.padding(innerPadding),
                     onInstallModule = {
-                        navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(listOf(it))))
+                        navigator.navigate(FlashScreenDestination(flashIt = FlashIt.FlashModules(listOf(it)), skipConfirmation = true))
+                        viewModel.markNeedRefresh()
                     },
                     onClickModule = { id, name, hasWebUi ->
                         if (hasWebUi) {
