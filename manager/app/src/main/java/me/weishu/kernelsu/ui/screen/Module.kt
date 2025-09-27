@@ -470,7 +470,7 @@ private fun ModuleList(
                 else -> {
                     items(viewModel.moduleList) { module ->
                         val scope = rememberCoroutineScope()
-                        val updatedModule by produceState(initialValue = Triple("", "", "")) {
+                        val updatedModule by produceState(initialValue = Triple("", "", ""), module.id, module.versionCode) {
                             scope.launch(Dispatchers.IO) {
                                 value = viewModel.checkUpdate(module)
                             }
