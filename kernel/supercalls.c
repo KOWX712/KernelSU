@@ -30,9 +30,9 @@ extern void ksu_sucompat_init(void);
 extern void ksu_sucompat_exit(void);
 
 // extras.c
-static bool ksu_avc_spoof_enabled = true;
-extern void avc_spoof_init();
-extern void avc_spoof_exit();
+extern void ksu_avc_spoof_on_boot_completed(void);
+extern void ksu_avc_spoof_enable();
+extern void ksu_avc_spoof_disable();
 
 // Permission check functions
 bool only_manager(void)
@@ -115,7 +115,7 @@ static int do_report_event(void __user *arg)
         if (!boot_complete_lock) {
             boot_complete_lock = true;
             pr_info("boot_complete triggered\n");
-            avc_spoof_init();
+            ksu_avc_spoof_on_boot_completed();
         }
         break;
     }

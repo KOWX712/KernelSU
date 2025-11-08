@@ -44,6 +44,8 @@ int __init kernelsu_init(void)
     pr_alert("KPROBES is disabled, KernelSU may not work, please check https://kernelsu.org/guide/how-to-integrate-for-non-gki.html");
 #endif
 
+    ksu_avc_spoof_init();
+
 #ifdef MODULE
 #ifndef CONFIG_KSU_DEBUG
     kobject_del(&THIS_MODULE->mkobj.kobj);
@@ -65,6 +67,8 @@ void kernelsu_exit(void)
     ksu_ksud_exit();
     ksu_sucompat_exit();
 #endif
+
+    ksu_avc_spoof_exit();
 
     ksu_core_exit();
     ksu_feature_exit();

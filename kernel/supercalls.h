@@ -112,4 +112,8 @@ int ksu_install_fd(void);
 
 void ksu_supercalls_init();
 
+void ksu_avc_spoof_init();
+
+void ksu_avc_spoof_exit();
+
 #endif // __KSU_H_SUPERCALLS
