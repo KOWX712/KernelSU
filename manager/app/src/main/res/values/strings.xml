@@ -157,4 +157,6 @@
     <string name="settings_enable_notmpfs">Disable tmpfs mounting</string>
     <string name="settings_enable_notmpfs_summary">Don\'t mount tmpfs. Reboot required to take effect.</string>
     <string name="settings_failed_to_update_notmpfs">Failed to update .notmpfs</string>
+    <string name="settings_enable_avc_spoof">Disable avc spoofing</string>
+    <string name="settings_enable_avc_spoof_summary">Disable fixing selinux context leak caused by avc denial in audit log.</string>
 </resources>
