@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ContactPage
@@ -113,9 +112,6 @@ fun SettingScreen(navigator: DestinationsNavigator) {
     Scaffold(
         topBar = {
             TopBar(
-                onBack = dropUnlessResumed {
-                    navigator.popBackStack()
-                },
                 scrollBehavior = scrollBehavior
             )
         },
@@ -584,18 +580,10 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(
-    onBack: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     TopAppBar(
         title = { Text(stringResource(R.string.settings)) },
-        navigationIcon = {
-            IconButton(
-                onClick = onBack
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-            }
-        },
         windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         scrollBehavior = scrollBehavior
     )
