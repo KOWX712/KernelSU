@@ -162,8 +162,13 @@ private fun TopBar(
     onInstallClick: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    val useOfficialAppName = prefs.getBoolean("use_official_app_name", false)
+    val titleResId = if (useOfficialAppName) R.string.app_name_official else R.string.app_name
+
     TopAppBar(
-        title = { Text(stringResource(R.string.app_name)) },
+        title = { Text(stringResource(titleResId)) },
         actions = {
             if (kernelVersion.isGKI()) {
                 IconButton(onClick = onInstallClick) {
