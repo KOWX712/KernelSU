@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
+import android.graphics.drawable.Drawable
 import android.os.IBinder
 import android.os.Parcelable
 import android.os.SystemClock
@@ -29,13 +30,18 @@ import java.text.Collator
 import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import androidx.core.content.edit
 
 class SuperUserViewModel : ViewModel() {
 
     companion object {
         private const val TAG = "SuperUserViewModel"
-        private var apps by mutableStateOf<List<AppInfo>>(emptyList())
+        var apps by mutableStateOf<List<AppInfo>>(emptyList())
+
+        @JvmStatic
+        fun getAppIconDrawable(context: Context, packageName: String): Drawable? {
+            val appDetail = apps.find { it.packageName == packageName }
+            return appDetail?.packageInfo?.applicationInfo?.loadIcon(context.packageManager)
+        }
     }
 
     @Parcelize
