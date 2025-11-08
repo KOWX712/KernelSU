@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ActivityManager
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
@@ -155,6 +156,11 @@ class WebUIActivity : ComponentActivity() {
 
                 return webViewAssetLoader.shouldInterceptRequest(url)
             }
+
+            override fun onPageFinished(view: WebView, url: String?) {
+                super.onPageFinished(view, url)
+                injectCss(view)
+            }
         }
 
         val webView = WebView(this).apply {
@@ -256,6 +262,30 @@ class WebUIActivity : ComponentActivity() {
         }
 
         setContentView(webView)
+    }
+
+    private fun injectCss(webView: WebView) {
+        val insets = insets.css
+        val insetsJs = """
+            javascript:(function() {
+                style = document.createElement('style');
+                document.head.appendChild(style);
+                style.innerHTML = ${JSONObject.quote(insets)};
+            })();
+        """.trimIndent()
+        webView.evaluateJavascript(insetsJs, null)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val colors = MonetColorsProvider.getColorsCss(this)
+            val colorJs = """
+                javascript:(function() {
+                    style = document.createElement('style');
+                    document.head.appendChild(style);
+                    style.innerHTML = ${JSONObject.quote(colors)};
+                })();
+            """.trimIndent()
+            webView.evaluateJavascript(colorJs, null)
+        }
     }
 
     private fun extractMimeTypeAndBase64Data(dataUrl: String): Pair<String, String>? {
