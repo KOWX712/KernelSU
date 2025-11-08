@@ -1,10 +1,7 @@
 package me.weishu.kernelsu.ui.screen
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.ui.graphics.vector.ImageVector
 import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.ModuleScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.SettingScreenDestination
@@ -15,12 +12,36 @@ import me.weishu.kernelsu.R
 enum class BottomBarDestination(
     val direction: DirectionDestinationSpec,
     @StringRes val label: Int,
-    val iconSelected: ImageVector,
-    val iconNotSelected: ImageVector,
+    @DrawableRes val iconSelected: Int,
+    @DrawableRes val iconNotSelected: Int,
     val rootRequired: Boolean,
 ) {
-    Home(HomeScreenDestination, R.string.home, Icons.Filled.Home, Icons.Outlined.Home, false),
-    SuperUser(SuperUserScreenDestination, R.string.superuser, Icons.Filled.Shield, Icons.Outlined.Shield, true),
-    Module(ModuleScreenDestination, R.string.module, Icons.Filled.Extension, Icons.Outlined.Extension, true),
-    Settings(SettingScreenDestination, R.string.settings, Icons.Filled.Settings, Icons.Outlined.Settings, false)
+    Home(
+        HomeScreenDestination,
+        R.string.home,
+        R.drawable.home_filled,
+        R.drawable.home_outlined,
+        false
+    ),
+    SuperUser(
+        SuperUserScreenDestination,
+        R.string.superuser,
+        R.drawable.shield_filled,
+        R.drawable.shield_outlined,
+        true
+    ),
+    Module(
+        ModuleScreenDestination,
+        R.string.module,
+        R.drawable.extension_filled,
+        R.drawable.extension_outlined,
+        true
+    ),
+    Settings(
+        SettingScreenDestination,
+        R.string.settings,
+        R.drawable.settings_filled,
+        R.drawable.settings_outlined,
+        false
+    )
 }

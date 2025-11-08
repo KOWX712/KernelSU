@@ -21,22 +21,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.filled.Undo
-import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ContactPage
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.DeveloperMode
-import androidx.compose.material.icons.filled.EnhancedEncryption
 import androidx.compose.material.icons.filled.Fence
-import androidx.compose.material.icons.filled.FolderDelete
-import androidx.compose.material.icons.filled.RemoveCircle
-import androidx.compose.material.icons.filled.RemoveModerator
-import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Update
-import androidx.compose.material.icons.filled.ExtensionOff
-import androidx.compose.material.icons.filled.LayersClear
-import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -65,7 +51,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -183,7 +171,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 )
             }
             SwitchItem(
-                icon = Icons.Filled.Title,
+                icon = ImageVector.vectorResource(R.drawable.title_filled),
                 title = stringResource(id = R.string.settings_use_official_app_name),
                 summary = stringResource(id = R.string.settings_use_official_app_name_summary),
                 checked = officialAppName
@@ -221,7 +209,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     )
                 }
                 DropdownItem(
-                    icon = Icons.Filled.EnhancedEncryption,
+                    icon = ImageVector.vectorResource(R.drawable.encryptionadd_filled),
                     title = stringResource(id = R.string.settings_enable_enhanced_security),
                     summary = stringResource(id = R.string.settings_enable_enhanced_security_summary),
                     items = modeItems,
@@ -263,7 +251,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     )
                 }
                 DropdownItem(
-                    icon = Icons.Filled.RemoveModerator,
+                    icon = ImageVector.vectorResource(R.drawable.removemoderator_filled),
                     title = stringResource(id = R.string.settings_disable_su),
                     summary = stringResource(id = R.string.settings_disable_su_summary),
                     items = modeItems,
@@ -305,7 +293,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     )
                 }
                 DropdownItem(
-                    icon = Icons.Filled.RemoveCircle,
+                    icon = ImageVector.vectorResource(R.drawable.removecircle_filled),
                     title = stringResource(id = R.string.settings_disable_kernel_umount),
                     summary = stringResource(id = R.string.settings_disable_kernel_umount_summary),
                     items = modeItems,
@@ -383,7 +371,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     mutableStateOf(Natives.isDefaultUmountModules())
                 }
                 SwitchItem(
-                    icon = Icons.Filled.FolderDelete,
+                    icon = ImageVector.vectorResource(R.drawable.folderdelete_filled),
                     title = stringResource(id = R.string.settings_umount_modules_default),
                     summary = stringResource(id = R.string.settings_umount_modules_default_summary),
                     checked = umountChecked
@@ -401,7 +389,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     }
                 }
                 SwitchItem(
-                    icon = Icons.Filled.ExtensionOff,
+                    icon = ImageVector.vectorResource(R.drawable.extensionoff_filled),
                     title = stringResource(id = R.string.settings_enable_nomount),
                     summary = stringResource(id = R.string.settings_enable_nomount_summary),
                     checked = noMountEnabled
@@ -426,7 +414,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     }
                 }
                 SwitchItem(
-                    icon = Icons.Filled.LayersClear,
+                    icon = ImageVector.vectorResource(R.drawable.layersclean_filled),
                     title = stringResource(id = R.string.settings_enable_notmpfs),
                     summary = stringResource(id = R.string.settings_enable_notmpfs_summary),
                     checked = noTmpfsEnabled
@@ -449,7 +437,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     )
                 }
                 SwitchItem(
-                    icon = Icons.Filled.DeveloperMode,
+                    icon = ImageVector.vectorResource(R.drawable.developermode_filled),
                     title = stringResource(id = R.string.enable_web_debugging),
                     summary = stringResource(id = R.string.enable_web_debugging_summary),
                     checked = enableWebDebugging
@@ -464,7 +452,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
             ListItem(
                 leadingContent = {
                     Icon(
-                        Icons.Filled.BugReport,
+                        painter = painterResource(R.drawable.bugreport_filled),
                         stringResource(id = R.string.send_log)
                     )
                 },
@@ -495,7 +483,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                                         }
                                 ) {
                                     Icon(
-                                        Icons.Filled.Save,
+                                        painter = painterResource(R.drawable.save_filled),
                                         contentDescription = null,
                                         modifier = Modifier.align(Alignment.CenterHorizontally)
                                     )
@@ -547,7 +535,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                                         }
                                 ) {
                                     Icon(
-                                        Icons.Filled.Share,
+                                        painter = painterResource(R.drawable.share_filled),
                                         contentDescription = null,
                                         modifier = Modifier.align(Alignment.CenterHorizontally)
                                     )
@@ -628,7 +616,7 @@ fun UninstallItem(
     ListItem(
         leadingContent = {
             Icon(
-                Icons.Filled.Delete,
+                painter = painterResource(R.drawable.delete_filled),
                 uninstall
             )
         },
@@ -639,23 +627,23 @@ fun UninstallItem(
     )
 }
 
-enum class UninstallType(val title: Int, val message: Int, val icon: ImageVector) {
+enum class UninstallType(val title: Int, val message: Int, val icon: ImageVector?) {
     TEMPORARY(
         R.string.settings_uninstall_temporary,
         R.string.settings_uninstall_temporary_message,
-        Icons.Filled.Delete
+        null
     ),
     PERMANENT(
         R.string.settings_uninstall_permanent,
         R.string.settings_uninstall_permanent_message,
-        Icons.Filled.DeleteForever
+        null
     ),
     RESTORE_STOCK_IMAGE(
         R.string.settings_restore_stock_image,
         R.string.settings_restore_stock_image_message,
         Icons.AutoMirrored.Filled.Undo
     ),
-    NONE(0, 0, Icons.Filled.Delete)
+    NONE(0, 0, null)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -668,10 +656,15 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
             UninstallType.RESTORE_STOCK_IMAGE
         )
         val listOptions = options.map {
+            val iconSource = when (it) {
+                UninstallType.PERMANENT -> IconSource(ImageVector.vectorResource(R.drawable.deleteforever_filled))
+                UninstallType.TEMPORARY, UninstallType.NONE -> IconSource(ImageVector.vectorResource(R.drawable.delete_filled))
+                UninstallType.RESTORE_STOCK_IMAGE -> IconSource(checkNotNull(it.icon))
+            }
             ListOption(
                 titleText = stringResource(it.title),
                 subtitleText = if (it.message != 0) stringResource(it.message) else null,
-                icon = IconSource(it.icon)
+                icon = iconSource
             )
         }
 

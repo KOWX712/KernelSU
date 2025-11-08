@@ -17,9 +17,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ImportExport
-import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
@@ -146,7 +144,12 @@ fun AppProfileTemplateScreen(
                         )
                     )
                 },
-                icon = { Icon(Icons.Filled.Add, null) },
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.add_filled),
+                        contentDescription = null
+                    )
+                },
                 text = { Text(stringResource(id = R.string.app_profile_template_create)) },
             )
         },
@@ -231,7 +234,7 @@ private fun TopBar(
         actions = {
             IconButton(onClick = onSync) {
                 Icon(
-                    Icons.Filled.Sync,
+                    painter = painterResource(R.drawable.sync_filled),
                     contentDescription = stringResource(id = R.string.app_profile_template_sync)
                 )
             }
@@ -241,7 +244,7 @@ private fun TopBar(
                 showDropdown = true
             }) {
                 Icon(
-                    imageVector = Icons.Filled.ImportExport,
+                    painter = painterResource(R.drawable.importexport_filled),
                     contentDescription = stringResource(id = R.string.app_profile_import_export)
                 )
 

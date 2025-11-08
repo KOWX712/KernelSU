@@ -2,3 +2,4 @@
 .vscode
 CLAUDE.md
 *.apk
+.DS_Store

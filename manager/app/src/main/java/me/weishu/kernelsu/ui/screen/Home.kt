@@ -10,12 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.outlined.Block
-import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -173,7 +168,7 @@ private fun TopBar(
             if (kernelVersion.isGKI()) {
                 IconButton(onClick = onInstallClick) {
                     Icon(
-                        imageVector = Icons.Filled.Archive,
+                        painter = painterResource(R.drawable.archive_filled),
                         contentDescription = stringResource(id = R.string.install)
                     )
                 }
@@ -185,7 +180,7 @@ private fun TopBar(
                     showDropdown = true
                 }) {
                     Icon(
-                        imageVector = Icons.Filled.Refresh,
+                        painter = painterResource(R.drawable.refresh_filled),
                         contentDescription = stringResource(id = R.string.reboot)
                     )
 
@@ -249,7 +244,10 @@ private fun StatusCard(
 
                     val workingText = stringResource(id = R.string.home_working)
 
-                    Icon(Icons.Outlined.CheckCircle, stringResource(R.string.home_working))
+                    Icon(
+                        painter = painterResource(R.drawable.checkcircle_outlined),
+                        contentDescription = stringResource(R.string.home_working)
+                    )
                     Column(Modifier.padding(start = 20.dp)) {
                         Row {
                             Text(
@@ -285,7 +283,10 @@ private fun StatusCard(
                 }
 
                 kernelVersion.isGKI() -> {
-                    Icon(Icons.Outlined.Warning, stringResource(R.string.home_not_installed))
+                    Icon(
+                        painter = painterResource(R.drawable.warning_outlined),
+                        contentDescription = stringResource(R.string.home_not_installed)
+                    )
                     Column(Modifier.padding(start = 20.dp)) {
                         Text(
                             text = stringResource(R.string.home_not_installed),
@@ -300,7 +301,10 @@ private fun StatusCard(
                 }
 
                 else -> {
-                    Icon(Icons.Outlined.Block, stringResource(R.string.home_unsupported))
+                    Icon(
+                        painter = painterResource(R.drawable.block_outlined),
+                        contentDescription = stringResource(R.string.home_unsupported)
+                    )
                     Column(Modifier.padding(start = 20.dp)) {
                         Text(
                             text = stringResource(R.string.home_unsupported),

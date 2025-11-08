@@ -32,13 +32,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Wysiwyg
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -76,6 +70,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -158,7 +153,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                         onClick = { showDropdown = true },
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.MoreVert,
+                            painter = painterResource(R.drawable.morevert_filled),
                             contentDescription = stringResource(id = R.string.settings)
                         )
 
@@ -239,7 +234,12 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                         }
                         selectZipLauncher.launch(intent)
                     },
-                    icon = { Icon(Icons.Filled.Add, moduleInstall) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.add_filled),
+                            contentDescription = moduleInstall
+                        )
+                    },
                     text = { Text(text = moduleInstall) },
                 )
             }
@@ -659,7 +659,7 @@ fun ModuleItem(
                     ) {
                         Icon(
                             modifier = Modifier.size(20.dp),
-                            imageVector = Icons.Outlined.PlayArrow,
+                            painter = painterResource(R.drawable.playarrow_outlined),
                             contentDescription = null
                         )
                         if (!module.hasWebUi && updateUrl.isEmpty()) {
@@ -711,7 +711,7 @@ fun ModuleItem(
                     ) {
                         Icon(
                             modifier = Modifier.size(20.dp),
-                            imageVector = Icons.Outlined.Download,
+                            painter = painterResource(R.drawable.download_outlined),
                             contentDescription = null
                         )
                         if (!module.hasActionScript || !module.hasWebUi) {
@@ -735,13 +735,13 @@ fun ModuleItem(
                     if (!module.remove) {
                         Icon(
                             modifier = Modifier.size(20.dp),
-                            imageVector = Icons.Outlined.Delete,
+                            painter = painterResource(R.drawable.delete_outlined),
                             contentDescription = null,
                         )
                     } else {
                         Icon(
                             modifier = Modifier.size(20.dp).rotate(180f),
-                            imageVector = Icons.Outlined.Refresh,
+                            painter = painterResource(R.drawable.refresh_outlined),
                             contentDescription = null,
                         )
                     }
