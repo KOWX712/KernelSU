@@ -237,25 +237,34 @@ private fun StatusCard(
             when {
                 ksuVersion != null -> {
                     val safeMode = when {
-                        Natives.isSafeMode -> " [${stringResource(id = R.string.safe_mode)}]"
+                        Natives.isSafeMode -> stringResource(id = R.string.safe_mode)
                         else -> ""
                     }
 
                     val workingMode = when (lkmMode) {
                         null -> ""
-                        true -> " <LKM>"
-                        else -> " <GKI>"
+                        true -> "LKM"
+                        else -> "GKI"
                     }
 
-                    val workingText =
-                        "${stringResource(id = R.string.home_working)}$workingMode$safeMode"
+                    val workingText = stringResource(id = R.string.home_working)
 
                     Icon(Icons.Outlined.CheckCircle, stringResource(R.string.home_working))
                     Column(Modifier.padding(start = 20.dp)) {
-                        Text(
-                            text = workingText,
-                            style = MaterialTheme.typography.titleMedium
-                        )
+                        Row {
+                            Text(
+                                text = workingText,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            if (workingMode.isNotEmpty()) {
+                                Spacer(Modifier.width(8.dp))
+                                LabelText(label = workingMode)
+                            }
+                            if (safeMode.isNotEmpty()) {
+                                Spacer(Modifier.width(8.dp))
+                                LabelText(label = safeMode, textColor = MaterialTheme.colorScheme.onErrorContainer, backgroundColor = MaterialTheme.colorScheme.errorContainer)
+                            }
+                        }
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = stringResource(R.string.home_working_version, ksuVersion),
@@ -352,7 +361,8 @@ fun LearnMoreCard() {
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.home_click_to_learn_kernelsu),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.outline
                 )
             }
         }
@@ -379,7 +389,8 @@ fun DonateCard() {
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.home_support_content),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.outline
                 )
             }
         }
@@ -403,7 +414,7 @@ private fun InfoCard() {
             fun InfoCardItem(label: String, content: String) {
                 contents.appendLine(label).appendLine(content).appendLine()
                 Text(text = label, style = MaterialTheme.typography.bodyLarge)
-                Text(text = content, style = MaterialTheme.typography.bodyMedium)
+                Text(text = content, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
             }
 
             InfoCardItem(stringResource(R.string.home_kernel), uname.release)

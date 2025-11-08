@@ -38,7 +38,7 @@ fun DropdownItem(
             )
         },
         headlineContent = { Text(text = title) },
-        supportingContent = { Text(text = summary) },
+        supportingContent = { Text(text = summary, color = MaterialTheme.colorScheme.outline) },
         trailingContent = {
             Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
                 Text(
