@@ -146,4 +146,10 @@
     <string name="settings_mode_always_enable">始终启用</string>
     <string name="module_install_prompt_with_name">将安装以下模块：%1$s</string>
     <string name="confirm">确认</string>
+    <string name="settings_enable_nomount">禁用模块挂载</string>
+    <string name="settings_enable_nomount_summary">不挂载用于修改 /system 的模块。需重启生效。</string>
+    <string name="settings_failed_to_update_nomount">.nomount 状态更新失败</string>
+    <string name="settings_enable_notmpfs">禁用 tmpfs 挂载</string>
+    <string name="settings_enable_notmpfs_summary">不挂临时文件系统。需重启生效。</string>
+    <string name="settings_failed_to_update_notmpfs">.notmpfs 状态更新失败</string>
 </resources>
