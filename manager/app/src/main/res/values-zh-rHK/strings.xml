@@ -118,9 +118,4 @@
     <string name="settings_check_update_summary">開啟應用程式時自動檢查更新</string>
     <string name="settings_uninstall">解除安裝</string>
     <string name="save_log">保存日志</string>
-    <string name="processing">處理中…</string>
-    <string name="refresh_pulling">下拉刷新</string>
-    <string name="refresh_release">鬆開刷新</string>
-    <string name="refresh_refresh">正在刷新…</string>
-    <string name="refresh_complete">刷新成功</string>
 </resources>

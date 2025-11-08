@@ -141,11 +141,6 @@
     <string name="install_only_support_ko_file">Seuls les fichiers .ko sont pris en charge</string>
     <string name="settings_disable_kernel_umount">Désactiver kernel umount</string>
     <string name="settings_disable_kernel_umount_summary">Désactiver le comportement contrôlé par KernelSU de la fonction umount au niveau du noyau.</string>
-    <string name="processing">Traitement…</string>
-    <string name="refresh_pulling">Tirez pour actualiser</string>
-    <string name="refresh_release">Relâchez pour actualiser</string>
-    <string name="refresh_refresh">Actualisation…</string>
-    <string name="refresh_complete">Actualisé avec succès</string>
     <string name="settings_module_check_update">Rechercher des mises à jour des modules</string>
     <string name="settings_enable_enhanced_security">Activer la sécurité améliorée</string>
     <string name="settings_enable_enhanced_security_summary">Activer des règles de sécurité plus strictes.</string>

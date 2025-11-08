@@ -141,11 +141,6 @@
     <string name="module_install_prompt_with_name">Будут установлены следующие модули: %1$s</string>
     <string name="confirm">Подтвердить</string>
     <string name="su_not_allowed">Не удалось предоставить права Суперпользователя к %s</string>
-    <string name="refresh_complete">Обновлено успешно</string>
-    <string name="refresh_refresh">Обновление…</string>
-    <string name="refresh_release">Отпустите чтобы обновить</string>
-    <string name="refresh_pulling">Потяните вниз чтобы обновить</string>
-    <string name="processing">Обработка…</string>
     <string name="settings_disable_kernel_umount_summary">Отключить поведение размонтирования на уровне ядра, контролируемое KernelSU.</string>
     <string name="settings_disable_kernel_umount">Отключить размонтирование ядра</string>
     <string name="install_upload_lkm_file">Использовать локальный LKM файл</string>

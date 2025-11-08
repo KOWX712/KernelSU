@@ -139,11 +139,6 @@
     <string name="settings_disable_su_summary">Privremeno onemogući bilo kojoj aplikaciji dobivanje root privilegija putem naredbe ⁠su (postojeći root procesi neće biti pogođeni).</string>
     <string name="settings_disable_kernel_umount">Onemogući kernel umount</string>
     <string name="settings_disable_kernel_umount_summary">Privremeno onemogući ponašanje kernel-level unmount koje kontrolira KernelSU.</string>
-    <string name="processing">Obrada…</string>
-    <string name="refresh_pulling">Povuci dolje za osvježiti</string>
-    <string name="refresh_release">Otpusti za osvježiti</string>
-    <string name="refresh_refresh">Osvježavanje…</string>
-    <string name="refresh_complete">Uspješno osvježeno</string>
     <string name="su_not_allowed">Nije moguće odobriti Superuser pristup za %s</string>
     <string name="module_changelog">Zapis promjena</string>
 </resources>

@@ -146,9 +146,4 @@
     <string name="settings_mode_always_enable">始终启用</string>
     <string name="module_install_prompt_with_name">将安装以下模块：%1$s</string>
     <string name="confirm">确认</string>
-    <string name="processing">处理中…</string>
-    <string name="refresh_pulling">下拉刷新</string>
-    <string name="refresh_release">松开刷新</string>
-    <string name="refresh_refresh">正在刷新…</string>
-    <string name="refresh_complete">刷新成功</string>
 </resources>

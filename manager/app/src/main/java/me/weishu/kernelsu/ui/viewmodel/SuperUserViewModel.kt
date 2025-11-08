@@ -1,6 +1,7 @@
 package me.weishu.kernelsu.ui.viewmodel
 
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.ApplicationInfo
@@ -9,10 +10,11 @@ import android.os.IBinder
 import android.os.Parcelable
 import android.os.SystemClock
 import android.util.Log
-import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
@@ -22,13 +24,12 @@ import me.weishu.kernelsu.IKsuInterface
 import me.weishu.kernelsu.Natives
 import me.weishu.kernelsu.ksuApp
 import me.weishu.kernelsu.ui.KsuService
-import me.weishu.kernelsu.ui.component.SearchStatus
 import me.weishu.kernelsu.ui.util.HanziToPinyin
-import me.weishu.kernelsu.ui.util.KsuCli
 import java.text.Collator
-import java.util.Locale
+import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import androidx.core.content.edit
 
 class SuperUserViewModel : ViewModel() {
 
@@ -36,12 +37,6 @@ class SuperUserViewModel : ViewModel() {
         private const val TAG = "SuperUserViewModel"
         private var apps by mutableStateOf<List<AppInfo>>(emptyList())
     }
-
-
-    private var _appList = mutableStateOf<List<AppInfo>>(emptyList())
-    val appList: State<List<AppInfo>> = _appList
-    private val _searchStatus = mutableStateOf(SearchStatus(""))
-    val searchStatus: State<SearchStatus> = _searchStatus
 
     @Parcelize
     data class AppInfo(
@@ -70,46 +65,41 @@ class SuperUserViewModel : ViewModel() {
             }
     }
 
-    var showSystemApps by mutableStateOf(false)
+    var search by mutableStateOf("")
+    private val prefs = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)!!
+    var showSystemApps by mutableStateOf(prefs.getBoolean("show_system_apps", false))
     var isRefreshing by mutableStateOf(false)
         private set
 
-    private val _searchResults = mutableStateOf<List<AppInfo>>(emptyList())
-    val searchResults: State<List<AppInfo>> = _searchResults
+    fun updateShowSystemApps(newValue: Boolean) {
+        showSystemApps = newValue
+        prefs.edit { putBoolean("show_system_apps", newValue) }
+    }
 
-    suspend fun updateSearchText(text: String) {
-        _searchStatus.value.searchText = text
-
-        if (text.isEmpty()) {
-            _searchStatus.value.resultStatus = SearchStatus.ResultStatus.DEFAULT
-            _searchResults.value = emptyList()
-            return
-        }
-
-        val result = withContext(Dispatchers.IO) {
-            _searchStatus.value.resultStatus = SearchStatus.ResultStatus.LOAD
-            _appList.value.filter {
-                it.label.contains(_searchStatus.value.searchText, true) || it.packageName.contains(
-                    _searchStatus.value.searchText,
-                    true
-                ) || HanziToPinyin.getInstance().toPinyinString(it.label)
-                    .contains(_searchStatus.value.searchText, true)
+    private val sortedList by derivedStateOf {
+        val comparator = compareBy<AppInfo> {
+            when {
+                it.allowSu -> 0
+                it.hasCustomProfile -> 1
+                else -> 2
             }
+        }.then(compareBy(Collator.getInstance(Locale.getDefault()), AppInfo::label))
+        apps.sortedWith(comparator).also {
+            isRefreshing = false
         }
+    }
 
-        if (_searchResults.value == result) {
-            fetchAppList()
-            updateSearchText(text)
-        } else {
-            _searchResults.value = result
-
+    val appList by derivedStateOf {
+        sortedList.filter {
+            it.label.contains(search, true) || it.packageName.contains(
+                search,
+                true
+            ) || HanziToPinyin.getInstance()
+                .toPinyinString(it.label).contains(search, true)
+        }.filter {
+            it.uid == 2000 // Always show shell
+                    || showSystemApps || it.packageInfo.applicationInfo!!.flags.and(ApplicationInfo.FLAG_SYSTEM) == 0
         }
-        _searchStatus.value.resultStatus = if (result.isEmpty()) {
-            SearchStatus.ResultStatus.EMPTY
-        } else {
-            SearchStatus.ResultStatus.SHOW
-        }
-
     }
 
     private suspend inline fun connectKsuService(
@@ -132,8 +122,7 @@ class SuperUserViewModel : ViewModel() {
             Shell.EXECUTOR,
             connection,
         )
-        val shell = KsuCli.SHELL
-        task?.let { it1 -> shell.execTask(it1) }
+        task?.let { it1 -> Shell.getShell().execTask(it1) }
     }
 
     private fun stopKsuService() {
@@ -172,20 +161,6 @@ class SuperUserViewModel : ViewModel() {
                     profile = profile,
                 )
             }.filter { it.packageName != ksuApp.packageName }
-
-            val comparator = compareBy<AppInfo> {
-                when {
-                    it.allowSu -> 0
-                    it.hasCustomProfile -> 1
-                    else -> 2
-                }
-            }.then(compareBy(Collator.getInstance(Locale.getDefault()), AppInfo::label))
-            _appList.value = apps.sortedWith(comparator).also {
-                isRefreshing = false
-            }.filter {
-                it.uid == 2000 // Always show shell
-                        || showSystemApps || it.packageInfo.applicationInfo!!.flags.and(ApplicationInfo.FLAG_SYSTEM) == 0
-            }
             Log.i(TAG, "load cost: ${SystemClock.elapsedRealtime() - start}")
         }
     }

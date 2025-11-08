@@ -135,9 +135,4 @@
     <string name="su_not_allowed">無法授予「%s」超級使用者存取</string>
     <string name="settings_disable_su">停用 su 相容性</string>
     <string name="log_saved">已儲存運作日誌</string>
-    <string name="processing">處理中…</string>
-    <string name="refresh_pulling">下拉刷新</string>
-    <string name="refresh_release">鬆開刷新</string>
-    <string name="refresh_refresh">正在刷新…</string>
-    <string name="refresh_complete">刷新成功</string>
 </resources>
