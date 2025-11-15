@@ -80,7 +80,7 @@ object Natives {
      */
     external fun isEnhancedSecurityEnabled(): Boolean
     external fun setEnhancedSecurityEnabled(enabled: Boolean): Boolean
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
     /**
      * Get the user name for the uid.
      */
