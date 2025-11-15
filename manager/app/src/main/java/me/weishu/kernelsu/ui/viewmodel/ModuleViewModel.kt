@@ -50,7 +50,6 @@ class ModuleViewModel : ViewModel() {
         val updateJson: String,
         val hasWebUi: Boolean,
         val hasActionScript: Boolean,
-        val dirId: String, // real module id (dir name)
     )
 
     @Immutable
@@ -78,6 +77,9 @@ class ModuleViewModel : ViewModel() {
     )
 
     var isRefreshing by mutableStateOf(false)
+        private set
+
+    var isOverlayAvailable by mutableStateOf(false)
         private set
 
     var sortEnabledFirst by mutableStateOf(false)
@@ -153,49 +155,55 @@ class ModuleViewModel : ViewModel() {
     }
 
     fun fetchModuleList() {
-        viewModelScope.launch(Dispatchers.IO) {
-            isRefreshing = true
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) { isRefreshing = true }
 
             val oldModuleList = modules
-
             val start = SystemClock.elapsedRealtime()
 
-            kotlin.runCatching {
-                val result = listModules()
-
-                Log.i(TAG, "result: $result")
-
-                val array = JSONArray(result)
-                modules = (0 until array.length())
-                    .asSequence()
-                    .map { array.getJSONObject(it) }
-                    .map { obj ->
-                        ModuleInfo(
-                            obj.getString("id"),
-                            obj.optString("name"),
-                            obj.optString("author", "Unknown"),
-                            obj.optString("version", "Unknown"),
-                            obj.optInt("versionCode", 0),
-                            obj.optString("description"),
-                            obj.getBoolean("enabled"),
-                            obj.getBoolean("update"),
-                            obj.getBoolean("remove"),
-                            obj.optString("updateJson"),
-                            obj.optBoolean("web"),
-                            obj.optBoolean("action"),
-                            obj.getString("dir_id"),
-                        )
-                    }.toList()
-                syncModuleUpdateInfo(modules)
-                isNeedRefresh = false
-            }.onFailure { e ->
-                Log.e(TAG, "fetchModuleList: ", e)
-                isRefreshing = false
+            val parsedModules = withContext(Dispatchers.IO) {
+                kotlin.runCatching {
+                    val result = listModules()
+                    Log.i(TAG, "result: $result")
+                    val array = JSONArray(result)
+                    (0 until array.length())
+                        .asSequence()
+                        .map { array.getJSONObject(it) }
+                        .map { obj ->
+                            ModuleInfo(
+                                obj.getString("id"),
+                                obj.optString("name"),
+                                obj.optString("author", "Unknown"),
+                                obj.optString("version", "Unknown"),
+                                obj.optInt("versionCode", 0),
+                                obj.optString("description"),
+                                obj.getBoolean("enabled"),
+                                obj.getBoolean("update"),
+                                obj.getBoolean("remove"),
+                                obj.optString("updateJson"),
+                                obj.optBoolean("web"),
+                                obj.optBoolean("action")
+                            )
+                        }.toList()
+                }.getOrElse {
+                    Log.e(TAG, "fetchModuleList: ", it)
+                    emptyList()
+                }
             }
 
-            // when both old and new is kotlin.collections.EmptyList
-            // moduleList update will don't trigger
-            if (oldModuleList === modules) {
+            withContext(Dispatchers.Main) {
+                modules = parsedModules
+                isNeedRefresh = false
+                if (oldModuleList === modules) {
+                    isRefreshing = false
+                }
+            }
+
+            if (parsedModules.isNotEmpty()) {
+                syncModuleUpdateInfo(parsedModules)
+            }
+
+            withContext(Dispatchers.Main) {
                 isRefreshing = false
             }
 
