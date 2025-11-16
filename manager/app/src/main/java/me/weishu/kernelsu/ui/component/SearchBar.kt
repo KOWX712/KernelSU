@@ -37,7 +37,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -47,8 +49,8 @@ private const val TAG = "SearchBar"
 @Composable
 fun SearchAppBar(
     title: @Composable () -> Unit,
-    searchText: String,
-    onSearchTextChange: (String) -> Unit,
+    searchText: TextFieldValue,
+    onSearchTextChange: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit,
     onBackClick: (() -> Unit)? = null,
     onConfirm: (() -> Unit)? = null,
@@ -57,10 +59,13 @@ fun SearchAppBar(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
-    var onSearch by remember { mutableStateOf(false) }
+    var onSearch by remember(searchText) { mutableStateOf(searchText.text.isNotEmpty()) }
 
     if (onSearch) {
-        LaunchedEffect(Unit) { focusRequester.requestFocus() }
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+            onSearchTextChange(searchText.copy(selection = TextRange(searchText.text.length)))
+        }
     }
     DisposableEffect(Unit) {
         onDispose {
@@ -94,7 +99,7 @@ fun SearchAppBar(
                                 Log.d(TAG, "onFocusChanged: $focusState")
                             },
                         value = searchText,
-                        onValueChange = onSearchTextChange,
+                        onValueChange = { onSearchTextChange(it) },
                         trailingIcon = {
                             IconButton(
                                 onClick = {
@@ -148,11 +153,11 @@ fun SearchAppBar(
 @Preview
 @Composable
 private fun SearchAppBarPreview() {
-    var searchText by remember { mutableStateOf("") }
+    var searchText by remember { mutableStateOf(TextFieldValue("")) }
     SearchAppBar(
         title = { Text("Search text") },
         searchText = searchText,
         onSearchTextChange = { searchText = it },
-        onClearClick = { searchText = "" }
+        onClearClick = { searchText = TextFieldValue("") }
     )
 }

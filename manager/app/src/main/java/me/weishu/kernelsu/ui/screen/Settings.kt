@@ -40,6 +40,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -167,7 +169,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
             // SwitchItem(
             //     icon = Icons.Filled.Update,
             //     title = stringResource(id = R.string.settings_check_update),
-            //     summary = stringResource(id = R.string.settings_check_update_summary),
+            //     summary = stringResource(id = R.string.settings_check_update_summary, color = MaterialTheme.colorScheme.outline),
             //     checked = checkUpdate
             // ) {
             //     prefs.edit { putBoolean("check_update", it) }
@@ -194,7 +196,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 ListItem(
                     leadingContent = { Icon(Icons.Filled.Fence, profileTemplate) },
                     headlineContent = { Text(profileTemplate) },
-                    supportingContent = { Text(stringResource(id = R.string.settings_profile_template_summary)) },
+                    supportingContent = { Text(stringResource(id = R.string.settings_profile_template_summary), color = MaterialTheme.colorScheme.outline) },
                     modifier = Modifier.clickable {
                         navigator.navigate(AppProfileTemplateScreenDestination)
                     }

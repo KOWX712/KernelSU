@@ -17,6 +17,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -25,6 +26,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -34,6 +37,8 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.AppProfileScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.ramcosta.composedestinations.result.NavResult
+import com.ramcosta.composedestinations.result.ResultRecipient
 import kotlinx.coroutines.launch
 import me.weishu.kernelsu.Natives
 import me.weishu.kernelsu.R
@@ -45,22 +50,24 @@ import me.weishu.kernelsu.ui.viewmodel.SuperUserViewModel
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
 @Composable
-fun SuperUserScreen(navigator: DestinationsNavigator) {
+fun SuperUserScreen(
+    navigator: DestinationsNavigator,
+    appProfileResultRecipient: ResultRecipient<AppProfileScreenDestination, Boolean>
+) {
     val viewModel = viewModel<SuperUserViewModel>()
     val scope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val listState = rememberLazyListState()
 
     LaunchedEffect(key1 = navigator) {
-        viewModel.search = ""
         if (viewModel.appList.isEmpty()) {
             viewModel.fetchAppList()
         }
     }
 
-    LaunchedEffect(viewModel.search) {
-        if (viewModel.search.isEmpty()) {
-            listState.scrollToItem(0)
+    appProfileResultRecipient.onNavResult {
+        scope.launch {
+            viewModel.fetchAppList()
         }
     }
 
@@ -70,7 +77,7 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                 title = { Text(stringResource(R.string.superuser)) },
                 searchText = viewModel.search,
                 onSearchTextChange = { viewModel.search = it },
-                onClearClick = { viewModel.search = "" },
+                onClearClick = { viewModel.search = TextFieldValue("") },
                 dropdownContent = {
                     var showDropdown by remember { mutableStateOf(false) }
 
@@ -90,6 +97,7 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                             }, onClick = {
                                 scope.launch {
                                     viewModel.fetchAppList()
+                                    listState.scrollToItem(0)
                                 }
                                 showDropdown = false
                             })
@@ -214,19 +222,35 @@ private fun GroupItem(
         headlineContent = { Text(if (group.apps.size > 1) "${ownerNameForUid(group.uid)} (${group.uid})" else group.primary.label) },
         supportingContent = {
             Column {
-                Text(summaryText)
+                Text(summaryText, color = MaterialTheme.colorScheme.outline)
                 Row {
                     val userId = group.uid / 100000
                     if (userId != 0) {
-                        LabelText(label = "UID$userId")
+                        LabelText(
+                            label = "UID$userId",
+                            textColor = MaterialTheme.colorScheme.onTertiary,
+                            backgroundColor = MaterialTheme.colorScheme.tertiary
+                        )
                     }
                     if (group.anyAllowSu) {
-                        LabelText(label = "ROOT")
+                        LabelText(
+                            label = "ROOT",
+                            textColor = MaterialTheme.colorScheme.onPrimary,
+                            backgroundColor = MaterialTheme.colorScheme.primary
+                        )
                     } else if (Natives.uidShouldUmount(group.uid)) {
-                        LabelText(label = "UMOUNT")
+                        LabelText(
+                            label = "UMOUNT",
+                            textColor = MaterialTheme.colorScheme.onSecondary,
+                            backgroundColor = MaterialTheme.colorScheme.secondary
+                        )
                     }
                     if (group.anyCustom) {
-                        LabelText(label = "CUSTOM")
+                        LabelText(
+                            label = "CUSTOM",
+                            textColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            backgroundColor = MaterialTheme.colorScheme.secondaryContainer
+                        )
                     }
                 }
             }
@@ -294,12 +318,16 @@ private fun buildGroups(apps: List<SuperUserViewModel.AppInfo>): List<GroupedApp
 }
 
 @Composable
-fun LabelText(label: String) {
+fun LabelText(
+    label: String,
+    textColor: Color = MaterialTheme.colorScheme.onPrimary,
+    backgroundColor: Color = MaterialTheme.colorScheme.primary
+) {
     Box(
         modifier = Modifier
             .padding(top = 4.dp, end = 4.dp)
             .background(
-                Color.Black,
+                color = backgroundColor,
                 shape = RoundedCornerShape(4.dp)
             )
     ) {
@@ -307,8 +335,9 @@ fun LabelText(label: String) {
             text = label,
             modifier = Modifier.padding(vertical = 2.dp, horizontal = 5.dp),
             style = TextStyle(
-                fontSize = 8.sp,
-                color = Color.White,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = textColor,
             )
         )
     }
