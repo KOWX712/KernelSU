@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ContactPage
@@ -332,6 +333,46 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             execKsud("feature save", true)
                             prefs.edit { putInt("kernel_umount_mode", 2) }
                             kernelUmountMode = 2
+                        }
+                    }
+                }
+
+                var avcSpoofMode by rememberSaveable {
+                    mutableStateOf(
+                        prefs.getInt(
+                            "avc_spoof_mode", if (!Natives.isAvcSpoofEnabled()) 1 else 0
+                        )
+                    )
+                }
+                DropdownItem(
+                    icon = Icons.AutoMirrored.Filled.Article,
+                    title = stringResource(id = R.string.settings_enable_avc_spoof),
+                    summary = stringResource(id = R.string.settings_enable_avc_spoof_summary),
+                    items = modeItems,
+                    selectedIndex = avcSpoofMode,
+                ) { index ->
+                    when (index) {
+                        // Default: enable and save to persist
+                        0 -> if (Natives.setAvcSpoofEnabled(true)) {
+                            execKsud("feature save", true)
+                            prefs.edit { putInt("avc_spoof_mode", 0) }
+                            avcSpoofMode = 0
+                        }
+
+                        // Temporarily disable: save enabled state first, then disable
+                        1 -> if (Natives.setAvcSpoofEnabled(true)) {
+                            execKsud("feature save", true)
+                            if (Natives.setAvcSpoofEnabled(false)) {
+                                prefs.edit { putInt("avc_spoof_mode", 1) }
+                                avcSpoofMode = 1
+                            }
+                        }
+
+                        // Permanently disable: disable and save
+                        2 -> if (Natives.setAvcSpoofEnabled(false)) {
+                            execKsud("feature save", true)
+                            prefs.edit { putInt("avc_spoof_mode", 2) }
+                            avcSpoofMode = 2
                         }
                     }
                 }
