@@ -60,6 +60,7 @@ class SuperUserViewModel : ViewModel() {
         val label: String,
         val packageInfo: PackageInfo,
         val profile: Natives.Profile?,
+        val shouldUmount: Boolean,
     ) : Parcelable {
         val packageName: String
             get() = packageInfo.packageName
@@ -101,9 +102,7 @@ class SuperUserViewModel : ViewModel() {
                 else -> 2
             }
         }.then(compareBy(Collator.getInstance(Locale.getDefault()), AppInfo::label))
-        apps.sortedWith(comparator).also {
-            isRefreshing = false
-        }
+        apps.sortedWith(comparator)
     }
 
     val appList by derivedStateOf {
@@ -153,7 +152,6 @@ class SuperUserViewModel : ViewModel() {
     }
 
     suspend fun fetchAppList() {
-
         isRefreshing = true
 
         val result = connectKsuService {
@@ -166,11 +164,6 @@ class SuperUserViewModel : ViewModel() {
 
             val binder = result.first
             val allPackages = IKsuInterface.Stub.asInterface(binder).getPackages(0)
-
-            withContext(Dispatchers.Main) {
-                stopKsuService()
-            }
-
             val packages = allPackages.list
 
             val newApps = packages.map {
@@ -181,6 +174,7 @@ class SuperUserViewModel : ViewModel() {
                     label = appInfo.loadLabel(pm).toString(),
                     packageInfo = it,
                     profile = profile,
+                    shouldUmount = Natives.uidShouldUmount(uid),
                 )
             }.filter { it.packageName != ksuApp.packageName }
                 .filter {
@@ -194,6 +188,12 @@ class SuperUserViewModel : ViewModel() {
             }
 
             Log.i(TAG, "load cost: ${SystemClock.elapsedRealtime() - start}")
+
+            withContext(Dispatchers.Main) {
+                stopKsuService()
+            }
         }
+        
+        isRefreshing = false
     }
 }
