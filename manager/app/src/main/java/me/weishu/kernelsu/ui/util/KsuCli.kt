@@ -466,3 +466,12 @@ fun restartApp(packageName: String) {
     forceStopApp(packageName)
     launchApp(packageName)
 }
+
+fun checkFileExist(path: String): Boolean {
+    return Shell.cmd("test -f $path").exec().isSuccess
+}
+
+fun toggleFileState(path: String): Boolean {
+    val command = if (checkFileExist(path)) "rm -f" else "touch"
+    return Shell.cmd("$command $path").exec().isSuccess
+}
