@@ -43,6 +43,10 @@ jobs:
 
   build-manager:
     needs: build-ksud
+    strategy:
+      matrix:
+        custom_package: [false, true]
+      fail-fast: false
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -54,14 +58,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup need_upload
-        id: need_upload
-        run: |
-          if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
-            echo "UPLOAD=true" >> $GITHUB_OUTPUT
-          else
-            echo "UPLOAD=false" >> $GITHUB_OUTPUT
-          fi
+      - name: Custom packageName
+        if: ${{ matrix.custom_package }}
+        run: bash custom.sh
 
       - name: Write key
         if: ${{ github.event_name != 'pull_request' || github.ref_type == 'tag' }}
@@ -110,19 +109,48 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean assembleRelease
 
+      - name: Set artifact suffix
+        run: echo "SURFFIX=${{ matrix.custom_package && '-custom' || '' }}" >> $GITHUB_ENV
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v5
         if: ${{ github.event_name != 'pull_request' || github.ref_type == 'tag' }}
         with:
-          name: manager
+          name: "manager${{ env.SURFFIX }}"
           path: manager/app/build/outputs/apk/release/*.apk
 
       - name: Upload mappings
         uses: actions/upload-artifact@v5
         if: ${{ github.event_name != 'pull_request' || github.ref_type == 'tag' }}
         with:
-          name: "mappings"
+          name: "mappings${{ env.SURFFIX }}"
           path: "manager/app/build/outputs/mapping/release/"
+
+  telegram-upload:
+    needs: build-manager
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup need_upload
+        id: need_upload
+        run: |
+          if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
+            echo "UPLOAD=true" >> $GITHUB_OUTPUT
+          else
+            echo "UPLOAD=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v6
+        with:
+          path: apks
+
+      - name: List files
+        run: ls -R apks
 
       - name: Bot session cache
         if: github.event_name != 'pull_request' && steps.need_upload.outputs.UPLOAD == 'true'
@@ -145,7 +173,7 @@ jobs:
         run: |
           if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
             export VERSION=$(git rev-list --count HEAD)
-            APK=$(find ./app/build/outputs/apk/release -name "*.apk")
+            APKS=$(find apks -name "*.apk" | tr '\n' ' ')
             pip3 install telethon
-            python3 $GITHUB_WORKSPACE/scripts/ksubot.py $APK
+            python3 $GITHUB_WORKSPACE/scripts/ksubot.py $APKS
           fi
