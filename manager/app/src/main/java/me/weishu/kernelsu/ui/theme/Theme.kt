@@ -2,7 +2,9 @@ package me.weishu.kernelsu.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -11,17 +13,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = YELLOW,
-    secondary = YELLOW_DARK,
-    tertiary = SECONDARY_DARK
+//    primary = YELLOW,
+//    secondary = YELLOW_DARK,
+//    tertiary = SECONDARY_DARK
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = YELLOW,
-    secondary = YELLOW_LIGHT,
-    tertiary = SECONDARY_LIGHT
+//    primary = YELLOW,
+//    secondary = YELLOW_LIGHT,
+//    tertiary = SECONDARY_LIGHT
 )
 
+@ExperimentalMaterial3ExpressiveApi
 @Composable
 fun KernelSUTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -38,9 +41,10 @@ fun KernelSUTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(
+    MaterialExpressiveTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        motionScheme = MotionScheme.expressive(),
         content = content
     )
 }
