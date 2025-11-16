@@ -89,12 +89,12 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     stringResource(id = R.string.grant_root_failed)
                 )
             }
-            val checkUpdate =
-                LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
-                    .getBoolean("check_update", true)
-            if (checkUpdate) {
-                UpdateCard()
-            }
+//            val checkUpdate =
+//                LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
+//                    .getBoolean("check_update", true)
+//            if (checkUpdate) {
+//                UpdateCard()
+//            }
             InfoCard()
             DonateCard()
             LearnMoreCard()

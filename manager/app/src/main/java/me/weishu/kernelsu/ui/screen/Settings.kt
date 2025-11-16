@@ -151,20 +151,20 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 }
             }
 
-            var checkUpdate by rememberSaveable {
-                mutableStateOf(
-                    prefs.getBoolean("check_update", true)
-                )
-            }
-            SwitchItem(
-                icon = Icons.Filled.Update,
-                title = stringResource(id = R.string.settings_check_update),
-                summary = stringResource(id = R.string.settings_check_update_summary),
-                checked = checkUpdate
-            ) {
-                prefs.edit { putBoolean("check_update", it) }
-                checkUpdate = it
-            }
+            // var checkUpdate by rememberSaveable {
+            //     mutableStateOf(
+            //         prefs.getBoolean("check_update", true)
+            //     )
+            // }
+            // SwitchItem(
+            //     icon = Icons.Filled.Update,
+            //     title = stringResource(id = R.string.settings_check_update),
+            //     summary = stringResource(id = R.string.settings_check_update_summary),
+            //     checked = checkUpdate
+            // ) {
+            //     prefs.edit { putBoolean("check_update", it) }
+            //     checkUpdate = it
+            // }
 
             val profileTemplate = stringResource(id = R.string.settings_profile_template)
             KsuIsValid() {
