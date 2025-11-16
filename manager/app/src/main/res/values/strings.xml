@@ -147,6 +147,12 @@
     <string name="settings_disable_kernel_umount_summary">Disable kernel-level umount behavior controlled by KernelSU.</string>
     <string name="settings_enable_enhanced_security">Enable enhanced security</string>
     <string name="settings_enable_enhanced_security_summary">Enable stricter security policies.</string>
+    <string name="settings_enable_nomount">Disable module mounting</string>
+    <string name="settings_enable_nomount_summary">Don\'t mount systemless modules. Reboot required to take effect.</string>
+    <string name="settings_failed_to_update_nomount">Failed to update .nomount</string>
+    <string name="settings_enable_notmpfs">Disable tmpfs mounting</string>
+    <string name="settings_enable_notmpfs_summary">Don\'t mount tmpfs. Reboot required to take effect.</string>
+    <string name="settings_failed_to_update_notmpfs">Failed to update .notmpfs</string>
     <string name="settings_mode_default">OFF</string>
     <string name="settings_mode_temp_enable">ON</string>
     <string name="settings_mode_always_enable">ALWAYS ON</string>

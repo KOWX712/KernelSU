@@ -1,5 +1,6 @@
 package me.weishu.kernelsu.ui.screen
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -32,6 +33,8 @@ import androidx.compose.material.icons.filled.RemoveModerator
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Update
+import androidx.compose.material.icons.filled.ExtensionOff
+import androidx.compose.material.icons.filled.LayersClear
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,6 +48,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -94,6 +98,8 @@ import me.weishu.kernelsu.ui.component.rememberLoadingDialog
 import me.weishu.kernelsu.ui.util.execKsud
 import me.weishu.kernelsu.ui.util.LocalSnackbarHost
 import me.weishu.kernelsu.ui.util.getBugreportFile
+import me.weishu.kernelsu.ui.util.checkFileExist
+import me.weishu.kernelsu.ui.util.toggleFileState
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import androidx.core.content.edit
@@ -102,6 +108,7 @@ import androidx.core.content.edit
  * @author weishu
  * @date 2023/1/1.
  */
+@SuppressLint("StringFormatInvalid")
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
 @Composable
@@ -324,6 +331,56 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 ) {
                     if (Natives.setDefaultUmountModules(it)) {
                         umountChecked = it
+                    }
+                }
+
+                var noMountEnabled by rememberSaveable { mutableStateOf(false) }
+                val noMountFlag = "/data/adb/ksu/.nomount"
+                LaunchedEffect(Unit) {
+                    withContext(Dispatchers.IO) {
+                        noMountEnabled = checkFileExist(noMountFlag)
+                    }
+                }
+                SwitchItem(
+                    icon = Icons.Filled.ExtensionOff,
+                    title = stringResource(id = R.string.settings_enable_nomount),
+                    summary = stringResource(id = R.string.settings_enable_nomount_summary),
+                    checked = noMountEnabled
+                ) { checked ->
+                    scope.launch(Dispatchers.IO) {
+                        val result = toggleFileState(noMountFlag)
+                        if (result) {
+                            noMountEnabled = checked
+                        } else {
+                            withContext(Dispatchers.Main) {
+                                snackBarHost.showSnackbar(context.getString(R.string.settings_failed_to_update_nomount))
+                            }
+                        }
+                    }
+                }
+
+                var noTmpfsEnabled by rememberSaveable { mutableStateOf(false) }
+                val noTmpfsFlag = "/data/adb/ksu/.notmpfs"
+                LaunchedEffect(Unit) {
+                    withContext(Dispatchers.IO) {
+                        noTmpfsEnabled = checkFileExist(noTmpfsFlag)
+                    }
+                }
+                SwitchItem(
+                    icon = Icons.Filled.LayersClear,
+                    title = stringResource(id = R.string.settings_enable_notmpfs),
+                    summary = stringResource(id = R.string.settings_enable_notmpfs_summary),
+                    checked = noTmpfsEnabled
+                ) { checked ->
+                    scope.launch(Dispatchers.IO) {
+                        val result = toggleFileState(noTmpfsFlag)
+                        if (result) {
+                            noTmpfsEnabled = checked
+                        } else {
+                            withContext(Dispatchers.Main) {
+                                snackBarHost.showSnackbar(context.getString(R.string.settings_failed_to_update_notmpfs))
+                            }
+                        }
                     }
                 }
                 
