@@ -113,7 +113,6 @@ class ModuleViewModel : ViewModel() {
                     emptyList()
                 }
             }
-
             withContext(Dispatchers.Main) {
                 modules = parsedModules
                 isNeedRefresh = false
