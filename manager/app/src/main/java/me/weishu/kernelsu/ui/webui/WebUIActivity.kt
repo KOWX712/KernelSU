@@ -80,7 +80,11 @@ class WebUIActivity : ComponentActivity() {
             }
         }
 
+        val viewModel by viewModels<SuperUserViewModel>()
         lifecycleScope.launch {
+            if (viewModel.appList.isEmpty()) {
+                viewModel.fetchAppList()
+            }
             SuperUserViewModel.isAppListLoaded.first { it }
             setupWebView()
         }
