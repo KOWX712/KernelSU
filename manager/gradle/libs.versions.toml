@@ -9,16 +9,15 @@ activity-compose = "1.11.0"
 kotlinx-coroutines = "1.10.2"
 coil-compose = "2.7.0"
 compose-destination = "2.3.0"
+sheets-compose-dialogs = "1.3.0"
 markdown = "4.6.2"
 webkit = "1.14.0"
+appiconloader-coil = "1.5.0"
 parcelablelist = "2.0.1"
 ndk = "29.0.13599879-beta2"
 libsu = "6.0.0"
 apksign = "1.4"
 cmaker = "1.2"
-miuix = "0.6.1"
-haze = "1.7.0"
-capsule = "2.1.1"
 
 [plugins]
 agp-app = { id = "com.android.application", version.ref = "agp" }
@@ -39,6 +38,8 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-compose-material = { group = "androidx.compose.material", name = "material" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
@@ -60,15 +61,14 @@ io-coil-kt-coil-compose = { group = "io.coil-kt", name = "coil-compose", version
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 
+me-zhanghai-android-appiconloader-coil = { group = "me.zhanghai.android.appiconloader", name = "appiconloader-coil", version.ref = "appiconloader-coil" }
+
 compose-destinations-core = { group = "io.github.raamcosta.compose-destinations", name = "core", version.ref = "compose-destination" }
 compose-destinations-ksp = { group = "io.github.raamcosta.compose-destinations", name = "ksp", version.ref = "compose-destination" }
 
 markdown = { group = "io.noties.markwon", name = "core", version.ref = "markdown" }
+sheet-compose-dialogs-core = { group = "com.maxkeppeler.sheets-compose-dialogs", name = "core", version.ref = "sheets-compose-dialogs" }
+sheet-compose-dialogs-list = { group = "com.maxkeppeler.sheets-compose-dialogs", name = "list", version.ref = "sheets-compose-dialogs" }
+sheet-compose-dialogs-input = { group = "com.maxkeppeler.sheets-compose-dialogs", name = "input", version.ref = "sheets-compose-dialogs" }
 
 lsposed-cxx = { module = "org.lsposed.libcxx:libcxx", version.ref = "ndk" }
-
-miuix = { module = "top.yukonga.miuix.kmp:miuix-android", version.ref = "miuix" }
-
-haze = { module = "dev.chrisbanes.haze:haze-android", version.ref = "haze" }
-
-capsule = { module = "io.github.kyant0:capsule", version.ref = "capsule" }
