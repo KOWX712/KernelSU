@@ -2,8 +2,13 @@ package me.weishu.kernelsu
 
 import android.app.Application
 import android.system.Os
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import me.weishu.kernelsu.ui.viewmodel.SuperUserViewModel
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import java.io.File
@@ -37,6 +42,12 @@ class KernelSUApplication : Application(), ViewModelStoreOwner {
                             .header("Accept-Language", Locale.getDefault().toLanguageTag()).build()
                     )
                 }.build()
+
+        // Preload app list on app launch
+        CoroutineScope(Dispatchers.Main).launch {
+            val viewModel = ViewModelProvider(this@KernelSUApplication)[SuperUserViewModel::class.java]
+            viewModel.fetchAppList(isPreload = true)
+        }
     }
 
     override val viewModelStore: ViewModelStore
