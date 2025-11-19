@@ -112,6 +112,8 @@ fun InstallScreen(navigator: DestinationsNavigator) {
     var partitionSelectionIndex by remember { mutableIntStateOf(0) }
     var partitionsState by remember { mutableStateOf<List<String>>(emptyList()) }
     var hasCustomSelected by remember { mutableStateOf(false) }
+    var allowShell by remember { mutableStateOf(false) }
+    var enableAdb by remember { mutableStateOf(false) }
 
     val onInstall = {
         installMethod?.let { method ->
@@ -121,7 +123,9 @@ fun InstallScreen(navigator: DestinationsNavigator) {
                 boot = if (method is InstallMethod.SelectFile) method.uri else null,
                 lkm = lkmSelection,
                 ota = isOta,
-                partition = partitionSelection
+                partition = partitionSelection,
+                allowShell = allowShell,
+                enableAdb = enableAdb,
             )
             navigator.navigate(FlashScreenDestination(flashIt)) {
                 launchSingleTop = true
@@ -280,6 +284,22 @@ fun InstallScreen(navigator: DestinationsNavigator) {
                                 modifier = Modifier.padding(end = 16.dp),
                                 contentDescription = null
                             )
+                        }
+                    )
+                    SuperCheckbox(
+                        title = stringResource(id = R.string.allow_shell),
+                        checked = allowShell,
+                        summary = stringResource(id = R.string.allow_shell_summary),
+                        onCheckedChange = {
+                            allowShell = it
+                        }
+                    )
+                    SuperCheckbox(
+                        title = stringResource(id = R.string.enable_adb),
+                        checked = enableAdb,
+                        summary = stringResource(id = R.string.enable_adb_summary),
+                        onCheckedChange = {
+                            enableAdb = it
                         }
                     )
                 }
