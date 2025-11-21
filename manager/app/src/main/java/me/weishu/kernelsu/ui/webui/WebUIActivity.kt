@@ -14,6 +14,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.view.ViewCompat
@@ -27,7 +28,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import me.weishu.kernelsu.ui.util.createRootShell
 import me.weishu.kernelsu.ui.viewmodel.SuperUserViewModel
-import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import java.io.File
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -53,14 +53,16 @@ class WebUIActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                InfiniteProgressIndicator()
+                CircularProgressIndicator()
             }
         }
 
         val superUserViewModel = ViewModelProvider(this)[SuperUserViewModel::class.java]
 
         lifecycleScope.launch {
-            superUserViewModel.fetchAppList()
+            if (superUserViewModel.isAppListEmpty) {
+                superUserViewModel.fetchAppList()
+            }
             setupWebView()
         }
     }
