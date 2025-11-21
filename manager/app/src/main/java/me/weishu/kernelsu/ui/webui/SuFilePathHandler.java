@@ -1,6 +1,7 @@
 package me.weishu.kernelsu.ui.webui;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
 import android.webkit.WebResourceResponse;
 
@@ -16,8 +17,11 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
+
+import me.weishu.kernelsu.ui.webui.MonetColorsProvider;
 
 /**
  * Handler class to open files from file system by root access
@@ -61,6 +65,7 @@ public final class SuFilePathHandler implements WebViewAssetLoader.PathHandler {
 
     private final Shell mShell;
     private final InsetsSupplier mInsetsSupplier;
+    private final Context mContext;
 
     public interface InsetsSupplier {
         @NonNull
@@ -93,6 +98,7 @@ public final class SuFilePathHandler implements WebViewAssetLoader.PathHandler {
      */
     public SuFilePathHandler(@NonNull Context context, @NonNull File directory, Shell rootShell, @NonNull InsetsSupplier insetsSupplier) {
         try {
+            mContext = context;
             mInsetsSupplier = insetsSupplier;
             mDirectory = new File(getCanonicalDirPath(directory));
             if (!isAllowedInternalStorageDir(context)) {
@@ -148,6 +154,16 @@ public final class SuFilePathHandler implements WebViewAssetLoader.PathHandler {
                     "utf-8",
                     new ByteArrayInputStream(css.getBytes(StandardCharsets.UTF_8))
             );
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if ("internal/colors.css".equals(path)) {
+                String css = MonetColorsProvider.INSTANCE.getColorsCss(mContext);
+                return new WebResourceResponse(
+                        "text/css",
+                        "utf-8",
+                        new ByteArrayInputStream(css.getBytes(StandardCharsets.UTF_8))
+                );
+            }
         }
         try {
             File file = getCanonicalFileIfChild(mDirectory, path);
