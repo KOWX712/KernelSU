@@ -154,12 +154,16 @@ class SuperUserViewModel : ViewModel() {
         RootService.stop(intent)
     }
 
-    suspend fun fetchAppList() {
+    suspend fun fetchAppList(isPreload: Boolean = false) {
         Mutex().withLock {
-            withContext(Dispatchers.Main) { isRefreshing = true }
+            if (!isPreload) {
+                withContext(Dispatchers.Main) { isRefreshing = true }
+            }
 
-            val result = connectKsuService {
-                Log.w(TAG, "KsuService disconnected")
+            val result = withContext(Dispatchers.Main) {
+                connectKsuService {
+                    Log.w(TAG, "KsuService disconnected")
+                }
             }
 
             val allPackagesSlice = withContext(Dispatchers.IO) {
@@ -171,11 +175,17 @@ class SuperUserViewModel : ViewModel() {
                 val slice = try {
                     iface.getPackages(0)
                 } catch (_: DeadObjectException) {
-                    val retry = connectKsuService { Log.w(TAG, "KsuService disconnected") }
-                    IKsuInterface.Stub.asInterface(retry.first).getPackages(0)
+                    withContext(Dispatchers.Main) {
+                        connectKsuService { Log.w(TAG, "KsuService disconnected") }
+                    }.let { retryResult ->
+                        IKsuInterface.Stub.asInterface(retryResult.first).getPackages(0)
+                    }
                 } catch (_: RemoteException) {
-                    val retry = connectKsuService { Log.w(TAG, "KsuService disconnected") }
-                    IKsuInterface.Stub.asInterface(retry.first).getPackages(0)
+                    withContext(Dispatchers.Main) {
+                        connectKsuService { Log.w(TAG, "KsuService disconnected") }
+                    }.let { retryResult ->
+                        IKsuInterface.Stub.asInterface(retryResult.first).getPackages(0)
+                    }
                 }
 
                 val packages = slice.list
@@ -194,31 +204,46 @@ class SuperUserViewModel : ViewModel() {
                         if (Build.VERSION.SDK_INT >= 29) !ai.isResourceOverlay else true
                     }
 
-                val comparator = compareBy<AppInfo> {
-                    when {
-                        it.allowSu -> 0
-                        it.hasCustomProfile -> 1
-                        else -> 2
+                val comparator = if (!isPreload) {
+                    compareBy<AppInfo> {
+                        when {
+                            it.allowSu -> 0
+                            it.hasCustomProfile -> 1
+                            else -> 2
+                        }
+                    }.then(compareBy(Collator.getInstance(Locale.getDefault()), AppInfo::label))
+                } else null
+
+                val sortedFiltered = if (!isPreload) {
+                    newApps.sortedWith(comparator!!).filter {
+                        it.uid == 2000
+                                || showSystemApps
+                                || it.allowSu
+                                || it.hasCustomProfile
+                                || it.packageInfo.applicationInfo!!.flags.and(ApplicationInfo.FLAG_SYSTEM) == 0
                     }
-                }.then(compareBy(Collator.getInstance(Locale.getDefault()), AppInfo::label))
-                val sortedFiltered = newApps.sortedWith(comparator).filter {
-                    it.uid == 2000
-                            || showSystemApps
-                            || it.allowSu
-                            || it.hasCustomProfile
-                            || it.packageInfo.applicationInfo!!.flags.and(ApplicationInfo.FLAG_SYSTEM) == 0
+                } else null
+
+                Log.i(TAG, "${if (isPreload) "preload" else ""} load cost: ${SystemClock.elapsedRealtime() - start}")
+
+                if (isPreload) newApps else Pair(newApps, sortedFiltered)
+            }
+
+            synchronized(appsLock) {
+                if (isPreload) {
+                    apps = allPackagesSlice as List<AppInfo>
+                } else {
+                    apps = (allPackagesSlice as Pair<*, *>).first as List<AppInfo>
                 }
+            }
 
-                Log.i(TAG, "load cost: ${SystemClock.elapsedRealtime() - start}")
-
-                Pair(newApps, sortedFiltered)
+            if (!isPreload) {
+                withContext(Dispatchers.Main) {
+                    isRefreshing = false
+                }
             }
 
             withContext(Dispatchers.Main) {
-                synchronized(appsLock) {
-                    apps = allPackagesSlice.first
-                }
-                isRefreshing = false
                 stopKsuService()
             }
         }

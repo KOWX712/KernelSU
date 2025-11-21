@@ -57,6 +57,14 @@ class KernelSUApplication : Application(), ViewModelStoreOwner {
                             .header("Accept-Language", Locale.getDefault().toLanguageTag()).build()
                     )
                 }.build()
+
+        // Preload app list on app launch
+        CoroutineScope(Dispatchers.Main).launch {
+            val viewModel = ViewModelProvider(this@KernelSUApplication)[SuperUserViewModel::class.java]
+            if (viewModel.isAppListEmpty) {
+                viewModel.fetchAppList(isPreload = true)
+            }
+        }
     }
 
     override val viewModelStore: ViewModelStore
