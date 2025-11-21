@@ -209,12 +209,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
         floatingActionButton = {
             if (!hideInstallButton) {
                 val moduleInstall = stringResource(id = R.string.module_install)
-                val confirmTitle = stringResource(R.string.module)
-                var zipUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
-                val confirmDialog = rememberConfirmDialog(onConfirm = {
-                    navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(zipUris)))
-                    viewModel.markNeedRefresh()
-                })
                 val selectZipLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.StartActivityForResult()
                 ) {
@@ -233,19 +227,8 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                         data.data?.let { uris.add(it) }
                     }
 
-                    if (uris.size == 1) {
-                        navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(listOf(uris.first()))))
-                    } else if (uris.size > 1)  {
-                        // multiple files selected
-                        val moduleNames = uris.mapIndexed { index, uri -> "\n${index + 1}. ${uri.getFileName(context)}" }.joinToString("")
-                        val confirmContent = context.getString(R.string.module_install_prompt_with_name, moduleNames)
-                        zipUris = uris
-                        confirmDialog.showConfirm(
-                            title = confirmTitle,
-                            content = confirmContent,
-                            markdown = true
-                        )
-                    }
+                    navigator.navigate(FlashScreenDestination(flashIt = FlashIt.FlashModules(uris), skipConfirmation = uris.size == 1))
+                    viewModel.markNeedRefresh()
                 }
 
                 ExtendedFloatingActionButton(
@@ -288,7 +271,8 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                     boxModifier = Modifier.padding(innerPadding),
                     onInstallModule = {
-                        navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(listOf(it))))
+                        navigator.navigate(FlashScreenDestination(flashIt = FlashIt.FlashModules(listOf(it)), skipConfirmation = true))
+                        viewModel.markNeedRefresh()
                     },
                     onClickModule = { id, name, hasWebUi ->
                         if (hasWebUi) {
