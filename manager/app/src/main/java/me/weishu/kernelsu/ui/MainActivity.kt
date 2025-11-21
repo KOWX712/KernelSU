@@ -22,7 +22,9 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -36,7 +38,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -56,6 +57,7 @@ import me.weishu.kernelsu.ui.screen.FlashIt
 
 class MainActivity : ComponentActivity() {
 
+    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         // Enable edge to edge
@@ -167,7 +169,7 @@ private fun BottomBar(navController: NavHostController) {
     val isManager = Natives.isManager
     val fullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
     NavigationBar(
-        tonalElevation = 8.dp,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         windowInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout).only(
             WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
         )

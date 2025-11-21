@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -27,8 +28,8 @@ import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,7 +55,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.PackageInfoCompat
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
+import com.ramcosta.composedestinations.generated.NavGraphs
 import com.ramcosta.composedestinations.generated.destinations.InstallScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.ModuleScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.SuperUserScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -103,10 +107,33 @@ fun HomeScreen(navigator: DestinationsNavigator) {
             val lkmMode = ksuVersion?.let {
                 if (kernelVersion.isGKI()) Natives.isLkmMode else null
             }
+            val fullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
 
-            StatusCard(kernelVersion, ksuVersion, lkmMode) {
-                navigator.navigate(InstallScreenDestination)
-            }
+            StatusCard(
+                kernelVersion,
+                ksuVersion,
+                lkmMode,
+                fullFeatured,
+                onClickInstall = { navigator.navigate(InstallScreenDestination) },
+                onClickSuperuser = {
+                    navigator.navigate(SuperUserScreenDestination) {
+                        popUpTo(NavGraphs.root) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onclickModule = {
+                    navigator.navigate(ModuleScreenDestination) {
+                        popUpTo(NavGraphs.root) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            )
             if (isManager && Natives.requireNewKernel()) {
                 WarningCard(
                     stringResource(id = R.string.require_kernel_version).format(
@@ -214,98 +241,148 @@ private fun StatusCard(
     kernelVersion: KernelVersion,
     ksuVersion: Int?,
     lkmMode: Boolean?,
-    onClickInstall: () -> Unit = {}
+    fullFeatured: Boolean?,
+    onClickInstall: () -> Unit = {},
+    onClickSuperuser: () -> Unit = {},
+    onclickModule: () -> Unit = {},
 ) {
-    ElevatedCard(
-        colors = CardDefaults.elevatedCardColors(containerColor = run {
-            if (ksuVersion != null) MaterialTheme.colorScheme.secondaryContainer
-            else MaterialTheme.colorScheme.errorContainer
-        })
-    ) {
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                if (kernelVersion.isGKI()) {
-                    onClickInstall()
-                }
-            }
-            .padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
-            when {
-                ksuVersion != null -> {
-                    val safeMode = when {
-                        Natives.isSafeMode -> stringResource(id = R.string.safe_mode)
-                        else -> ""
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp),) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = run {
+                if (ksuVersion != null) MaterialTheme.colorScheme.secondaryContainer
+                else MaterialTheme.colorScheme.errorContainer
+            })
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        if (kernelVersion.isGKI()) {
+                            onClickInstall()
+                        }
                     }
+                    .padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+                when {
+                    ksuVersion != null -> {
+                        val safeMode = when {
+                            Natives.isSafeMode -> stringResource(id = R.string.safe_mode)
+                            else -> ""
+                        }
 
-                    val workingMode = when (lkmMode) {
-                        null -> ""
-                        true -> "LKM"
-                        else -> "GKI"
-                    }
+                        val workingMode = when (lkmMode) {
+                            null -> "LEGACY"
+                            true -> "LKM"
+                            else -> "GKI"
+                        }
 
-                    val workingText = stringResource(id = R.string.home_working)
+                        val workingText = stringResource(id = R.string.home_working)
 
-                    Icon(Icons.Outlined.CheckCircle, stringResource(R.string.home_working))
-                    Column(Modifier.padding(start = 20.dp)) {
-                        Row {
+                        Icon(Icons.Outlined.CheckCircle, stringResource(R.string.home_working))
+                        Column(Modifier.padding(start = 20.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = workingText,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                if (workingMode.isNotEmpty()) {
+                                    Spacer(Modifier.width(8.dp))
+                                    LabelText(label = workingMode)
+                                }
+                                if (safeMode.isNotEmpty()) {
+                                    Spacer(Modifier.width(8.dp))
+                                    LabelText(
+                                        label = safeMode,
+                                        textColor = MaterialTheme.colorScheme.onErrorContainer,
+                                        backgroundColor = MaterialTheme.colorScheme.errorContainer
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(4.dp))
                             Text(
-                                text = workingText,
+                                text = stringResource(R.string.home_working_version, ksuVersion),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+
+                    kernelVersion.isGKI() -> {
+                        Icon(Icons.Outlined.Warning, stringResource(R.string.home_not_installed))
+                        Column(Modifier.padding(start = 20.dp)) {
+                            Text(
+                                text = stringResource(R.string.home_not_installed),
                                 style = MaterialTheme.typography.titleMedium
                             )
-                            if (workingMode.isNotEmpty()) {
-                                Spacer(Modifier.width(8.dp))
-                                LabelText(label = workingMode)
-                            }
-                            if (safeMode.isNotEmpty()) {
-                                Spacer(Modifier.width(8.dp))
-                                LabelText(label = safeMode, textColor = MaterialTheme.colorScheme.onErrorContainer, backgroundColor = MaterialTheme.colorScheme.errorContainer)
-                            }
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.home_click_to_install),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
-                        Spacer(Modifier.height(4.dp))
+                    }
+
+                    else -> {
+                        Icon(Icons.Outlined.Block, stringResource(R.string.home_unsupported))
+                        Column(Modifier.padding(start = 20.dp)) {
+                            Text(
+                                text = stringResource(R.string.home_unsupported),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.home_unsupported_reason),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        if (fullFeatured == true) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Card(
+                    modifier = Modifier.weight(1f),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onClickSuperuser() }
+                            .padding(all = 24.dp)
+                    ) {
                         Text(
-                            text = stringResource(R.string.home_working_version, ksuVersion),
-                            style = MaterialTheme.typography.bodyMedium
+                            text = stringResource(R.string.superuser),
+                            style = MaterialTheme.typography.bodyLarge
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = stringResource(
-                                R.string.home_superuser_count, getSuperuserCount()
-                            ), style = MaterialTheme.typography.bodyMedium
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.home_module_count, getModuleCount()),
-                            style = MaterialTheme.typography.bodyMedium
+                            text = getSuperuserCount().toString(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.outline
                         )
                     }
                 }
-
-                kernelVersion.isGKI() -> {
-                    Icon(Icons.Outlined.Warning, stringResource(R.string.home_not_installed))
-                    Column(Modifier.padding(start = 20.dp)) {
+                Card(
+                    modifier = Modifier.weight(1f),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onclickModule() }
+                            .padding(all = 24.dp)
+                    ) {
                         Text(
-                            text = stringResource(R.string.home_not_installed),
-                            style = MaterialTheme.typography.titleMedium
+                            text = stringResource(R.string.module),
+                            style = MaterialTheme.typography.bodyLarge
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = stringResource(R.string.home_click_to_install),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-
-                else -> {
-                    Icon(Icons.Outlined.Block, stringResource(R.string.home_unsupported))
-                    Column(Modifier.padding(start = 20.dp)) {
-                        Text(
-                            text = stringResource(R.string.home_unsupported),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.home_unsupported_reason),
-                            style = MaterialTheme.typography.bodyMedium
+                            text = getModuleCount().toString(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.outline
                         )
                     }
                 }
@@ -318,8 +395,8 @@ private fun StatusCard(
 fun WarningCard(
     message: String, color: Color = MaterialTheme.colorScheme.error, onClick: (() -> Unit)? = null
 ) {
-    ElevatedCard(
-        colors = CardDefaults.elevatedCardColors(
+    Card(
+        colors = CardDefaults.cardColors(
             containerColor = color
         )
     ) {
@@ -341,7 +418,7 @@ fun LearnMoreCard() {
     val uriHandler = LocalUriHandler.current
     val url = stringResource(R.string.home_learn_kernelsu_url)
 
-    ElevatedCard {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
 
         Row(modifier = Modifier
             .fillMaxWidth()
@@ -369,7 +446,7 @@ fun LearnMoreCard() {
 fun DonateCard() {
     val uriHandler = LocalUriHandler.current
 
-    ElevatedCard {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
 
         Row(modifier = Modifier
             .fillMaxWidth()
@@ -397,7 +474,7 @@ fun DonateCard() {
 private fun InfoCard() {
     val context = LocalContext.current
 
-    ElevatedCard {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -410,7 +487,11 @@ private fun InfoCard() {
             fun InfoCardItem(label: String, content: String) {
                 contents.appendLine(label).appendLine(content).appendLine()
                 Text(text = label, style = MaterialTheme.typography.bodyLarge)
-                Text(text = content, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
+                Text(
+                    text = content,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.outline
+                )
             }
 
             InfoCardItem(stringResource(R.string.home_kernel), uname.release)
@@ -441,10 +522,10 @@ fun getManagerVersion(context: Context): Pair<String, Long> {
 @Composable
 private fun StatusCardPreview() {
     Column {
-        StatusCard(KernelVersion(5, 10, 101), 1, null)
-        StatusCard(KernelVersion(5, 10, 101), 20000, true)
-        StatusCard(KernelVersion(5, 10, 101), null, true)
-        StatusCard(KernelVersion(4, 10, 101), null, false)
+        StatusCard(KernelVersion(5, 10, 101), 1, null, false)
+        StatusCard(KernelVersion(5, 10, 101), 20000, true, true)
+        StatusCard(KernelVersion(5, 10, 101), null, true, true)
+        StatusCard(KernelVersion(4,10, 101), null, false, false)
     }
 }
 

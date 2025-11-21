@@ -1,8 +1,14 @@
 package me.weishu.kernelsu.ui.screen
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -24,11 +30,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material3.Card
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -47,7 +54,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -55,6 +61,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
@@ -71,6 +80,9 @@ import com.ramcosta.composedestinations.result.ResultBackNavigator
 import kotlinx.coroutines.launch
 import me.weishu.kernelsu.Natives
 import me.weishu.kernelsu.R
+import me.weishu.kernelsu.ui.component.ExpressiveList
+import me.weishu.kernelsu.ui.component.ExpressiveListItem
+import me.weishu.kernelsu.ui.component.ExpressiveSwitchItem
 import me.weishu.kernelsu.ui.component.SwitchItem
 import me.weishu.kernelsu.ui.component.profile.AppProfileConfig
 import me.weishu.kernelsu.ui.component.profile.RootProfileConfig
@@ -281,78 +293,69 @@ private fun AppProfileInner(
                         }
                         mode = it
                     }
-                    Crossfade(targetState = mode, label = "") { currentMode ->
-                        if (currentMode == Mode.Template) {
-                            TemplateConfig(
-                                profile = profile,
-                                onViewTemplate = onViewTemplate,
-                                onManageTemplate = onManageTemplate,
-                                onProfileChange = onProfileChange
-                            )
-                        } else if (mode == Mode.Custom) {
-                            RootProfileConfig(
-                                fixedName = true,
-                                profile = profile,
-                                onProfileChange = onProfileChange
-                            )
-                        }
+                    AnimatedVisibility(
+                        visible = mode == Mode.Template,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) {
+                        TemplateConfig(
+                            profile = profile,
+                            onViewTemplate = onViewTemplate,
+                            onManageTemplate = onManageTemplate,
+                            onProfileChange = onProfileChange
+                        )
+                    }
+                    AnimatedVisibility(
+                        visible = mode == Mode.Custom,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) {
+                        RootProfileConfig(
+                            fixedName = true,
+                            profile = profile,
+                            onProfileChange = onProfileChange
+                        )
                     }
                 } else {
                     val mode = if (profile.nonRootUseDefault) Mode.Default else Mode.Custom
                     ProfileBox(mode, false) {
                         onProfileChange(profile.copy(nonRootUseDefault = (it == Mode.Default)))
                     }
-                    Crossfade(targetState = mode, label = "") { currentMode ->
-                        val modifyEnabled = currentMode == Mode.Custom
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) {
                         AppProfileConfig(
                             fixedName = true,
                             profile = profile,
-                            enabled = modifyEnabled,
+                            enabled = mode == Mode.Custom,
                             onProfileChange = onProfileChange
                         )
                     }
                 }
                 if (isUidGroup) {
-                    Text(
-                        text = stringResource(R.string.app_profile_affects_following_apps),
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp)
-                            .padding(bottom = 12.dp),
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp, vertical = 10.dp)
-                        ) {
-                            affectedApps.forEach { app ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(vertical = 6.dp)
-                                ) {
+                    val appItems = affectedApps.map<SuperUserViewModel.AppInfo, @Composable () -> Unit> { app ->
+                        {
+                            ExpressiveListItem(
+                                headlineContent = { Text(app.label) },
+                                supportingContent = { Text(app.packageName) },
+                                leadingContent = {
                                     AsyncImage(
                                         model = ImageRequest.Builder(context).data(app.packageInfo).crossfade(true).build(),
                                         contentDescription = app.label,
                                         modifier = Modifier
-                                            .padding(4.dp)
                                             .width(36.dp)
                                             .height(36.dp)
                                     )
-                                    Column(
-                                        modifier = Modifier
-                                            .padding(start = 12.dp)
-                                            .weight(1f)
-                                    ) {
-                                        Text(text = app.label)
-                                        Text(text = app.packageName)
-                                    }
                                 }
-                            }
+                            )
                         }
                     }
+                    ExpressiveList(
+                        title = stringResource(R.string.app_profile_affects_following_apps),
+                        content = appItems
+                    )
                 }
             }
         }
@@ -386,6 +389,7 @@ private fun TopBar(
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ProfileBox(
     mode: Mode,
@@ -400,25 +404,34 @@ private fun ProfileBox(
     HorizontalDivider(thickness = Dp.Hairline)
     ListItem(headlineContent = {
         Row(
-            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
         ) {
-            FilterChip(
-                selected = mode == Mode.Default,
-                label = { Text(stringResource(R.string.profile_default)) },
-                onClick = { onModeChange(Mode.Default) },
+            val options = listOf(
+                Mode.Default to stringResource(R.string.profile_default),
+                Mode.Template to stringResource(R.string.profile_template),
+                Mode.Custom to stringResource(R.string.profile_custom),
             )
-            if (hasTemplate) {
-                FilterChip(
-                    selected = mode == Mode.Template,
-                    label = { Text(stringResource(R.string.profile_template)) },
-                    onClick = { onModeChange(Mode.Template) },
-                )
+
+            options.forEachIndexed { index, (m, label) ->
+                ToggleButton(
+                    checked = mode == m,
+                    onCheckedChange = {
+                        if (m != Mode.Template || hasTemplate) onModeChange(m)
+                    },
+                    enabled = if (m == Mode.Template) hasTemplate else true,
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { role = Role.RadioButton },
+                    shapes = when (index) {
+                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    },
+                ) {
+                    Text(label)
+                }
             }
-            FilterChip(
-                selected = mode == Mode.Custom,
-                label = { Text(stringResource(R.string.profile_custom)) },
-                onClick = { onModeChange(Mode.Custom) },
-            )
         }
     })
 }

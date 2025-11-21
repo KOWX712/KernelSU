@@ -8,6 +8,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -40,11 +41,13 @@ import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -59,7 +62,10 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -72,6 +78,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -115,7 +122,7 @@ import me.weishu.kernelsu.ui.webui.WebUIActivity
 import okhttp3.Request
 
 @SuppressLint("StringFormatInvalid")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Destination<RootGraph>
 @Composable
 fun ModuleScreen(navigator: DestinationsNavigator) {
@@ -140,12 +147,30 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
     val hideInstallButton = isSafeMode || magiskInstalled
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    
+    val pullToRefreshState = rememberPullToRefreshState()
 
     val webUILauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { viewModel.fetchModuleList() }
+    
+    val onRefresh: () -> Unit = {
+        scope.launch {
+            viewModel.fetchModuleList()
+        }
+    }
+    
+    val scaleFraction = {
+        if (viewModel.isRefreshing) 1f
+        else LinearOutSlowInEasing.transform(pullToRefreshState.distanceFraction).coerceIn(0f, 1f)
+    }
 
     Scaffold(
+        modifier = Modifier.pullToRefresh(
+            state = pullToRefreshState,
+            isRefreshing = viewModel.isRefreshing,
+            onRefresh = onRefresh,
+        ),
         topBar = {
             SearchAppBar(
                 title = { Text(stringResource(R.string.module)) },
@@ -287,14 +312,17 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                         }
                     },
                     context = context,
-                    snackBarHost = snackBarHost
+                    snackBarHost = snackBarHost,
+                    pullToRefreshState = pullToRefreshState,
+                    isRefreshing = viewModel.isRefreshing,
+                    scaleFraction = scaleFraction()
                 )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ModuleList(
     navigator: DestinationsNavigator,
@@ -304,7 +332,10 @@ private fun ModuleList(
     onInstallModule: (Uri) -> Unit,
     onClickModule: (id: String, name: String, hasWebUi: Boolean) -> Unit,
     context: Context,
-    snackBarHost: SnackbarHostState
+    snackBarHost: SnackbarHostState,
+    pullToRefreshState: PullToRefreshState,
+    isRefreshing: Boolean,
+    scaleFraction: Float
 ) {
     val failedEnable = stringResource(R.string.module_failed_to_enable)
     val failedDisable = stringResource(R.string.module_failed_to_disable)
@@ -437,13 +468,7 @@ private fun ModuleList(
             reboot()
         }
     }
-    PullToRefreshBox(
-        modifier = boxModifier,
-        onRefresh = {
-            viewModel.fetchModuleList()
-        },
-        isRefreshing = viewModel.isRefreshing
-    ) {
+    Box(modifier = boxModifier) {
         LazyColumn(
             modifier = modifier,
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -530,9 +555,15 @@ private fun ModuleList(
                 }
             }
         }
-
+        Box(
+            modifier = Modifier.align(Alignment.TopCenter).graphicsLayer {
+                scaleX = scaleFraction
+                scaleY = scaleFraction
+            }
+        ) {
+            PullToRefreshDefaults.LoadingIndicator(state = pullToRefreshState, isRefreshing = isRefreshing)
+        }
         DownloadListener(context, onInstallModule)
-
     }
 }
 
@@ -546,8 +577,9 @@ fun ModuleItem(
     onUpdate: (ModuleViewModel.ModuleInfo) -> Unit,
     onClick: (ModuleViewModel.ModuleInfo) -> Unit
 ) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth()
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
         val textDecoration = if (!module.remove) null else TextDecoration.LineThrough
         val interactionSource = remember { MutableInteractionSource() }
