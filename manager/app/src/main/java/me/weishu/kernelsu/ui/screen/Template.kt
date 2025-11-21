@@ -194,7 +194,7 @@ private fun TemplateItem(
                     style = MaterialTheme.typography.bodySmall,
                     fontSize = MaterialTheme.typography.bodySmall.fontSize,
                 )
-                Text(template.description)
+                Text(template.description, color = MaterialTheme.colorScheme.outline)
                 FlowRow {
                     LabelText(label = "UID: ${template.uid}")
                     LabelText(label = "GID: ${template.gid}")
