@@ -6,6 +6,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -51,13 +52,15 @@ class ModuleViewModel : ViewModel() {
 
     var isRefreshing by mutableStateOf(false)
         private set
-    var search by mutableStateOf("")
+    var search by mutableStateOf(TextFieldValue(""))
 
     var sortEnabledFirst by mutableStateOf(false)
     var sortActionFirst by mutableStateOf(false)
     val moduleList by derivedStateOf {
+        val search = search.text
         val comparator = moduleComparator()
         modules.filter {
+            search.isEmpty() ||
             it.id.contains(search, true) || it.name.contains(search, true) || HanziToPinyin.getInstance()
                 .toPinyinString(it.name).contains(search, true)
         }.sortedWith(comparator).also {
@@ -91,7 +94,7 @@ class ModuleViewModel : ViewModel() {
             },
             { if (sortEnabledFirst) !it.enabled else 0 },
             { if (sortActionFirst) !(it.hasWebUi || it.hasActionScript) else 0 },
-        ).thenBy(Collator.getInstance(Locale.getDefault()), ModuleInfo::id)
+        ).thenBy(Collator.getInstance(Locale.getDefault()), ModuleInfo::name)
     }
 
     fun fetchModuleList() {
@@ -155,7 +158,7 @@ class ModuleViewModel : ViewModel() {
 
     fun checkUpdate(m: ModuleInfo): Triple<String, String, String> {
         val empty = Triple("", "", "")
-        if (m.updateJson.isEmpty() || m.remove || m.update || !m.enabled) {
+        if (m.updateJson.isEmpty() || m.remove || !m.enabled) {
             return empty
         }
         // download updateJson

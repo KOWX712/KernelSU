@@ -20,7 +20,7 @@ enum class BottomBarDestination(
     val rootRequired: Boolean,
 ) {
     Home(HomeScreenDestination, R.string.home, Icons.Filled.Home, Icons.Outlined.Home, false),
-    SuperUser(SuperUserScreenDestination, R.string.superuser, Icons.Filled.Security, Icons.Outlined.Security, true),
-    Module(ModuleScreenDestination, R.string.module, Icons.Filled.Apps, Icons.Outlined.Apps, true),
+    SuperUser(SuperUserScreenDestination, R.string.superuser, Icons.Filled.Shield, Icons.Outlined.Shield, true),
+    Module(ModuleScreenDestination, R.string.module, Icons.Filled.Extension, Icons.Outlined.Extension, true),
     Settings(SettingScreenDestination, R.string.settings, Icons.Filled.Settings, Icons.Outlined.Settings, false)
 }
