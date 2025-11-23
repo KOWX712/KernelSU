@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="settings_use_official_app_name">使用原版应用名</string>
+    <string name="settings_use_official_app_name_summary">在主页显示 KernelSU 替代 KowSU.</string>
     <string name="home">主页</string>
     <string name="home_not_installed">未安装</string>
     <string name="home_click_to_install">点击安装</string>

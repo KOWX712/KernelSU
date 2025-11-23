@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.RemoveModerator
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Update
+import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -167,6 +168,21 @@ fun SettingScreen(navigator: DestinationsNavigator) {
             //     prefs.edit { putBoolean("check_update", it) }
             //     checkUpdate = it
             // }
+
+            var officialAppName by rememberSaveable {
+                mutableStateOf(
+                    prefs.getBoolean("use_official_app_name", false)
+                )
+            }
+            SwitchItem(
+                icon = Icons.Filled.Title,
+                title = stringResource(id = R.string.settings_use_official_app_name),
+                summary = stringResource(id = R.string.settings_use_official_app_name_summary),
+                checked = officialAppName
+            ) { checked ->
+                prefs.edit { putBoolean("use_official_app_name", checked) }
+                officialAppName = checked
+            }
 
             val profileTemplate = stringResource(id = R.string.settings_profile_template)
             KsuIsValid() {
