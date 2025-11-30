@@ -1,8 +1,6 @@
 package me.weishu.kernelsu.ui.component
 
-import android.content.Context
 import android.graphics.Color
-import android.os.Build
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
@@ -10,43 +8,36 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import me.weishu.kernelsu.ksuApp
-import me.weishu.kernelsu.ui.theme.isInDarkTheme
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okio.IOException
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
 @Composable
 fun GithubMarkdownContent(content: String) {
-    val context = LocalContext.current
-    val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-    val themeMode = prefs.getInt("color_mode", 0)
-    val isDark = isInDarkTheme(themeMode)
     val dir = if (LocalLayoutDirection.current == LayoutDirection.Rtl) "rtl" else "ltr"
-    fun cssColorFromArgb(argb: Int): String {
-        val a = ((argb ushr 24) and 0xFF) / 255f
-        val r = (argb ushr 16) and 0xFF
-        val g = (argb ushr 8) and 0xFF
-        val b = argb and 0xFF
+    fun cssColorFromArgb(argb: androidx.compose.ui.graphics.Color): String {
+        val r = (argb.red * 255).toInt()
+        val g = (argb.green * 255).toInt()
+        val b = (argb.blue * 255).toInt()
+        val a = argb.alpha
         return "rgba(${r},${g},${b},${"%.3f".format(a)})"
     }
 
-    val contentColorCss = cssColorFromArgb(MiuixTheme.colorScheme.onSurface.toArgb())
-    val linkColorCss = cssColorFromArgb(MiuixTheme.colorScheme.primary.toArgb())
+    val contentColorCss = cssColorFromArgb(MaterialTheme.colorScheme.onSurface)
+    val linkColorCss = cssColorFromArgb(MaterialTheme.colorScheme.primary)
 
     val html = """
         <!DOCTYPE html>
@@ -80,9 +71,6 @@ fun GithubMarkdownContent(content: String) {
             WebView(context).apply {
                 setBackgroundColor(Color.TRANSPARENT)
                 settings.apply {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        setForceDark(if (isDark) WebSettings.FORCE_DARK_ON else WebSettings.FORCE_DARK_OFF)
-                    }
                     offscreenPreRaster = true
                     domStorageEnabled = true
                     mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
