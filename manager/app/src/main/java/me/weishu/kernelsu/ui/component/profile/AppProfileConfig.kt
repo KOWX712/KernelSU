@@ -13,7 +13,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import me.weishu.kernelsu.Natives
 import me.weishu.kernelsu.R
-import me.weishu.kernelsu.ui.component.SwitchItem
+import me.weishu.kernelsu.ui.component.ExpressiveList
+import me.weishu.kernelsu.ui.component.ExpressiveSwitchItem
 
 @Composable
 fun AppProfileConfig(
@@ -32,21 +33,25 @@ fun AppProfileConfig(
             )
         }
 
-        SwitchItem(
-            title = stringResource(R.string.profile_umount_modules),
-            summary = stringResource(R.string.profile_umount_modules_summary),
-            checked = if (enabled) {
-                profile.umountModules
-            } else {
-                Natives.isDefaultUmountModules()
-            },
-            enabled = enabled,
-            onCheckedChange = {
-                onProfileChange(
-                    profile.copy(
-                        umountModules = it,
-                        nonRootUseDefault = false
-                    )
+        ExpressiveList(
+            content = listOf {
+                ExpressiveSwitchItem(
+                    title = stringResource(R.string.profile_umount_modules),
+                    summary = stringResource(R.string.profile_umount_modules_summary),
+                    checked = if (enabled) {
+                        profile.umountModules
+                    } else {
+                        Natives.isDefaultUmountModules()
+                    },
+                    enabled = enabled,
+                    onCheckedChange = {
+                        onProfileChange(
+                            profile.copy(
+                                umountModules = it,
+                                nonRootUseDefault = false
+                            )
+                        )
+                    }
                 )
             }
         )
