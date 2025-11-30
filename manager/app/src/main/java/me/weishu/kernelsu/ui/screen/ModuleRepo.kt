@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
@@ -33,13 +34,14 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -127,7 +129,7 @@ data class RepoModuleArg(
 ) : Parcelable
 
 @SuppressLint("StringFormatInvalid")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 @Destination<RootGraph>
 fun ModuleRepoScreen(
@@ -197,7 +199,7 @@ fun ModuleRepoScreen(
                         }
                     }
                 } else {
-                    CircularProgressIndicator()
+                    LoadingIndicator()
                 }
             }
         } else {
@@ -215,25 +217,25 @@ fun ModuleRepoScreen(
                     val latestAsset = module.latestAsset
                     val moduleAuthor = stringResource(id = R.string.module_author)
 
-                    ElevatedCard(
+                    TonalCard(
                         modifier = Modifier
-                            .fillMaxWidth(),
-                        onClick = {
-                            val args = RepoModuleArg(
-                                moduleId = module.moduleId,
-                                moduleName = module.moduleName,
-                                authors = module.authors,
-                                authorsList = module.authorList.map { AuthorArg(it.name, it.link) },
-                                homepageUrl = module.homepageUrl,
-                                sourceUrl = module.sourceUrl,
-                                latestRelease = module.latestRelease,
-                                latestReleaseTime = module.latestReleaseTime,
-                                releases = emptyList()
-                            )
-                            navigator.navigate(ModuleRepoDetailScreenDestination(args)) {
-                                launchSingleTop = true
+                            .fillMaxWidth()
+                            .clickable {
+                                val args = RepoModuleArg(
+                                    moduleId = module.moduleId,
+                                    moduleName = module.moduleName,
+                                    authors = module.authors,
+                                    authorsList = module.authorList.map { AuthorArg(it.name, it.link) },
+                                    homepageUrl = module.homepageUrl,
+                                    sourceUrl = module.sourceUrl,
+                                    latestRelease = module.latestRelease,
+                                    latestReleaseTime = module.latestReleaseTime,
+                                    releases = emptyList()
+                                )
+                                navigator.navigate(ModuleRepoDetailScreenDestination(args)) {
+                                    launchSingleTop = true
+                                }
                             }
-                        }
                     ) {
                         Column(
                             modifier = Modifier.padding(22.dp, 18.dp, 22.dp, 12.dp)
@@ -399,10 +401,9 @@ fun ModuleRepoScreen(
                                         contentPadding = ButtonDefaults.TextButtonContentPadding
                                     ) {
                                         if (isDownloading) {
-                                            CircularProgressIndicator(
+                                            CircularWavyProgressIndicator(
                                                 progress = { progress / 100f },
-                                                gapSize = 20.dp,
-                                                strokeWidth = 2.dp
+                                                modifier = Modifier.size(20.dp),
                                             )
                                         } else {
                                             Icon(
@@ -439,7 +440,7 @@ fun ModuleRepoScreen(
 }
 
 @SuppressLint("StringFormatInvalid", "DefaultLocale")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 @Destination<RootGraph>
 fun ModuleRepoDetailScreen(
@@ -538,24 +539,30 @@ fun ModuleRepoDetailScreen(
             contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp),
         ) {
             item {
-                AnimatedVisibility(
-                    visible = readmeLoaded && readmeText != null,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut()
-                ) {
-                    Column {
-                        Text(
-                            text = "README",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
-                        )
-                        ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
-                            Column(
-                                modifier = Modifier.padding(vertical = 18.dp, horizontal = 22.dp)
-                            ) {
-                                MarkdownContent(content = readmeText!!)
-                            }
+                Text(
+                    text = "README",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+                )
+                TonalCard(modifier = Modifier.padding(bottom = 16.dp)) {
+                    if (!readmeLoaded) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LoadingIndicator()
+                        }
+                    }
+                    AnimatedVisibility(
+                        visible = readmeLoaded && readmeText != null,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(vertical = 18.dp, horizontal = 22.dp)
+                        ) {
+                            MarkdownContent(content = readmeText!!)
                         }
                     }
                 }
@@ -569,7 +576,7 @@ fun ModuleRepoDetailScreen(
                         modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
                     )
                     val uriHandler = LocalUriHandler.current
-                    ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
+                    TonalCard(modifier = Modifier.padding(bottom = 16.dp)) {
                         Column(
                             modifier = Modifier.padding(vertical = 18.dp, horizontal = 22.dp)
                         ) {
@@ -628,7 +635,7 @@ fun ModuleRepoDetailScreen(
                     key = { it.tagName }
                 ) { rel ->
                     val title = remember(rel.name, rel.tagName) { rel.name.ifBlank { rel.tagName } }
-                    ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
+                    TonalCard(modifier = Modifier.padding(bottom = 16.dp)) {
                         Column(
                             modifier = Modifier.padding(vertical = 18.dp, horizontal = 22.dp)
                         ) {
@@ -741,10 +748,9 @@ fun ModuleRepoDetailScreen(
                                                 contentPadding = ButtonDefaults.TextButtonContentPadding
                                             ) {
                                                 if (isDownloading) {
-                                                    CircularProgressIndicator(
+                                                    CircularWavyProgressIndicator(
                                                         progress = { progress / 100f },
-                                                        gapSize = 20.dp,
-                                                        strokeWidth = 2.dp
+                                                        modifier = Modifier.size(20.dp),
                                                     )
                                                 } else {
                                                     Icon(
@@ -784,7 +790,7 @@ fun ModuleRepoDetailScreen(
                 }
                 item {
                     val relTitle = detailLatestTag
-                    ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
+                    TonalCard(modifier = Modifier.padding(bottom = 16.dp)) {
                         Column(
                             modifier = Modifier.padding(vertical = 18.dp, horizontal = 22.dp)
                         ) {
@@ -861,10 +867,9 @@ fun ModuleRepoDetailScreen(
                                         contentPadding = ButtonDefaults.TextButtonContentPadding
                                     ) {
                                         if (isDownloading) {
-                                            CircularProgressIndicator(
+                                            CircularWavyProgressIndicator(
                                                 progress = { progress / 100f },
-                                                gapSize = 20.dp,
-                                                strokeWidth = 2.dp
+                                                modifier = Modifier.size(20.dp),
                                             )
                                         } else {
                                             Icon(
