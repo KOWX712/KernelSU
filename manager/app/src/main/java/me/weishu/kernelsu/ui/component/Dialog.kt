@@ -7,7 +7,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -387,6 +388,7 @@ fun rememberCustomDialog(composable: @Composable (dismiss: () -> Unit) -> Unit):
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun LoadingDialog() {
     Dialog(
@@ -399,7 +401,7 @@ private fun LoadingDialog() {
             Box(
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator()
+                LoadingIndicator()
             }
         }
     }
