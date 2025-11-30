@@ -9,6 +9,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -19,11 +20,10 @@ import io.noties.markwon.ext.tables.TableAwareMovementMethod
 import io.noties.markwon.ext.tables.TablePlugin
 import io.noties.markwon.movement.MovementMethodPlugin
 import io.noties.markwon.utils.NoCopySpannableFactory
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun MarkdownContent(content: String) {
-    val contentColor = MiuixTheme.colorScheme.onBackground.toArgb()
+    val contentColor = LocalContentColor.current
 
     AndroidView(
         factory = { context ->
@@ -53,7 +53,7 @@ fun MarkdownContent(content: String) {
                 .usePlugin(MovementMethodPlugin.create(TableAwareMovementMethod.create()))
                 .build()
             markwon.setMarkdown(textView, content)
-            textView.setTextColor(contentColor)
+            textView.setTextColor(contentColor.toArgb())
         }
     )
 }
