@@ -84,6 +84,7 @@ enum ksu_feature_id {
     KSU_FEATURE_SU_COMPAT = 0,
     KSU_FEATURE_KERNEL_UMOUNT = 1,
     KSU_FEATURE_ENHANCED_SECURITY = 2,
+    KSU_FEATURE_AVC_SPOOF = 10003,
 };
 
 // Generic feature API
@@ -167,6 +168,11 @@ bool is_kernel_umount_enabled();
 bool set_enhanced_security_enabled(bool enabled);
 
 bool is_enhanced_security_enabled();
+
+// Avc spoof
+bool set_avc_spoof_enabled(bool enabled);
+
+bool is_avc_spoof_enabled();
 
 // IOCTL command definitions
 #define KSU_IOCTL_GRANT_ROOT _IOC(_IOC_NONE, 'K', 1, 0)
