@@ -3,7 +3,6 @@ package me.weishu.kernelsu.ui.screen
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -19,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ContactPage
@@ -35,10 +35,6 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -68,7 +64,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import androidx.lifecycle.compose.dropUnlessResumed
+import androidx.core.content.edit
 import com.maxkeppeker.sheets.core.models.base.Header
 import com.maxkeppeker.sheets.core.models.base.IconSource
 import com.maxkeppeker.sheets.core.models.base.rememberUseCaseState
@@ -90,8 +86,10 @@ import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.component.AboutDialog
 import me.weishu.kernelsu.ui.component.ConfirmResult
 import me.weishu.kernelsu.ui.component.DialogHandle
-import me.weishu.kernelsu.ui.component.DropdownItem
-import me.weishu.kernelsu.ui.component.SwitchItem
+import me.weishu.kernelsu.ui.component.ExpressiveDropdownItem
+import me.weishu.kernelsu.ui.component.ExpressiveList
+import me.weishu.kernelsu.ui.component.ExpressiveSwitchItem
+import me.weishu.kernelsu.ui.component.ExpressiveListItem
 import me.weishu.kernelsu.ui.component.KsuIsValid
 import me.weishu.kernelsu.ui.component.rememberConfirmDialog
 import me.weishu.kernelsu.ui.component.rememberCustomDialog
@@ -103,7 +101,6 @@ import me.weishu.kernelsu.ui.util.getBugreportFile
 import me.weishu.kernelsu.ui.util.getFeaturePersistValue
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import androidx.core.content.edit
 
 /**
  * @author weishu
@@ -129,6 +126,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
             AboutDialog(it)
         }
         val loadingDialog = rememberLoadingDialog()
+        val uninstallConfirmDialog = rememberConfirmDialog()
 
         Column(
             modifier = Modifier
@@ -157,33 +155,71 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 }
             }
 
-            // var checkUpdate by rememberSaveable {
-            //     mutableStateOf(
-            //         prefs.getBoolean("check_update", true)
-            //     )
-            // }
-            // SwitchItem(
-            //     icon = Icons.Filled.Update,
-            //     title = stringResource(id = R.string.settings_check_update),
-            //     summary = stringResource(id = R.string.settings_check_update_summary, color = MaterialTheme.colorScheme.outline),
-            //     checked = checkUpdate
-            // ) {
-            //     prefs.edit { putBoolean("check_update", it) }
-            //     checkUpdate = it
-            // }
+            val uninstallDialog = rememberUninstallDialog { uninstallType ->
+                scope.launch {
+                    val result = uninstallConfirmDialog.awaitConfirm(
+                        title = context.getString(uninstallType.title),
+                        content = context.getString(uninstallType.message)
+                    )
+                    if (result == ConfirmResult.Confirmed) {
+                        loadingDialog.withLoading {
+                            when (uninstallType) {
+                                UninstallType.PERMANENT -> navigator.navigate(
+                                    FlashScreenDestination(FlashIt.FlashUninstall)
+                                )
+                                UninstallType.RESTORE_STOCK_IMAGE -> navigator.navigate(
+                                    FlashScreenDestination(FlashIt.FlashRestore)
+                                )
+                                else -> Unit
+                            }
+                        }
+                    }
+                }
+            }
+
+            ExpressiveList(
+                modifier = Modifier.padding(top = 8.dp),
+                content = listOf(
+//                    {
+//                        var checkUpdate by rememberSaveable {
+//                            mutableStateOf(
+//                                prefs.getBoolean("check_update", true)
+//                            )
+//                        }
+//                        ExpressiveSwitchItem(
+//                            icon = Icons.Filled.Update,
+//                            title = stringResource(id = R.string.settings_check_update),
+//                            summary = stringResource(id = R.string.settings_check_update_summary),
+//                            checked = checkUpdate,
+//                            onCheckedChange = { bool ->
+//                                prefs.edit { putBoolean("check_update", bool) }
+//                                checkUpdate = bool
+//                            }
+//                        )
+//                    }
+                )
+            )
 
             val profileTemplate = stringResource(id = R.string.settings_profile_template)
             KsuIsValid() {
-                ListItem(
-                    leadingContent = { Icon(Icons.Filled.Fence, profileTemplate) },
-                    headlineContent = { Text(profileTemplate) },
-                    supportingContent = { Text(stringResource(id = R.string.settings_profile_template_summary), color = MaterialTheme.colorScheme.outline) },
-                    modifier = Modifier.clickable {
-                        navigator.navigate(AppProfileTemplateScreenDestination)
+                ExpressiveList(
+                    content = listOf {
+                        ExpressiveListItem(
+                            onClick = { navigator.navigate(AppProfileTemplateScreenDestination) },
+                            headlineContent = { Text(profileTemplate) },
+                            supportingContent = { Text(stringResource(id = R.string.settings_profile_template_summary)) },
+                            leadingContent = { Icon(Icons.Filled.Fence, profileTemplate) },
+                            trailingContent = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    null
+                                )
+                            }
+                        )
                     }
                 )
             }
-            
+
             KsuIsValid() {
                 val modeItems = listOf(
                     stringResource(id = R.string.settings_mode_default),
@@ -191,262 +227,312 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     stringResource(id = R.string.settings_mode_always_enable),
                 )
 
-                val currentEnhancedEnabled = Natives.isEnhancedSecurityEnabled()
-                var enhancedSecurityMode by rememberSaveable { mutableIntStateOf(if (currentEnhancedEnabled) 1 else 0) }
-                val enhancedPersistValue by produceState(initialValue = null as Long?) {
-                    value = getFeaturePersistValue("enhanced_security")
-                }
-                LaunchedEffect(enhancedPersistValue) {
-                    enhancedPersistValue?.let { v ->
-                        enhancedSecurityMode = if (v != 0L) 2 else if (currentEnhancedEnabled) 1 else 0
-                    }
-                }
-                val enhancedStatus by produceState(initialValue = "") {
-                    value = getFeatureStatus("enhanced_security")
-                }
-                val enhancedSummary = when (enhancedStatus) {
-                    "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
-                    "managed" -> stringResource(id = R.string.feature_status_managed_summary)
-                    else -> stringResource(id = R.string.settings_enable_enhanced_security_summary)
-                }
-                DropdownItem(
-                    icon = Icons.Filled.EnhancedEncryption,
-                    title = stringResource(id = R.string.settings_enable_enhanced_security),
-                    summary = enhancedSummary,
-                    items = modeItems,
-                    enabled = enhancedStatus == "supported",
-                    selectedIndex = enhancedSecurityMode,
-                ) { index ->
-                    when (index) {
-                        // Default: disable and save to persist
-                        0 -> if (Natives.setEnhancedSecurityEnabled(false)) {
-                            execKsud("feature save", true)
-                            prefs.edit { putInt("enhanced_security_mode", 0) }
-                            enhancedSecurityMode = 0
-                        }
-
-                        // Temporarily enable: save disabled state first, then enable
-                        1 -> if (Natives.setEnhancedSecurityEnabled(false)) {
-                            execKsud("feature save", true)
-                            if (Natives.setEnhancedSecurityEnabled(true)) {
-                                prefs.edit { putInt("enhanced_security_mode", 0) }
-                                enhancedSecurityMode = 1
+                ExpressiveList(
+                    content = listOf(
+                        {
+                            val currentEnhancedEnabled = Natives.isEnhancedSecurityEnabled()
+                            var enhancedSecurityMode by rememberSaveable { mutableIntStateOf(if (currentEnhancedEnabled) 1 else 0) }
+                            val enhancedPersistValue by produceState(initialValue = null as Long?) {
+                                value = getFeaturePersistValue("enhanced_security")
                             }
-                        }
-
-                        // Permanently enable: enable and save
-                        2 -> if (Natives.setEnhancedSecurityEnabled(true)) {
-                            execKsud("feature save", true)
-                            prefs.edit { putInt("enhanced_security_mode", 2) }
-                            enhancedSecurityMode = 2
-                        }
-                    }
-                }
-
-                val currentSuEnabled = Natives.isSuEnabled()
-                var suCompatMode by rememberSaveable { mutableIntStateOf(if (!currentSuEnabled) 1 else 0) }
-                val suPersistValue by produceState(initialValue = null as Long?) {
-                    value = getFeaturePersistValue("su_compat")
-                }
-                LaunchedEffect(suPersistValue) {
-                    suPersistValue?.let { v ->
-                        suCompatMode = if (v == 0L) 2 else if (!currentSuEnabled) 1 else 0
-                    }
-                }
-                val suStatus by produceState(initialValue = "") {
-                    value = getFeatureStatus("su_compat")
-                }
-                val suSummary = when (suStatus) {
-                    "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
-                    "managed" -> stringResource(id = R.string.feature_status_managed_summary)
-                    else -> stringResource(id = R.string.settings_disable_su_summary)
-                }
-                DropdownItem(
-                    icon = Icons.Filled.RemoveModerator,
-                    title = stringResource(id = R.string.settings_disable_su),
-                    summary = suSummary,
-                    items = modeItems,
-                    enabled = suStatus == "supported",
-                    selectedIndex = suCompatMode,
-                ) { index ->
-                    when (index) {
-                        // Default: enable and save to persist
-                        0 -> if (Natives.setSuEnabled(true)) {
-                            execKsud("feature save", true)
-                            prefs.edit { putInt("su_compat_mode", 0) }
-                            suCompatMode = 0
-                        }
-
-                        // Temporarily disable: save enabled state first, then disable
-                        1 -> if (Natives.setSuEnabled(true)) {
-                            execKsud("feature save", true)
-                            if (Natives.setSuEnabled(false)) {
-                                prefs.edit { putInt("su_compat_mode", 0) }
-                                suCompatMode = 1
-                            }
-                        }
-
-                        // Permanently disable: disable and save
-                        2 -> if (Natives.setSuEnabled(false)) {
-                            execKsud("feature save", true)
-                            prefs.edit { putInt("su_compat_mode", 2) }
-                            suCompatMode = 2
-                        }
-                    }
-                }
-
-                val currentUmountEnabled = Natives.isKernelUmountEnabled()
-                var kernelUmountMode by rememberSaveable { mutableIntStateOf(if (!currentUmountEnabled) 1 else 0) }
-                val umountPersistValue by produceState(initialValue = null as Long?) {
-                    value = getFeaturePersistValue("kernel_umount")
-                }
-                LaunchedEffect(umountPersistValue) {
-                    umountPersistValue?.let { v ->
-                        kernelUmountMode = if (v == 0L) 2 else if (!currentUmountEnabled) 1 else 0
-                    }
-                }
-                val umountStatus by produceState(initialValue = "") {
-                    value = getFeatureStatus("kernel_umount")
-                }
-                val umountSummary = when (umountStatus) {
-                    "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
-                    "managed" -> stringResource(id = R.string.feature_status_managed_summary)
-                    else -> stringResource(id = R.string.settings_disable_kernel_umount_summary)
-                }
-                DropdownItem(
-                    icon = Icons.Filled.RemoveCircle,
-                    title = stringResource(id = R.string.settings_disable_kernel_umount),
-                    summary = umountSummary,
-                    items = modeItems,
-                    enabled = umountStatus == "supported",
-                    selectedIndex = kernelUmountMode,
-                ) { index ->
-                    when (index) {
-                        // Default: enable and save to persist
-                        0 -> if (Natives.setKernelUmountEnabled(true)) {
-                            execKsud("feature save", true)
-                            prefs.edit { putInt("kernel_umount_mode", 0) }
-                            kernelUmountMode = 0
-                        }
-
-                        // Temporarily disable: save enabled state first, then disable
-                        1 -> if (Natives.setKernelUmountEnabled(true)) {
-                            execKsud("feature save", true)
-                            if (Natives.setKernelUmountEnabled(false)) {
-                                prefs.edit { putInt("kernel_umount_mode", 0) }
-                                kernelUmountMode = 1
-                            }
-                        }
-
-                        // Permanently disable: disable and save
-                        2 -> if (Natives.setKernelUmountEnabled(false)) {
-                            execKsud("feature save", true)
-                            prefs.edit { putInt("kernel_umount_mode", 2) }
-                            kernelUmountMode = 2
-                        }
-                    }
-                }
-
-                val currentAvcSpoofEnabled = Natives.isAvcSpoofEnabled()
-                var avcSpoofMode by rememberSaveable { mutableIntStateOf(if (!currentAvcSpoofEnabled) 1 else 0) }
-                val avcSpoofPersistValue by produceState(initialValue = null as Long?) {
-                    value = getFeaturePersistValue("avc_spoof")
-                }
-                LaunchedEffect(avcSpoofPersistValue) {
-                    avcSpoofPersistValue?.let { v ->
-                        avcSpoofMode = if (v == 0L) 2 else if (!currentAvcSpoofEnabled) 1 else 0
-                    }
-                }
-                val avcSpoofStatus by produceState(initialValue = "") {
-                    value = getFeatureStatus("avc_spoof")
-                }
-                val avcSpoofSummary = when (avcSpoofStatus) {
-                    "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
-                    "managed" -> stringResource(id = R.string.feature_status_managed_summary)
-                    else -> stringResource(id = R.string.settings_disable_avc_spoof_summary)
-                }
-                if (avcSpoofStatus == "supported") {
-                    DropdownItem(
-                        icon = Icons.AutoMirrored.Filled.Article,
-                        title = stringResource(id = R.string.settings_disable_avc_spoof),
-                        summary = avcSpoofSummary,
-                        items = modeItems,
-                        enabled = avcSpoofStatus == "supported",
-                        selectedIndex = avcSpoofMode,
-                    ) { index ->
-                        when (index) {
-                            // Default: enable and save to persist
-                            0 -> if (Natives.setAvcSpoofEnabled(true)) {
-                                execKsud("feature save", true)
-                                prefs.edit { putInt("avc_spoof_mode", 0) }
-                                avcSpoofMode = 0
-                            }
-
-                            // Temporarily disable: save enabled state first, then disable
-                            1 -> if (Natives.setAvcSpoofEnabled(true)) {
-                                execKsud("feature save", true)
-                                if (Natives.setAvcSpoofEnabled(false)) {
-                                    prefs.edit { putInt("avc_spoof_mode", 1) }
-                                    avcSpoofMode = 1
+                            LaunchedEffect(enhancedPersistValue) {
+                                enhancedPersistValue?.let { v ->
+                                    enhancedSecurityMode = if (v != 0L) 2 else if (currentEnhancedEnabled) 1 else 0
                                 }
                             }
+                            val enhancedStatus by produceState(initialValue = "") {
+                                value = getFeatureStatus("enhanced_security")
+                            }
+                            val enhancedSummary = when (enhancedStatus) {
+                                "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                                "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                                else -> stringResource(id = R.string.settings_enable_enhanced_security_summary)
+                            }
+                            ExpressiveDropdownItem(
+                                icon = Icons.Filled.EnhancedEncryption,
+                                title = stringResource(id = R.string.settings_enable_enhanced_security),
+                                summary = enhancedSummary,
+                                items = modeItems,
+                                enabled = enhancedStatus == "supported",
+                                selectedIndex = enhancedSecurityMode,
+                                onItemSelected = { index ->
+                                    when (index) {
+                                        // Default: disable and save to persist
+                                        0 -> if (Natives.setEnhancedSecurityEnabled(false)) {
+                                            execKsud("feature save", true)
+                                            prefs.edit { putInt("enhanced_security_mode", 0) }
+                                            enhancedSecurityMode = 0
+                                        }
 
-                            // Permanently disable: disable and save
-                            2 -> if (Natives.setAvcSpoofEnabled(false)) {
-                                execKsud("feature save", true)
-                                prefs.edit { putInt("avc_spoof_mode", 2) }
-                                avcSpoofMode = 2
+                                        // Temporarily enable: save disabled state first, then enable
+                                        1 -> if (Natives.setEnhancedSecurityEnabled(false)) {
+                                            execKsud("feature save", true)
+                                            if (Natives.setEnhancedSecurityEnabled(true)) {
+                                                prefs.edit { putInt("enhanced_security_mode", 0) }
+                                                enhancedSecurityMode = 1
+                                            }
+                                        }
+
+                                        // Permanently enable: enable and save
+                                        2 -> if (Natives.setEnhancedSecurityEnabled(true)) {
+                                            execKsud("feature save", true)
+                                            prefs.edit { putInt("enhanced_security_mode", 2) }
+                                            enhancedSecurityMode = 2
+                                        }
+                                    }
+                                }
+                            )
+                        },
+                        {
+                            val currentSuEnabled = Natives.isSuEnabled()
+                            var suCompatMode by rememberSaveable { mutableIntStateOf(if (!currentSuEnabled) 1 else 0) }
+                            val suPersistValue by produceState(initialValue = null as Long?) {
+                                value = getFeaturePersistValue("su_compat")
+                            }
+                            LaunchedEffect(suPersistValue) {
+                                suPersistValue?.let { v ->
+                                    suCompatMode = if (v == 0L) 2 else if (!currentSuEnabled) 1 else 0
+                                }
+                            }
+                            val suStatus by produceState(initialValue = "") {
+                                value = getFeatureStatus("su_compat")
+                            }
+                            val suSummary = when (suStatus) {
+                                "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                                "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                                else -> stringResource(id = R.string.settings_disable_su_summary)
+                            }
+                            ExpressiveDropdownItem(
+                                icon = Icons.Filled.RemoveModerator,
+                                title = stringResource(id = R.string.settings_disable_su),
+                                summary = suSummary,
+                                items = modeItems,
+                                enabled = suStatus == "supported",
+                                selectedIndex = suCompatMode,
+                                onItemSelected = { index ->
+                                    when (index) {
+                                        // Default: enable and save to persist
+                                        0 -> if (Natives.setSuEnabled(true)) {
+                                            execKsud("feature save", true)
+                                            prefs.edit { putInt("su_compat_mode", 0) }
+                                            suCompatMode = 0
+                                        }
+
+                                        // Temporarily disable: save enabled state first, then disable
+                                        1 -> if (Natives.setSuEnabled(true)) {
+                                            execKsud("feature save", true)
+                                            if (Natives.setSuEnabled(false)) {
+                                                prefs.edit { putInt("su_compat_mode", 0) }
+                                                suCompatMode = 1
+                                            }
+                                        }
+
+                                        // Permanently disable: disable and save
+                                        2 -> if (Natives.setSuEnabled(false)) {
+                                            execKsud("feature save", true)
+                                            prefs.edit { putInt("su_compat_mode", 2) }
+                                            suCompatMode = 2
+                                        }
+                                    }
+                                }
+                            )
+                        },
+                        {
+                            val currentUmountEnabled = Natives.isKernelUmountEnabled()
+                            var kernelUmountMode by rememberSaveable { mutableIntStateOf(if (!currentUmountEnabled) 1 else 0) }
+                            val umountPersistValue by produceState(initialValue = null as Long?) {
+                                value = getFeaturePersistValue("kernel_umount")
+                            }
+                            LaunchedEffect(umountPersistValue) {
+                                umountPersistValue?.let { v ->
+                                    kernelUmountMode = if (v == 0L) 2 else if (!currentUmountEnabled) 1 else 0
+                                }
+                            }
+                            val umountStatus by produceState(initialValue = "") {
+                                value = getFeatureStatus("kernel_umount")
+                            }
+                            val umountSummary = when (umountStatus) {
+                                "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                                "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                                else -> stringResource(id = R.string.settings_disable_kernel_umount_summary)
+                            }
+                            ExpressiveDropdownItem(
+                                icon = Icons.Filled.RemoveCircle,
+                                title = stringResource(id = R.string.settings_disable_kernel_umount),
+                                summary = umountSummary,
+                                items = modeItems,
+                                enabled = umountStatus == "supported",
+                                selectedIndex = kernelUmountMode,
+                                onItemSelected = { index ->
+                                    when (index) {
+                                        // Default: enable and save to persist
+                                        0 -> if (Natives.setKernelUmountEnabled(true)) {
+                                            execKsud("feature save", true)
+                                            prefs.edit { putInt("kernel_umount_mode", 0) }
+                                            kernelUmountMode = 0
+                                        }
+
+                                        // Temporarily disable: save enabled state first, then disable
+                                        1 -> if (Natives.setKernelUmountEnabled(true)) {
+                                            execKsud("feature save", true)
+                                            if (Natives.setKernelUmountEnabled(false)) {
+                                                prefs.edit { putInt("kernel_umount_mode", 0) }
+                                                kernelUmountMode = 1
+                                            }
+                                        }
+
+                                        // Permanently disable: disable and save
+                                        2 -> if (Natives.setKernelUmountEnabled(false)) {
+                                            execKsud("feature save", true)
+                                            prefs.edit { putInt("kernel_umount_mode", 2) }
+                                            kernelUmountMode = 2
+                                        }
+                                    }
+                                }
+                            )
+                        },
+                        {
+                            val currentAvcSpoofEnabled = Natives.isAvcSpoofEnabled()
+                            var avcSpoofMode by rememberSaveable { mutableIntStateOf(if (!currentAvcSpoofEnabled) 1 else 0) }
+                            val avcSpoofPersistValue by produceState(initialValue = null as Long?) {
+                                value = getFeaturePersistValue("avc_spoof")
+                            }
+                            LaunchedEffect(avcSpoofPersistValue) {
+                                avcSpoofPersistValue?.let { v ->
+                                    avcSpoofMode = if (v == 0L) 2 else if (!currentAvcSpoofEnabled) 1 else 0
+                                }
+                            }
+                            val avcSpoofStatus by produceState(initialValue = "") {
+                                value = getFeatureStatus("avc_spoof")
+                            }
+                            val avcSpoofSummary = when (avcSpoofStatus) {
+                                "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                                "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                                else -> stringResource(id = R.string.settings_disable_avc_spoof_summary)
+                            }
+                            if (avcSpoofStatus == "supported") {
+                                ExpressiveDropdownItem(
+                                    icon = Icons.AutoMirrored.Filled.Article,
+                                    title = stringResource(id = R.string.settings_disable_avc_spoof),
+                                    summary = avcSpoofSummary,
+                                    items = modeItems,
+                                    enabled = avcSpoofStatus == "supported",
+                                    selectedIndex = avcSpoofMode,
+                                    onItemSelected = { index ->
+                                        when (index) {
+                                            // Default: enable and save to persist
+                                            0 -> if (Natives.setAvcSpoofEnabled(true)) {
+                                                execKsud("feature save", true)
+                                                prefs.edit { putInt("avc_spoof_mode", 0) }
+                                                avcSpoofMode = 0
+                                            }
+
+                                            // Temporarily disable: save enabled state first, then disable
+                                            1 -> if (Natives.setAvcSpoofEnabled(true)) {
+                                                execKsud("feature save", true)
+                                                if (Natives.setAvcSpoofEnabled(false)) {
+                                                    prefs.edit { putInt("avc_spoof_mode", 1) }
+                                                    avcSpoofMode = 1
+                                                }
+                                            }
+
+                                            // Permanently disable: disable and save
+                                            2 -> if (Natives.setAvcSpoofEnabled(false)) {
+                                                execKsud("feature save", true)
+                                                prefs.edit { putInt("avc_spoof_mode", 2) }
+                                                avcSpoofMode = 2
+                                            }
+                                        }
+                                    }
+                                )
                             }
                         }
-                    }
-                }
+                    )
+                )
             }
 
             KsuIsValid() {
-                var umountChecked by rememberSaveable {
-                    mutableStateOf(Natives.isDefaultUmountModules())
-                }
-                SwitchItem(
-                    icon = Icons.Filled.FolderDelete,
-                    title = stringResource(id = R.string.settings_umount_modules_default),
-                    summary = stringResource(id = R.string.settings_umount_modules_default_summary),
-                    checked = umountChecked
-                ) {
-                    if (Natives.setDefaultUmountModules(it)) {
-                        umountChecked = it
-                    }
-                }
-                
-                var enableWebDebugging by rememberSaveable {
-                    mutableStateOf(
-                        prefs.getBoolean("enable_web_debugging", false)
+                ExpressiveList(
+                    content = listOf(
+                        {
+                            var umountChecked by rememberSaveable {
+                                mutableStateOf(Natives.isDefaultUmountModules())
+                            }
+                            ExpressiveSwitchItem(
+                                icon = Icons.Filled.FolderDelete,
+                                title = stringResource(id = R.string.settings_umount_modules_default),
+                                summary = stringResource(id = R.string.settings_umount_modules_default_summary),
+                                checked = umountChecked,
+                                onCheckedChange = {
+                                    if (Natives.setDefaultUmountModules(it)) {
+                                        umountChecked = it
+                                    }
+                                }
+                            )
+                        },
+                        {
+                            var enableWebDebugging by rememberSaveable {
+                                mutableStateOf(
+                                    prefs.getBoolean("enable_web_debugging", false)
+                                )
+                            }
+                            ExpressiveSwitchItem(
+                                icon = Icons.Filled.DeveloperMode,
+                                title = stringResource(id = R.string.enable_web_debugging),
+                                summary = stringResource(id = R.string.enable_web_debugging_summary),
+                                checked = enableWebDebugging,
+                                onCheckedChange = {
+                                    prefs.edit { putBoolean("enable_web_debugging", it) }
+                                    enableWebDebugging = it
+                                }
+                            )
+                        }
                     )
-                }
-                SwitchItem(
-                    icon = Icons.Filled.DeveloperMode,
-                    title = stringResource(id = R.string.enable_web_debugging),
-                    summary = stringResource(id = R.string.enable_web_debugging_summary),
-                    checked = enableWebDebugging
-                ) {
-                    prefs.edit { putBoolean("enable_web_debugging", it) }
-                    enableWebDebugging = it
-                }
+                )
             }
 
             var showBottomsheet by remember { mutableStateOf(false) }
-
-            ListItem(
-                leadingContent = {
-                    Icon(
-                        Icons.Filled.BugReport,
-                        stringResource(id = R.string.send_log)
-                    )
-                },
-                headlineContent = { Text(stringResource(id = R.string.send_log)) },
-                modifier = Modifier.clickable {
-                    showBottomsheet = true
-                }
+            ExpressiveList(
+                modifier = Modifier.padding(bottom = 8.dp),
+                content = listOf(
+                    {
+                        ExpressiveListItem(
+                            onClick = { showBottomsheet = true },
+                            headlineContent = { Text(stringResource(id = R.string.send_log)) },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Filled.BugReport,
+                                    stringResource(id = R.string.send_log)
+                                )
+                            },
+                        )
+                    },
+                    {
+                        val lkmMode = Natives.isLkmMode
+                        if (lkmMode) {
+                            val uninstall = stringResource(id = R.string.settings_uninstall)
+                            ExpressiveListItem(
+                                onClick = { uninstallDialog.show() },
+                                headlineContent = { Text(uninstall) },
+                                leadingContent = { Icon(Icons.Filled.Delete, uninstall) }
+                            )
+                        }
+                    },
+                    {
+                        ExpressiveListItem(
+                            onClick = { aboutDialog.show() },
+                            headlineContent = { Text(stringResource(id = R.string.about)) },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Filled.ContactPage,
+                                    stringResource(id = R.string.about)
+                                )
+                            },
+                        )
+                    }
+                )
             )
+
             if (showBottomsheet) {
                 ModalBottomSheet(
                     onDismissRequest = { showBottomsheet = false },
@@ -541,84 +627,11 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     }
                 )
             }
-            val lkmMode = Natives.isLkmMode
-            if (lkmMode) {
-                UninstallItem(navigator) {
-                    loadingDialog.withLoading(it)
-                }
-            }
-
-            val about = stringResource(id = R.string.about)
-            ListItem(
-                leadingContent = {
-                    Icon(
-                        Icons.Filled.ContactPage,
-                        about
-                    )
-                },
-                headlineContent = { Text(about) },
-                modifier = Modifier.clickable {
-                    aboutDialog.show()
-                }
-            )
         }
     }
-}
-
-@Composable
-fun UninstallItem(
-    navigator: DestinationsNavigator,
-    withLoading: suspend (suspend () -> Unit) -> Unit
-) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val uninstallConfirmDialog = rememberConfirmDialog()
-    val showTodo = {
-        Toast.makeText(context, "TODO", Toast.LENGTH_SHORT).show()
-    }
-    val uninstallDialog = rememberUninstallDialog { uninstallType ->
-        scope.launch {
-            val result = uninstallConfirmDialog.awaitConfirm(
-                title = context.getString(uninstallType.title),
-                content = context.getString(uninstallType.message)
-            )
-            if (result == ConfirmResult.Confirmed) {
-                withLoading {
-                    when (uninstallType) {
-                        UninstallType.TEMPORARY -> showTodo()
-                        UninstallType.PERMANENT -> navigator.navigate(
-                            FlashScreenDestination(FlashIt.FlashUninstall)
-                        )
-                        UninstallType.RESTORE_STOCK_IMAGE -> navigator.navigate(
-                            FlashScreenDestination(FlashIt.FlashRestore)
-                        )
-                        UninstallType.NONE -> Unit
-                    }
-                }
-            }
-        }
-    }
-    val uninstall = stringResource(id = R.string.settings_uninstall)
-    ListItem(
-        leadingContent = {
-            Icon(
-                Icons.Filled.Delete,
-                uninstall
-            )
-        },
-        headlineContent = { Text(uninstall) },
-        modifier = Modifier.clickable {
-            uninstallDialog.show()
-        }
-    )
 }
 
 enum class UninstallType(val title: Int, val message: Int, val icon: ImageVector) {
-    TEMPORARY(
-        R.string.settings_uninstall_temporary,
-        R.string.settings_uninstall_temporary_message,
-        Icons.Filled.Delete
-    ),
     PERMANENT(
         R.string.settings_uninstall_permanent,
         R.string.settings_uninstall_permanent_message,
@@ -637,7 +650,6 @@ enum class UninstallType(val title: Int, val message: Int, val icon: ImageVector
 fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
     return rememberCustomDialog { dismiss ->
         val options = listOf(
-            // UninstallType.TEMPORARY,
             UninstallType.PERMANENT,
             UninstallType.RESTORE_STOCK_IMAGE
         )
