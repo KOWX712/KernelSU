@@ -5,6 +5,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -51,7 +52,7 @@ fun SwitchItem(
         },
         supportingContent = {
             if (summary != null) {
-                Text(summary)
+                Text(summary, color = MaterialTheme.colorScheme.outline)
             }
         }
     )
