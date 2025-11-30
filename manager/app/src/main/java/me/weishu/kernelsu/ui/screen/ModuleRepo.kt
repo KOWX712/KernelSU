@@ -267,6 +267,7 @@ fun ModuleRepoScreen(
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Text(
                                     text = module.summary,
+                                    color = MaterialTheme.colorScheme.outline,
                                     fontSize = MaterialTheme.typography.bodySmall.fontSize,
                                     fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
                                     lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
@@ -289,6 +290,7 @@ fun ModuleRepoScreen(
                                 Column {
                                     Text(
                                         text = latestTag,
+                                        color = MaterialTheme.colorScheme.outline,
                                         fontSize = MaterialTheme.typography.bodySmall.fontSize,
                                         fontWeight = MaterialTheme.typography.titleSmall.fontWeight,
                                         lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
@@ -297,11 +299,11 @@ fun ModuleRepoScreen(
                                     if (latestReleaseTime.isNotBlank()) {
                                         Text(
                                             text = latestReleaseTime,
+                                            color = MaterialTheme.colorScheme.outline,
                                             fontSize = MaterialTheme.typography.bodySmall.fontSize,
                                             fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
                                             lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
                                             fontWeight = MaterialTheme.typography.bodySmall.fontWeight,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
                                     }
                                 }
