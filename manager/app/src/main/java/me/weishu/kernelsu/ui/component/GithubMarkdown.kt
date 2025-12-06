@@ -8,6 +8,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -29,19 +30,21 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okio.IOException
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
 @Composable
-fun GithubMarkdown(content: String) {
+fun GithubMarkdown(
+    content: String,
+    containerColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.surfaceContainer
+) {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
     val themeMode = prefs.getInt("color_mode", 0)
     val isDark = isInDarkTheme(themeMode)
     val dir = if (LocalLayoutDirection.current == LayoutDirection.Rtl) "rtl" else "ltr"
 
-    val bgArgb = MiuixTheme.colorScheme.surfaceContainer.toArgb()
+    val bgArgb = containerColor.toArgb()
     val bgLuminance = relativeLuminance(bgArgb)
 
     fun makeVariant(delta: Float): Int {
@@ -54,7 +57,7 @@ fun GithubMarkdown(content: String) {
     val bgMuted = cssColorFromArgb(makeVariant(if (bgLuminance > 0.6) -0.06f else 0.06f))
     val bgNeutralMuted = cssColorFromArgb(makeVariant(if (bgLuminance > 0.6) -0.12f else 0.12f))
     val bgAttentionMuted = cssColorFromArgb(makeVariant(-0.12f))
-    val fgLink = cssColorFromArgb(MiuixTheme.colorScheme.primary.toArgb())
+    val fgLink = cssColorFromArgb(MaterialTheme.colorScheme.primary.toArgb())
 
     val cssHref = "https://appassets.androidplatform.net/assets/github-markdown.css"
     val html = """
@@ -75,7 +78,8 @@ fun GithubMarkdown(content: String) {
               min-width: 200px;
               max-width: 980px;
               margin: 0 auto;
-              padding: 45px;
+              padding: 0;
+              padding-top: 8px;
               --bgColor-default: $bgDefault;
               --bgColor-muted: $bgMuted;
               --bgColor-neutral-muted: $bgNeutralMuted;
@@ -83,7 +87,7 @@ fun GithubMarkdown(content: String) {
               --fgColor-accent: $fgLink;
             }
             @media (max-width: 767px) {
-              .markdown-body { padding: 15px; }
+              .markdown-body { padding: 0; }
             }
           </style>
         </head>
