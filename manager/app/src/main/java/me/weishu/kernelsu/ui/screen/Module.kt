@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
@@ -83,6 +84,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -171,7 +173,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                 title = { Text(stringResource(R.string.module)) },
                 searchText = viewModel.search,
                 onSearchTextChange = { viewModel.search = it },
-                onClearClick = { viewModel.search = "" },
+                onClearClick = { viewModel.search = TextFieldValue("") },
                 actionsContent = { RebootListPopup() },
                 dropdownContent = {
                     var showDropdown by remember { mutableStateOf(false) }
@@ -423,13 +425,11 @@ private fun ModuleList(
             }
         }
 
-        val success = loadingDialog.withLoading {
-            withContext(Dispatchers.IO) {
-                if (isUninstall) {
-                    uninstallModule(module.id)
-                } else {
-                    undoUninstallModule(module.id)
-                }
+        val success = withContext(Dispatchers.IO) {
+            if (isUninstall) {
+                uninstallModule(module.id)
+            } else {
+                undoUninstallModule(module.id)
             }
         }
 
@@ -524,10 +524,8 @@ private fun ModuleList(
                             },
                             onCheckChanged = {
                                 scope.launch {
-                                    val success = loadingDialog.withLoading {
-                                        withContext(Dispatchers.IO) {
-                                            toggleModule(module.id, !module.enabled)
-                                        }
+                                    val success = withContext(Dispatchers.IO) {
+                                        toggleModule(module.id, !module.enabled)
                                     }
                                     if (success) {
                                         viewModel.fetchModuleList()
@@ -627,6 +625,7 @@ fun ModuleItem(
 
                     Text(
                         text = "$moduleVersion: ${module.version}",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = MaterialTheme.typography.bodySmall.fontSize,
                         lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
                         fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
@@ -635,6 +634,7 @@ fun ModuleItem(
 
                     Text(
                         text = "$moduleAuthor: ${module.author}",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = MaterialTheme.typography.bodySmall.fontSize,
                         lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
                         fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
@@ -661,6 +661,7 @@ fun ModuleItem(
 
             Text(
                 text = module.description,
+                color = MaterialTheme.colorScheme.outline,
                 fontSize = MaterialTheme.typography.bodySmall.fontSize,
                 fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
                 lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
@@ -777,7 +778,7 @@ fun ModuleItem(
                             }
                         }
 
-                        Spacer(modifier = Modifier.weight(0.1f, true))
+                        Spacer(Modifier.width(12.dp))
                     }
                 }
 

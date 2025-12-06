@@ -90,6 +90,7 @@ private fun AboutCardContent() {
                 Text(
                     BuildConfig.VERSION_NAME,
                     style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline,
                     fontSize = 14.sp
                 )
 
