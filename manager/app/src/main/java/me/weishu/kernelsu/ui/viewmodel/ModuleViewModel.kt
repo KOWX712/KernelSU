@@ -82,7 +82,7 @@ class ModuleViewModel : ViewModel() {
 
     var isRefreshing by mutableStateOf(false)
         private set
-    var search by mutableStateOf("")
+    var search by mutableStateOf(TextFieldValue(""))
 
     var sortEnabledFirst by mutableStateOf(false)
     var sortActionFirst by mutableStateOf(false)
@@ -118,7 +118,7 @@ class ModuleViewModel : ViewModel() {
             {
                 val executable = it.hasWebUi || it.hasActionScript
                 when {
-                    it.metamodule && it.enabled -> 0
+                    it.metamodule -> 0
                     sortEnabledFirst && sortActionFirst -> when {
                         it.enabled && executable -> 1
                         it.enabled -> 2
@@ -133,7 +133,7 @@ class ModuleViewModel : ViewModel() {
             },
             { if (sortEnabledFirst) !it.enabled else 0 },
             { if (sortActionFirst) !(it.hasWebUi || it.hasActionScript) else 0 },
-        ).thenBy(Collator.getInstance(Locale.getDefault()), ModuleInfo::id)
+        ).thenBy(Collator.getInstance(Locale.getDefault()), ModuleInfo::name)
     }
 
     fun fetchModuleList() {
@@ -295,7 +295,7 @@ class ModuleViewModel : ViewModel() {
         if (!isNetworkAvailable(ksuApp)) {
             return ModuleUpdateInfo.Empty
         }
-        if (m.updateJson.isEmpty() || m.remove || m.update || !m.enabled) {
+        if (m.updateJson.isEmpty() || m.remove || !m.enabled) {
             return ModuleUpdateInfo.Empty
         }
         // download updateJson

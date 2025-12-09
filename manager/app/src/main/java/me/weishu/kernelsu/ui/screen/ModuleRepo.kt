@@ -344,6 +344,7 @@ fun ModuleRepoScreen(
                                     fontSize = MaterialTheme.typography.bodySmall.fontSize,
                                     lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
                                     fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                             Text(
@@ -351,11 +352,13 @@ fun ModuleRepoScreen(
                                 fontSize = MaterialTheme.typography.bodySmall.fontSize,
                                 lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
                                 fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             if (module.summary.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Text(
                                     text = module.summary,
+                                    color = MaterialTheme.colorScheme.outline,
                                     fontSize = MaterialTheme.typography.bodySmall.fontSize,
                                     fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
                                     lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
@@ -378,6 +381,7 @@ fun ModuleRepoScreen(
                                 Column {
                                     Text(
                                         text = latestTag,
+                                        color = MaterialTheme.colorScheme.outline,
                                         fontSize = MaterialTheme.typography.bodySmall.fontSize,
                                         fontWeight = MaterialTheme.typography.titleSmall.fontWeight,
                                         lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
@@ -386,11 +390,11 @@ fun ModuleRepoScreen(
                                     if (latestReleaseTime.isNotEmpty()) {
                                         Text(
                                             text = latestReleaseTime,
+                                            color = MaterialTheme.colorScheme.outline,
                                             fontSize = MaterialTheme.typography.bodySmall.fontSize,
                                             fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
                                             lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
                                             fontWeight = MaterialTheme.typography.bodySmall.fontWeight,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
                                     }
                                 }
@@ -771,14 +775,14 @@ fun ReleasesPage(
                                 Text(
                                     text = rel.tagName,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color = MaterialTheme.colorScheme.outline,
                                     modifier = Modifier.padding(top = 2.dp)
                                 )
                             }
                             Text(
                                 text = rel.publishedAt,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.outline,
                                 modifier = Modifier.align(Alignment.Top)
                             )
                         }
@@ -856,7 +860,7 @@ fun ReleasesPage(
                                             Text(
                                                 text = sizeAndDownloads,
                                                 style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                color = MaterialTheme.colorScheme.outline,
                                                 modifier = Modifier.padding(top = 2.dp)
                                             )
                                         }
