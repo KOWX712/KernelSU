@@ -198,17 +198,17 @@ class ModuleViewModel : ViewModel() {
     private val _repoIndex = mutableStateMapOf<String, RepoSummary>()
 
     suspend fun refreshRepoIndex() {
-        val parsed = withContext(Dispatchers.IO) {
-            val map = fetchRepoIndex()
-            if (map.isEmpty()) null else map.entries.map { it.key to it.value }
-        }
-
-        withContext(Dispatchers.Main) {
-            if (parsed != null) {
-                _repoIndex.clear()
-                parsed.forEach { (id, summary) -> _repoIndex[id] = summary }
-            }
-        }
+//        val parsed = withContext(Dispatchers.IO) {
+//            val map = fetchRepoIndex()
+//            if (map.isEmpty()) null else map.entries.map { it.key to it.value }
+//        }
+//
+//        withContext(Dispatchers.Main) {
+//            if (parsed != null) {
+//                _repoIndex.clear()
+//                parsed.forEach { (id, summary) -> _repoIndex[id] = summary }
+//            }
+//        }
     }
 
     private fun ModuleInfo.toSignature(): ModuleUpdateSignature {
@@ -263,20 +263,20 @@ class ModuleViewModel : ViewModel() {
                 updateInfoInFlight.remove(id)
             }
 
-            modules.forEach { m ->
-                val cache = updateInfoCache[m.id]
-                val hasUpdateJson = cache?.info?.downloadUrl?.isNotEmpty() == true
-                if (!hasUpdateJson) {
-                    val repo = _repoIndex[m.id]
-                    if (repo != null) {
-                        if (repo.versionCode > m.versionCode && repo.downloadUrl.isNotBlank()) {
-                            val info = ModuleUpdateInfo(downloadUrl = repo.downloadUrl, version = repo.latestVersion, changelog = "")
-                            updateInfoCache[m.id] = ModuleUpdateCache(m.toSignature(), info)
-                            changedEntries += m.id to info
-                        }
-                    }
-                }
-            }
+//            modules.forEach { m ->
+//                val cache = updateInfoCache[m.id]
+//                val hasUpdateJson = cache?.info?.downloadUrl?.isNotEmpty() == true
+//                if (!hasUpdateJson) {
+//                    val repo = _repoIndex[m.id]
+//                    if (repo != null) {
+//                        if (repo.versionCode > m.versionCode && repo.downloadUrl.isNotBlank()) {
+//                            val info = ModuleUpdateInfo(downloadUrl = repo.downloadUrl, version = repo.latestVersion, changelog = "")
+//                            updateInfoCache[m.id] = ModuleUpdateCache(m.toSignature(), info)
+//                            changedEntries += m.id to info
+//                        }
+//                    }
+//                }
+//            }
         }
 
         if (removedIds.isEmpty() && changedEntries.isEmpty()) {
