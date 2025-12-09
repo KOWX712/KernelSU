@@ -4,21 +4,34 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.util.Log
+import android.view.View
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.webkit.WebViewAssetLoader
@@ -33,10 +46,11 @@ import okio.IOException
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GithubMarkdown(
     content: String,
-    containerColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.surfaceContainer
+    containerColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
 ) {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -51,6 +65,9 @@ fun GithubMarkdown(
     val bgNeutralMuted = cssColorFromArgb(MaterialTheme.colorScheme.surfaceDim.toArgb())
     val bgAttentionMuted = cssColorFromArgb(MaterialTheme.colorScheme.surfaceBright.toArgb())
     val fgLink = cssColorFromArgb(MaterialTheme.colorScheme.primary.toArgb())
+
+    var progress by remember { mutableFloatStateOf(0f) }
+    var isLoaded by remember { mutableStateOf(false) }
 
     val cssHref = "https://appassets.androidplatform.net/assets/github-markdown.css"
     val html = """
@@ -80,6 +97,15 @@ fun GithubMarkdown(
         </html>
     """.trimIndent()
 
+    Box(modifier = Modifier.fillMaxWidth().clipToBounds()) {
+        if (!isLoaded) {
+            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                LinearWavyProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
     AndroidView(
         factory = { context ->
             WebView(context).apply {
@@ -98,6 +124,14 @@ fun GithubMarkdown(
                         textZoom = 90
                         setSupportZoom(false)
                         setGeolocationEnabled(false)
+                    }
+                    webChromeClient = object : WebChromeClient() {
+                        override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                            progress = newProgress / 100f
+                            if (newProgress == 100) {
+                                isLoaded = true
+                            }
+                        }
                     }
                     webViewClient = object : WebViewClient() {
                         private val assetLoader = WebViewAssetLoader.Builder()
@@ -153,9 +187,10 @@ fun GithubMarkdown(
                 }
             }
         },
+        update = { view -> view.visibility = if (isLoaded) View.VISIBLE else View.GONE },
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .clipToBounds(),
     )
+    }
 }
