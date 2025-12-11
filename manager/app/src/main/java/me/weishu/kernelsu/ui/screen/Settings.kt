@@ -1,7 +1,9 @@
 package me.weishu.kernelsu.ui.screen
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -202,6 +204,32 @@ fun SettingScreen(navigator: DestinationsNavigator) {
 //                                }
 //                            )
 //                        },
+                        {
+                            var enableOfficialLauncher by rememberSaveable {
+                                mutableStateOf(
+                                    prefs.getBoolean("enable_official_launcher", false)
+                                )
+                            }
+                            ExpressiveSwitchItem(
+                                icon = R.drawable.ic_launcher_monochrome,
+                                title = stringResource(id = R.string.settings_official_launcher),
+                                summary = stringResource(id = R.string.settings_official_launcher_summary),
+                                checked = enableOfficialLauncher,
+                                onCheckedChange = { enabled ->
+                                    prefs.edit { putBoolean("enable_official_launcher", enabled) }
+                                    enableOfficialLauncher = enabled
+
+                                    val pm = context.packageManager
+                                    val pkg = context.packageName
+                                    val mainComponent   = ComponentName(pkg, "$pkg.ui.MainActivity")
+                                    val aliasComponent  = ComponentName(pkg, "$pkg.MainActivityOfficial")
+                                    val (enableComp, disableComp) = if (enabled) aliasComponent to mainComponent else mainComponent to aliasComponent
+
+                                    pm.setComponentEnabledSetting(enableComp, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
+                                    pm.setComponentEnabledSetting(disableComp, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
+                                }
+                            )
+                        },
                         {
                             var checkModuleUpdate by rememberSaveable {
                                 mutableStateOf(prefs.getBoolean("module_check_update", true))

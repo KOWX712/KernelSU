@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="settings_official_launcher">使用官方应用特征</string>
+    <string name="settings_official_launcher_summary">在桌面显示 KernelSU 官方应用图表与应用名。</string>
     <string name="home">主页</string>
     <string name="home_not_installed">未安装</string>
     <string name="home_click_to_install">点击安装</string>
