@@ -9,16 +9,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -26,42 +17,32 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.rememberTopAppBarState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.AppProfileScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.ramcosta.composedestinations.result.NavResult
+import com.ramcosta.composedestinations.result.ResultRecipient
 import kotlinx.coroutines.launch
 import me.weishu.kernelsu.Natives
 import me.weishu.kernelsu.R
-import me.weishu.kernelsu.ksuApp
-import me.weishu.kernelsu.ui.component.AppIconImage
 import me.weishu.kernelsu.ui.component.SearchAppBar
 import me.weishu.kernelsu.ui.util.ownerNameForUid
 import me.weishu.kernelsu.ui.util.pickPrimary
@@ -70,22 +51,24 @@ import me.weishu.kernelsu.ui.viewmodel.SuperUserViewModel
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
 @Composable
-fun SuperUserScreen(navigator: DestinationsNavigator) {
+fun SuperUserScreen(
+    navigator: DestinationsNavigator,
+    appProfileResultRecipient: ResultRecipient<AppProfileScreenDestination, Boolean>
+) {
     val viewModel = viewModel<SuperUserViewModel>()
     val scope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val listState = rememberLazyListState()
 
     LaunchedEffect(key1 = navigator) {
-        viewModel.search = ""
         if (viewModel.appList.isEmpty()) {
             viewModel.loadAppList()
         }
     }
 
-    LaunchedEffect(viewModel.search) {
-        if (viewModel.search.isEmpty()) {
-            listState.scrollToItem(0)
+    appProfileResultRecipient.onNavResult {
+        scope.launch {
+            viewModel.fetchAppList()
         }
     }
 
@@ -95,7 +78,7 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                 title = { Text(stringResource(R.string.superuser)) },
                 searchText = viewModel.search,
                 onSearchTextChange = { viewModel.search = it },
-                onClearClick = { viewModel.search = "" },
+                onClearClick = { viewModel.search = TextFieldValue("") },
                 dropdownContent = {
                     var showDropdown by remember { mutableStateOf(false) }
 
@@ -115,6 +98,7 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                             }, onClick = {
                                 scope.launch {
                                     viewModel.loadAppList()
+                                    listState.scrollToItem(0)
                                 }
                                 showDropdown = false
                             })
@@ -145,10 +129,7 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
             },
             isRefreshing = viewModel.isRefreshing
         ) {
-            val filteredApps = remember(SuperUserViewModel.apps) {
-                SuperUserViewModel.apps.filter { it.packageName != ksuApp.packageName }
-            }
-            val allGroups = remember(filteredApps) { buildGroups(filteredApps) }
+            val allGroups = remember { buildGroups(SuperUserViewModel.apps) }
             val visibleUidSet = remember(viewModel.appList) { viewModel.appList.map { it.uid }.toSet() }
             val expandedUids = remember { mutableStateOf(setOf<Int>()) }
 
@@ -207,12 +188,16 @@ private fun SimpleAppItem(
         headlineContent = { Text(app.label) },
         supportingContent = { Text(app.packageName) },
         leadingContent = {
-            AppIconImage(
-                packageInfo = app.packageInfo,
-                label = app.label,
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(app.packageInfo)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = app.label,
                 modifier = Modifier
                     .padding(4.dp)
-                    .size(48.dp)
+                    .width(48.dp)
+                    .height(48.dp)
             )
         },
     )
@@ -238,37 +223,70 @@ private fun GroupItem(
         headlineContent = { Text(if (group.apps.size > 1) "${ownerNameForUid(group.uid)} (${group.uid})" else group.primary.label) },
         supportingContent = {
             Column {
-                Text(summaryText)
+                Text(summaryText, color = MaterialTheme.colorScheme.outline)
                 FlowRow {
                     val userId = group.uid / 100000
                     val packageInfo = group.primary.packageInfo
                     val applicationInfo = packageInfo.applicationInfo
 
                     if (group.anyAllowSu) {
-                        LabelText(label = "ROOT")
+                        LabelText(
+                            label = "ROOT",
+                            modifier = Modifier.padding(top = 4.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
                     } else if (Natives.uidShouldUmount(group.uid)) {
-                        LabelText(label = "UMOUNT")
+                        LabelText(
+                            label = "UMOUNT",
+                            modifier = Modifier.padding(top = 4.dp),
+                            color = MaterialTheme.colorScheme.onSecondary,
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        )
                     }
                     if (group.anyCustom) {
-                        LabelText(label = "CUSTOM")
+                        LabelText(
+                            label = "CUSTOM",
+                            modifier = Modifier.padding(top = 4.dp),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        )
                     }
                     if (userId != 0) {
-                        LabelText(label = "UID$userId")
+                        LabelText(
+                            label = "USER $userId",
+                            modifier = Modifier.padding(top = 4.dp),
+                            color = MaterialTheme.colorScheme.onTertiary,
+                            containerColor = MaterialTheme.colorScheme.tertiary
+                        )
                     }
                     if (applicationInfo?.flags?.and(ApplicationInfo.FLAG_SYSTEM) != 0
                         || applicationInfo.flags.and(ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0) {
-                        LabelText(label = "SYSTEM")
+                        LabelText(
+                            label = "SYSTEM",
+                            modifier = Modifier.padding(top = 4.dp),
+                            color = MaterialTheme.colorScheme.onTertiary,
+                            containerColor = MaterialTheme.colorScheme.tertiary
+                        )
                     }
                     if (!packageInfo.sharedUserId.isNullOrEmpty()) {
-                        LabelText(label = "SHARED UID")
+                        LabelText(
+                            label = "SHARED UID",
+                            modifier = Modifier.padding(top = 4.dp),
+                            color = MaterialTheme.colorScheme.onTertiary,
+                            containerColor = MaterialTheme.colorScheme.tertiary
+                        )
                     }
                 }
             }
         },
         leadingContent = {
-            AppIconImage(
-                packageInfo = group.primary.packageInfo,
-                label = group.primary.label,
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(group.primary.packageInfo)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = group.primary.label,
                 modifier = Modifier
                     .padding(end = 14.dp)
                     .size(40.dp)
@@ -325,12 +343,17 @@ private fun buildGroups(apps: List<SuperUserViewModel.AppInfo>): List<GroupedApp
 }
 
 @Composable
-fun LabelText(label: String) {
+fun LabelText(
+    label: String,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.onPrimary,
+    containerColor: Color = MaterialTheme.colorScheme.primary
+) {
     Box(
-        modifier = Modifier
-            .padding(top = 4.dp, end = 4.dp)
+        modifier = modifier
+            .padding(end = 4.dp)
             .background(
-                Color.Black,
+                color = containerColor,
                 shape = RoundedCornerShape(4.dp)
             )
     ) {
@@ -338,8 +361,9 @@ fun LabelText(label: String) {
             text = label,
             modifier = Modifier.padding(vertical = 2.dp, horizontal = 5.dp),
             style = TextStyle(
-                fontSize = 8.sp,
-                color = Color.White,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = color,
             )
         )
     }
