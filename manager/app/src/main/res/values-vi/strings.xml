@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="settings_official_launcher">Sử dụng Tiêu đề KernelSU</string>
+    <string name="settings_official_launcher_summary">Thay đổi Icon &amp; Tên của KowSU thành KernelSU.</string>
     <string name="profile">Hồ sơ ứng dụng</string>
     <string name="profile_default">Mặc định</string>
     <string name="profile_template">Bản mẫu</string>
