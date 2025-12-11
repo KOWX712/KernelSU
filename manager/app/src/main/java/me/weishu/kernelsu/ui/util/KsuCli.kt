@@ -481,3 +481,10 @@ fun restartApp(packageName: String) {
     forceStopApp(packageName)
     launchApp(packageName)
 }
+
+fun isToolKitInstalled() : Boolean {
+    val shell = getRootShell()
+    val result = shell.newJob().add("test -d /data/adb/modules/ksu_toolkit/webroot").exec()
+    Log.i(TAG, "test toolkit exist result: $result")
+    return result.isSuccess
+}
