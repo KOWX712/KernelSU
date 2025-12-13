@@ -61,7 +61,6 @@ public final class SuFilePathHandler implements WebViewAssetLoader.PathHandler {
 
     private final Shell mShell;
     private final InsetsSupplier mInsetsSupplier;
-    private final Context mContext;
 
     public interface InsetsSupplier {
         @NonNull
@@ -94,7 +93,6 @@ public final class SuFilePathHandler implements WebViewAssetLoader.PathHandler {
      */
     public SuFilePathHandler(@NonNull Context context, @NonNull File directory, Shell rootShell, @NonNull InsetsSupplier insetsSupplier) {
         try {
-            mContext = context;
             mInsetsSupplier = insetsSupplier;
             mDirectory = new File(getCanonicalDirPath(directory));
             if (!isAllowedInternalStorageDir(context)) {
@@ -152,11 +150,7 @@ public final class SuFilePathHandler implements WebViewAssetLoader.PathHandler {
             );
         }
         if ("internal/colors.css".equals(path)) {
-            int colorMode = mContext.getSharedPreferences("settings", Context.MODE_PRIVATE).getInt("color_mode", 0);
-            String css = "";
-            if (colorMode >= 3 && colorMode <= 5) {
-                css = MonetColorsProvider.INSTANCE.getColorsCss();
-            }
+            String css = MonetColorsProvider.INSTANCE.getColorsCss();
             return new WebResourceResponse(
                     "text/css",
                     "utf-8",
