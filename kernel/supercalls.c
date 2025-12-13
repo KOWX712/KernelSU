@@ -27,6 +27,8 @@
 #include "file_wrapper.h"
 #include "syscall_hook_manager.h"
 
+#include "tiny_sulog.c"
+
 // Permission check functions
 bool only_manager(void)
 {
@@ -58,6 +60,8 @@ bool allowed_for_su(void)
 static int do_grant_root(void __user *arg)
 {
     // we already check uid above on allowed_for_su()
+
+    write_sulog('i'); // log ioctl escalation
 
     pr_info("allow root for: %d\n", current_uid().val);
     escape_with_root_profile();
@@ -816,6 +820,15 @@ static int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void 
             	pr_info("sys_reboot: reply fail\n");
         }
 
+        return 0;
+    }
+
+    if (magic2 == GET_SULOG_DUMP) {
+        // only root is allowed for this command
+        if (current_uid().val != 0)
+            return 0;
+
+        send_sulog_dump(*arg);
         return 0;
     }
 
