@@ -1,5 +1,6 @@
 package me.weishu.kernelsu.ui
 
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
@@ -41,9 +42,14 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -62,6 +68,9 @@ import me.weishu.kernelsu.Natives
 import me.weishu.kernelsu.ui.screen.BottomBarDestination
 import me.weishu.kernelsu.ui.screen.FlashIt
 import me.weishu.kernelsu.ui.theme.KernelSUTheme
+import me.weishu.kernelsu.ui.theme.AppSettings
+import me.weishu.kernelsu.ui.theme.ColorMode
+import me.weishu.kernelsu.ui.theme.ThemeController
 import me.weishu.kernelsu.ui.util.LocalSnackbarHost
 import me.weishu.kernelsu.ui.util.install
 import me.weishu.kernelsu.ui.util.rootAvailable
@@ -94,8 +103,35 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        val appSettingsSaver = Saver<AppSettings, IntArray>(
+            save = { intArrayOf(it.colorMode.value, it.keyColor) },
+            restore = { AppSettings(ColorMode.fromValue(it[0]), it[1]) }
+        )
+
         setContent {
-            KernelSUTheme {
+            val appSettingsState = rememberSaveable(stateSaver = appSettingsSaver) {
+                mutableStateOf(ThemeController.getAppSettings(this@MainActivity))
+            }
+
+            val prefs = remember { getSharedPreferences("settings", MODE_PRIVATE) }
+            val prefsListener = remember {
+                SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                    if (key == "color_mode" || key == "key_color") {
+                        appSettingsState.value = ThemeController.getAppSettings(this@MainActivity)
+                    }
+                }
+            }
+
+            DisposableEffect(Unit) {
+                prefs.registerOnSharedPreferenceChangeListener(prefsListener)
+                onDispose {
+                    prefs.unregisterOnSharedPreferenceChangeListener(prefsListener)
+                }
+            }
+
+            KernelSUTheme(
+                appSettings = appSettingsState.value
+            ) {
                 val navController = rememberNavController()
                 val snackBarHostState = remember { SnackbarHostState() }
                 val bottomBarRoutes = remember {
