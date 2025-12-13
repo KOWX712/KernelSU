@@ -23,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.ContactPage
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteForever
@@ -104,8 +105,11 @@ import me.weishu.kernelsu.ui.util.getFeatureStatus
 import me.weishu.kernelsu.ui.util.LocalSnackbarHost
 import me.weishu.kernelsu.ui.util.getBugreportFile
 import me.weishu.kernelsu.ui.util.getFeaturePersistValue
+import me.weishu.kernelsu.ui.util.isToolKitInstalled
+import me.weishu.kernelsu.ui.webui.WebUIActivity
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import androidx.core.net.toUri
 
 /**
  * @author weishu
@@ -252,6 +256,44 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             headlineContent = { Text(profileTemplate) },
                             supportingContent = { Text(stringResource(id = R.string.settings_profile_template_summary)) },
                             leadingContent = { Icon(Icons.Filled.Fence, profileTemplate) },
+                            trailingContent = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    null
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+
+            val isToolKitInstalled = produceState(initialValue = false) {
+                value = isToolKitInstalled()
+            }.value
+            val webUILauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.StartActivityForResult()
+            ) { }
+            if (isToolKitInstalled) {
+                ExpressiveList(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    content = listOf {
+                        ExpressiveListItem(
+                            onClick = {
+                                webUILauncher.launch(
+                                    Intent(context, WebUIActivity::class.java)
+                                        .setData("kernelsu://webui/ksu_toolkit".toUri())
+                                        .putExtra("id", "ksu_toolkit")
+                                        .putExtra("name", "KernelSU Toolkit")
+                                )
+                            },
+                            headlineContent = { Text(stringResource(R.string.settings_kernelsu_toolkit)) },
+                            supportingContent = { Text(stringResource(R.string.settings_kernelsu_toolkit_summary)) },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Filled.Build,
+                                    stringResource(R.string.settings_kernelsu_toolkit)
+                                )
+                            },
                             trailingContent = {
                                 Icon(
                                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
