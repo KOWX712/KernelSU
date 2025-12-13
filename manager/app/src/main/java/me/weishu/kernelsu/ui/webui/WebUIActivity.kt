@@ -3,11 +3,16 @@ package me.weishu.kernelsu.ui.webui
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ActivityManager
+import android.app.DownloadManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.widget.Toast
+import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -36,6 +41,7 @@ import me.weishu.kernelsu.ui.util.createRootShell
 import me.weishu.kernelsu.ui.viewmodel.SuperUserViewModel
 import java.io.File
 import androidx.core.net.toUri
+import java.nio.charset.Charset
 
 @SuppressLint("SetJavaScriptEnabled")
 class WebUIActivity : ComponentActivity() {
@@ -46,6 +52,7 @@ class WebUIActivity : ComponentActivity() {
     private var insetsContinuation: CancellableContinuation<Unit>? = null
     private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
+    private var downloadFilename: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -171,6 +178,31 @@ class WebUIActivity : ComponentActivity() {
 
                 return webViewAssetLoader.shouldInterceptRequest(url)
             }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                view?.evaluateJavascript("""
+                    (function () {
+                        document.addEventListener("click", async (e) => {
+                            if (e.target.tagName !== "A" || !e.target.hasAttribute("download")) return;
+                            const filename = e.target.getAttribute("download") || "download";
+                            downloadInterface.setDownloadFilename(filename);
+
+                            if (!e.target.href.startsWith("blob:")) return;
+                            e.preventDefault();
+                            const blob = await fetch(e.target.href).then((r) => r.blob());
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                                const temp = document.createElement("a");
+                                temp.href = reader.result;
+                                temp.download = filename;
+                                temp.click();
+                            };
+                            reader.readAsDataURL(blob);
+                        });
+                    })();
+                    """, null
+                )
+            }
         }
 
         webView.apply {
@@ -179,6 +211,10 @@ class WebUIActivity : ComponentActivity() {
             settings.allowFileAccess = false
             webviewInterface = WebViewInterface(this@WebUIActivity, webView, moduleDir)
             addJavascriptInterface(webviewInterface, "ksu")
+            addJavascriptInterface(object {
+                @JavascriptInterface
+                fun setDownloadFilename(filename: String) { downloadFilename = filename }
+            }, "downloadInterface")
             setWebViewClient(webViewClient)
             webChromeClient = object : WebChromeClient() {
                 override fun onShowFileChooser(
@@ -201,8 +237,112 @@ class WebUIActivity : ComponentActivity() {
                     return true
                 }
             }
+            setDownloadListener { url, _, contentDisposition, mimetype, _ ->
+                if (url.startsWith("data:")) {
+                    // Parse data URL
+                    val parts = url.substring(5).split(",", limit = 2)
+                    if (parts.size == 2) {
+                        val header = parts[0]
+                        val data = parts[1]
+                        val mimeType = header.split(";")[0]
+                        val base64 = header.contains("base64")
+                        var filename = downloadFilename ?: "download"
+                        if (contentDisposition.isNotEmpty()) {
+                            val cdParts = contentDisposition.split(";")
+                            for (part in cdParts) {
+                                if (part.trim().startsWith("filename=")) {
+                                    filename = part.substring(part.indexOf("=") + 1).trim('"')
+                                    break
+                                }
+                            }
+                        }
+                        if (!filename.contains(".")) {
+                            val ext = MimeUtil.getExtensionFromMime(mimeType)
+                            filename += ".$ext"
+                        }
+                        filename = sanitizeFilename(filename)
+                        try {
+                            when {
+                                base64 -> saveContent(
+                                    android.util.Base64.decode(data, android.util.Base64.DEFAULT),
+                                    filename
+                                )
+                                else -> saveContent(
+                                    java.net.URLDecoder.decode(data, "UTF-8"),
+                                    filename
+                                )
+                            }
+                            downloadFilename = null
+                        } catch (e: Exception) {
+                            Toast.makeText(this@WebUIActivity, "Failed to decode data: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    // Use DownloadManager for regular URLs
+                    val request = DownloadManager.Request(url.toUri())
+                    if (mimetype.isNotEmpty()) {
+                        request.setMimeType(mimetype)
+                    }
+                    if (contentDisposition.isNotEmpty()) {
+                        request.setTitle(contentDisposition)
+                    }
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, getFilename(contentDisposition))
+
+                    val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                    dm.enqueue(request)
+                    Toast.makeText(this@WebUIActivity, "Download started", Toast.LENGTH_SHORT).show()
+                }
+            }
             loadUrl("https://mui.kernelsu.org/index.html")
         }
+    }
+
+    private fun saveContent(content: String, filename: String) {
+        saveToDownloads(filename) { file ->
+            file.writeText(content)
+        }
+    }
+
+    private fun saveContent(content: ByteArray, filename: String) {
+        saveToDownloads(filename) { file ->
+            file.writeBytes(content)
+        }
+    }
+
+    private inline fun saveToDownloads(filename: String, writeOperation: (File) -> Unit) {
+        try {
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            if (!downloadsDir.exists()) downloadsDir.mkdirs()
+            var file = File(downloadsDir, filename)
+            val name = filename.substringBeforeLast('.')
+            val ext = if (filename.contains('.')) ".${filename.substringAfterLast('.')}" else ""
+            var counter = 1
+            while (file.exists()) {
+                val newFilename = "$name ($counter)$ext"
+                file = File(downloadsDir, newFilename)
+                counter++
+            }
+            writeOperation(file)
+            Toast.makeText(this, "Downloaded to Downloads/${file.name}", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Download failed: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun sanitizeFilename(filename: String): String {
+        return filename.replace(Regex("[/\\\\:*?\"<>|]"), "_").take(255)
+    }
+
+    private fun getFilename(contentDisposition: String): String {
+        if (contentDisposition.isEmpty()) return "download"
+        val cdParts = contentDisposition.split(";")
+        for (part in cdParts) {
+            if (part.trim().startsWith("filename=")) {
+                return sanitizeFilename(part.substring(part.indexOf("=") + 1).trim('"'))
+            }
+        }
+        return "download"
     }
 
     override fun onDestroy() {
