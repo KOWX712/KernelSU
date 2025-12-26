@@ -10,6 +10,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -17,13 +18,12 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
 import io.noties.markwon.Markwon
 import io.noties.markwon.utils.NoCopySpannableFactory
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private const val TEXTVIEW_TAG = "markdownTextView"
 
 @Composable
 fun Markdown(content: String) {
-    val contentColor = MiuixTheme.colorScheme.onBackground.toArgb()
+    val contentColor = MaterialTheme.colorScheme.onBackground.toArgb()
 
     AndroidView(
         factory = { context ->
