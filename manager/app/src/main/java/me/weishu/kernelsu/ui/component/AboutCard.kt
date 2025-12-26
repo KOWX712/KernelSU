@@ -1,5 +1,6 @@
 package me.weishu.kernelsu.ui.component
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,8 +17,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -62,6 +67,10 @@ fun AboutDialog(dismiss: () -> Unit) {
 
 @Composable
 private fun AboutCardContent() {
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    val isOfficial by remember { mutableStateOf(prefs.getBoolean("enable_official_launcher", false)) }
+
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -72,7 +81,7 @@ private fun AboutCardContent() {
                 shape = CircleShape
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    painter = painterResource(if (isOfficial) R.drawable.ic_launcher_foreground else R.drawable.ic_launcher_kowsu),
                     contentDescription = "icon",
                     modifier = Modifier.scale(1.4f)
                 )
