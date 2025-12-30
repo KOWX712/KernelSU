@@ -21,7 +21,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -29,6 +30,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.toArgb
@@ -50,10 +52,11 @@ import okio.IOException
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GithubMarkdown(
     content: String,
-    containerColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.surfaceContainer,
+    containerColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
     webViewState: MutableState<WebView?>? = null,
     isLoadedState: MutableState<Boolean> = remember { mutableStateOf(false) },
     progressState: MutableState<Float> = remember { mutableFloatStateOf(0f) }
@@ -114,7 +117,7 @@ fun GithubMarkdown(
             exit = fadeOut() + shrinkVertically()
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {
-                LinearProgressIndicator(
+                LinearWavyProgressIndicator(
                     progress = { progressState.value },
                     modifier = Modifier.fillMaxWidth()
                 )
