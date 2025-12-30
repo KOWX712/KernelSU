@@ -4,61 +4,80 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.util.Log
+import android.view.View
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.FrameLayout
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.webkit.WebViewAssetLoader
 import me.weishu.kernelsu.ksuApp
 import me.weishu.kernelsu.ui.theme.isInDarkTheme
-import me.weishu.kernelsu.ui.util.adjustLightnessArgb
 import me.weishu.kernelsu.ui.util.cssColorFromArgb
-import me.weishu.kernelsu.ui.util.ensureVisibleByMix
-import me.weishu.kernelsu.ui.util.relativeLuminance
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okio.IOException
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
 @Composable
-fun GithubMarkdown(content: String) {
+fun GithubMarkdown(
+    content: String,
+    containerColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.surfaceContainer,
+    webViewState: MutableState<WebView?>? = null,
+    isLoadedState: MutableState<Boolean> = remember { mutableStateOf(false) },
+    progressState: MutableState<Float> = remember { mutableFloatStateOf(0f) }
+) {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
     val themeMode = prefs.getInt("color_mode", 0)
     val isDark = isInDarkTheme(themeMode)
     val dir = if (LocalLayoutDirection.current == LayoutDirection.Rtl) "rtl" else "ltr"
 
-    val bgArgb = MiuixTheme.colorScheme.surfaceContainer.toArgb()
-    val bgLuminance = relativeLuminance(bgArgb)
-
-    fun makeVariant(delta: Float): Int {
-        val candidate = adjustLightnessArgb(bgArgb, delta)
-        val madeLighter = delta > 0f
-        return ensureVisibleByMix(bgArgb, candidate, 1.15, madeLighter)
-    }
+    val bgArgb = containerColor.toArgb()
 
     val bgDefault = cssColorFromArgb(bgArgb)
-    val bgMuted = cssColorFromArgb(makeVariant(if (bgLuminance > 0.6) -0.06f else 0.06f))
-    val bgNeutralMuted = cssColorFromArgb(makeVariant(if (bgLuminance > 0.6) -0.12f else 0.12f))
-    val bgAttentionMuted = cssColorFromArgb(makeVariant(-0.12f))
-    val fgLink = cssColorFromArgb(MiuixTheme.colorScheme.primary.toArgb())
+    val bgMuted = cssColorFromArgb(MaterialTheme.colorScheme.surfaceContainerHigh.toArgb())
+    val bgNeutralMuted = cssColorFromArgb(MaterialTheme.colorScheme.surfaceDim.toArgb())
+    val bgAttentionMuted = cssColorFromArgb(MaterialTheme.colorScheme.surfaceBright.toArgb())
+    val fgLink = cssColorFromArgb(MaterialTheme.colorScheme.primary.toArgb())
+
+    val previousContent = remember { mutableStateOf(content) }
+    if (previousContent.value != content) {
+        isLoadedState.value = false
+        progressState.value = 0f
+        previousContent.value = content
+    }
 
     val cssHref = "https://appassets.androidplatform.net/assets/github-markdown.css"
     val html = """
@@ -72,7 +91,8 @@ fun GithubMarkdown(content: String) {
             html, body { margin:0; padding:0; }
             img, video { max-width:100%; height:auto; }
             .markdown-body {
-              padding: 16px;
+              padding: 0;
+              padding-top: 8px;
               --bgColor-default: $bgDefault;
               --bgColor-muted: $bgMuted;
               --bgColor-neutral-muted: $bgNeutralMuted;
@@ -87,11 +107,22 @@ fun GithubMarkdown(content: String) {
         </html>
     """.trimIndent()
 
-    AndroidView(
-        factory = { context ->
-            val frameLayout = FrameLayout(context)
-            val webView = WebView(context).apply {
-                try {
+    Column(modifier = Modifier.fillMaxSize().clipToBounds()) {
+        AnimatedVisibility(
+            visible = !isLoadedState.value,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                LinearProgressIndicator(
+                    progress = { progressState.value },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+        AndroidView(
+            factory = { context ->
+                webViewState?.value ?: WebView(context).apply {
                     setBackgroundColor(Color.TRANSPARENT)
                     isVerticalScrollBarEnabled = false
                     isHorizontalScrollBarEnabled = false
@@ -105,6 +136,14 @@ fun GithubMarkdown(content: String) {
                         textZoom = 90
                         setSupportZoom(false)
                         setGeolocationEnabled(false)
+                    }
+                    webChromeClient = object : WebChromeClient() {
+                        override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                            progressState.value = newProgress / 100f
+                            if (newProgress == 100) {
+                                isLoadedState.value = true
+                            }
+                        }
                     }
                     webViewClient = object : WebViewClient() {
                         private val assetLoader = WebViewAssetLoader.Builder()
@@ -151,20 +190,18 @@ fun GithubMarkdown(content: String) {
                             }
                         }
                     }
-                    loadDataWithBaseURL(
+                    webViewState?.value = this
+                }
+            },
+            update = { view ->
+                if (!isLoadedState.value && content.isNotEmpty()) {
+                    view.loadDataWithBaseURL(
                         "https://appassets.androidplatform.net", html,
                         "text/html", StandardCharsets.UTF_8.name(), null
                     )
-                } catch (e: Throwable) {
-                    Log.e("GithubMarkdown", "WebView setup failed", e)
                 }
-            }
-            frameLayout.addView(webView)
-            frameLayout
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .clipToBounds(),
-    )
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
 }
