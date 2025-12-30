@@ -195,4 +195,8 @@
     <string name="tab_releases">Releases</string>
     <string name="tab_info">Info</string>
     <string name="safe_mode_module_disabled">Việc cài đặt module bị vô hiệu hoá ở chế độ an toàn</string>
+    <string name="allow_shell">Luôn cấp quyền root cho Shell</string>
+    <string name="allow_shell_summary">Dùng để khắc phục lỗi bootloop/brick.</string>
+    <string name="enable_adb">Buộc bật Gỡ lỗi ADB khi khởi động</string>
+    <string name="enable_adb_summary">Dùng để khắc phục lỗi bootloop/brick.</string>
 </resources>
