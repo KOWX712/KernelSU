@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.DeveloperMode
 import androidx.compose.material.icons.filled.EnhancedEncryption
 import androidx.compose.material.icons.filled.Fence
 import androidx.compose.material.icons.filled.FolderDelete
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material.icons.filled.RemoveModerator
 import androidx.compose.material.icons.filled.Save
@@ -77,6 +78,7 @@ import com.maxkeppeler.sheets.list.models.ListSelection
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.AppProfileTemplateScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.ColorPaletteScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.FlashScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
@@ -220,6 +222,25 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     )
                 )
             }
+
+            val theme = stringResource(id = R.string.settings_theme)
+            ExpressiveList(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                content = listOf {
+                    ExpressiveListItem(
+                        onClick = { navigator.navigate(ColorPaletteScreenDestination) },
+                        headlineContent = { Text(theme) },
+                        supportingContent = { Text(stringResource(id = R.string.settings_theme_summary)) },
+                        leadingContent = { Icon(Icons.Filled.Palette, theme) },
+                        trailingContent = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                null
+                            )
+                        }
+                    )
+                }
+            )
 
             val profileTemplate = stringResource(id = R.string.settings_profile_template)
             KsuIsValid {
