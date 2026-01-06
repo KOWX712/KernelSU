@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ContactPage
@@ -306,6 +307,60 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             execKsud("feature save", true)
                             prefs.edit { putInt("kernel_umount_mode", 2) }
                             kernelUmountMode = 2
+                        }
+                    }
+                }
+
+                val currentAvcSpoofEnabled = Natives.isAvcSpoofEnabled()
+                var avcSpoofMode by rememberSaveable { mutableIntStateOf(if (!currentAvcSpoofEnabled) 1 else 0) }
+                val avcSpoofPersistValue by produceState(initialValue = null as Long?) {
+                    value = getFeaturePersistValue("avc_spoof")
+                }
+                LaunchedEffect(avcSpoofPersistValue) {
+                    avcSpoofPersistValue?.let { v ->
+                        avcSpoofMode = if (v == 0L) 2 else if (!currentAvcSpoofEnabled) 1 else 0
+                    }
+                }
+                val avcSpoofStatus by produceState(initialValue = "") {
+                    value = getFeatureStatus("avc_spoof")
+                }
+                val avcSpoofSummary = when (avcSpoofStatus) {
+                    "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                    "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                    else -> stringResource(id = R.string.settings_disable_avc_spoof_summary)
+                }
+                if (avcSpoofStatus == "supported") {
+                    DropdownItem(
+                        icon = Icons.AutoMirrored.Filled.Article,
+                        title = stringResource(id = R.string.settings_disable_avc_spoof),
+                        summary = avcSpoofSummary,
+                        items = modeItems,
+                        enabled = avcSpoofStatus == "supported",
+                        selectedIndex = avcSpoofMode,
+                    ) { index ->
+                        when (index) {
+                            // Default: enable and save to persist
+                            0 -> if (Natives.setAvcSpoofEnabled(true)) {
+                                execKsud("feature save", true)
+                                prefs.edit { putInt("avc_spoof_mode", 0) }
+                                avcSpoofMode = 0
+                            }
+
+                            // Temporarily disable: save enabled state first, then disable
+                            1 -> if (Natives.setAvcSpoofEnabled(true)) {
+                                execKsud("feature save", true)
+                                if (Natives.setAvcSpoofEnabled(false)) {
+                                    prefs.edit { putInt("avc_spoof_mode", 1) }
+                                    avcSpoofMode = 1
+                                }
+                            }
+
+                            // Permanently disable: disable and save
+                            2 -> if (Natives.setAvcSpoofEnabled(false)) {
+                                execKsud("feature save", true)
+                                prefs.edit { putInt("avc_spoof_mode", 2) }
+                                avcSpoofMode = 2
+                            }
                         }
                     }
                 }
