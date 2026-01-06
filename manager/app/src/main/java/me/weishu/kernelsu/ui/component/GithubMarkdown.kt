@@ -17,6 +17,7 @@ import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -32,16 +33,12 @@ import androidx.core.net.toUri
 import androidx.webkit.WebViewAssetLoader
 import me.weishu.kernelsu.ksuApp
 import me.weishu.kernelsu.ui.theme.isInDarkTheme
-import me.weishu.kernelsu.ui.util.adjustLightnessArgb
 import me.weishu.kernelsu.ui.util.cssColorFromArgb
-import me.weishu.kernelsu.ui.util.ensureVisibleByMix
-import me.weishu.kernelsu.ui.util.relativeLuminance
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okio.IOException
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 import kotlin.math.abs
@@ -50,7 +47,8 @@ import kotlin.math.abs
 @Composable
 fun GithubMarkdown(
     content: String,
-    isLoading: MutableState<Boolean> = mutableStateOf(true)
+    isLoading: MutableState<Boolean> = mutableStateOf(true),
+    containerColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.surfaceContainer,
 ) {
     isLoading.value = true
     val context = LocalContext.current
@@ -60,20 +58,13 @@ fun GithubMarkdown(
     val isDark = isInDarkTheme(themeMode)
     val dir = if (LocalLayoutDirection.current == LayoutDirection.Rtl) "rtl" else "ltr"
 
-    val bgArgb = MiuixTheme.colorScheme.surfaceContainer.toArgb()
-    val bgLuminance = relativeLuminance(bgArgb)
-
-    fun makeVariant(delta: Float): Int {
-        val candidate = adjustLightnessArgb(bgArgb, delta)
-        val madeLighter = delta > 0f
-        return ensureVisibleByMix(bgArgb, candidate, 1.15, madeLighter)
-    }
+    val bgArgb = containerColor.toArgb()
 
     val bgDefault = cssColorFromArgb(bgArgb)
-    val bgMuted = cssColorFromArgb(makeVariant(if (bgLuminance > 0.6) -0.06f else 0.06f))
-    val bgNeutralMuted = cssColorFromArgb(makeVariant(if (bgLuminance > 0.6) -0.12f else 0.12f))
-    val bgAttentionMuted = cssColorFromArgb(makeVariant(-0.12f))
-    val fgLink = cssColorFromArgb(MiuixTheme.colorScheme.primary.toArgb())
+    val bgMuted = cssColorFromArgb(MaterialTheme.colorScheme.surfaceContainerHigh.toArgb())
+    val bgNeutralMuted = cssColorFromArgb(MaterialTheme.colorScheme.surfaceDim.toArgb())
+    val bgAttentionMuted = cssColorFromArgb(MaterialTheme.colorScheme.surfaceBright.toArgb())
+    val fgLink = cssColorFromArgb(MaterialTheme.colorScheme.primary.toArgb())
 
     val cssHref = "https://appassets.androidplatform.net/assets/github-markdown.css"
     val html = """
@@ -87,7 +78,8 @@ fun GithubMarkdown(
             html, body { margin:0; padding:0; }
             img, video { max-width:100%; height:auto; }
             .markdown-body {
-              padding: 16px;
+              padding: 0;
+              padding-top: 8px;
               --bgColor-default: $bgDefault;
               --bgColor-muted: $bgMuted;
               --bgColor-neutral-muted: $bgNeutralMuted;
