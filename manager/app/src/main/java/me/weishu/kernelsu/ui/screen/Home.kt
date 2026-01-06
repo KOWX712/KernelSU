@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,6 +29,13 @@ import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material.icons.outlined.Memory
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.VerifiedUser
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -329,41 +337,61 @@ private fun StatusCard(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 TonalCard(modifier = Modifier.weight(1f)) {
-                    Column(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onClickSuperuser() }
-                            .padding(horizontal = 24.dp, vertical = 16.dp)
+                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = stringResource(R.string.superuser),
-                            style = MaterialTheme.typography.bodyLarge
+                        Icon(
+                            imageVector = Icons.Outlined.Security,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = getSuperuserCount().toString(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.outline
-                        )
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.superuser),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = getSuperuserCount().toString(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
                     }
                 }
                 TonalCard(modifier = Modifier.weight(1f)) {
-                    Column(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onclickModule() }
-                            .padding(horizontal = 24.dp, vertical = 16.dp)
+                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = stringResource(R.string.module),
-                            style = MaterialTheme.typography.bodyLarge
+                        Icon(
+                            imageVector = Icons.Outlined.Widgets,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = getModuleCount().toString(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.outline
-                        )
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.module),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = getModuleCount().toString(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
                     }
                 }
             }
@@ -474,30 +502,60 @@ private fun InfoCard() {
             val uname = Os.uname()
 
             @Composable
-            fun InfoCardItem(label: String, content: String) {
+            fun InfoCardItem(
+                icon: ImageVector,
+                label: String,
+                content: String
+            ) {
                 contents.appendLine(label).appendLine(content).appendLine()
-                Text(text = label, style = MaterialTheme.typography.bodyLarge)
-                Text(
-                    text = content,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outline
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Column {
+                        Text(text = label, style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = content,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    }
+                }
             }
 
-            InfoCardItem(stringResource(R.string.home_kernel), uname.release)
+            InfoCardItem(
+                icon = Icons.Outlined.Memory,
+                label = stringResource(R.string.home_kernel),
+                content = uname.release
+            )
 
             Spacer(Modifier.height(16.dp))
             val managerVersion = getManagerVersion(context)
             InfoCardItem(
-                stringResource(R.string.home_manager_version),
-                "${managerVersion.first} (${managerVersion.second})"
+                icon = Icons.Outlined.Info,
+                label = stringResource(R.string.home_manager_version),
+                content = "${managerVersion.first} (${managerVersion.second})"
             )
 
             Spacer(Modifier.height(16.dp))
-            InfoCardItem(stringResource(R.string.home_fingerprint), Build.FINGERPRINT)
+            InfoCardItem(
+                icon = Icons.Outlined.Fingerprint,
+                label = stringResource(R.string.home_fingerprint),
+                content = Build.FINGERPRINT
+            )
 
             Spacer(Modifier.height(16.dp))
-            InfoCardItem(stringResource(R.string.home_selinux_status), getSELinuxStatus())
+            InfoCardItem(
+                icon = Icons.Outlined.VerifiedUser,
+                label = stringResource(R.string.home_selinux_status),
+                content = getSELinuxStatus()
+            )
         }
     }
 }
@@ -528,5 +586,13 @@ private fun WarningCardPreview() {
             message = "Warning message ",
             MaterialTheme.colorScheme.outlineVariant,
             onClick = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun InfoCardPreview() {
+    MaterialTheme {
+        InfoCard()
     }
 }
