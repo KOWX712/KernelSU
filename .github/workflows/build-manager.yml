@@ -79,6 +79,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Custom package name
+        run: bash custom.sh
+
       - name: Setup need_upload
         id: need_upload
         run: |
