@@ -89,6 +89,8 @@
     <string name="app_profile_template_edit">Chỉnh sửa mẫu</string>
     <string name="settings_kernelsu_toolkit">Hộp công cụ KernelSU</string>
     <string name="settings_kernelsu_toolkit_summary">Các tính năng bổ sung của KernelSU.</string>
+    <string name="settings_kpatch_next">KPatch Next</string>
+    <string name="settings_kpatch_nextt_summary">Triển khai hệ thống hỗ trợ KPM.</string>
     <string name="settings_profile_template">Mẫu Hồ sơ ứng dụng</string>
     <string name="app_profile_template_description">Mô tả</string>
     <string name="app_profile_template_save">Lưu</string>
