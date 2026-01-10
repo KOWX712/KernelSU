@@ -198,8 +198,8 @@ private fun TemplateItem(
                     style = MaterialTheme.typography.bodySmall,
                     fontSize = MaterialTheme.typography.bodySmall.fontSize,
                 )
-                Text(template.description)
-                FlowRow {
+                Text(template.description, color = MaterialTheme.colorScheme.outline)
+                FlowRow(modifier = Modifier.padding(top = 4.dp)) {
                     LabelText(label = "UID: ${template.uid}")
                     LabelText(label = "GID: ${template.gid}")
                     LabelText(label = template.context)
