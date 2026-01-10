@@ -105,6 +105,10 @@ class WebUIActivity : ComponentActivity() {
         }
     }
 
+    private fun erudaConsole(context: Context): String {
+        return context.assets.open("eruda.min.js").bufferedReader().use { it.readText() }
+    }
+
     private suspend fun setupWebView() {
         val moduleId = intent.getStringExtra("id")!!
         val name = intent.getStringExtra("name")!!
@@ -117,7 +121,9 @@ class WebUIActivity : ComponentActivity() {
         }
 
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
-        WebView.setWebContentsDebuggingEnabled(prefs.getBoolean("enable_web_debugging", false))
+        val enableWebDebugging = prefs.getBoolean("enable_web_debugging", false)
+
+        WebView.setWebContentsDebuggingEnabled(enableWebDebugging)
 
         val moduleDir = "/data/adb/modules/${moduleId}"
         val webRoot = File("${moduleDir}/webroot")
@@ -217,6 +223,10 @@ class WebUIActivity : ComponentActivity() {
                     })();
                     """, null
                 )
+                if (enableWebDebugging) {
+                    view?.evaluateJavascript(erudaConsole(this@WebUIActivity), null)
+                    view?.evaluateJavascript("eruda.init();", null)
+                }
             }
         }
 
