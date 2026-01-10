@@ -89,6 +89,10 @@
     <string name="failed_to_update_sepolicy">Failed to update SELinux rules for %s</string>
     <string name="su_not_allowed">Couldn\'t grant Superuser access to %s</string>
     <string name="module_changelog">Changelog</string>
+    <string name="settings_kernelsu_toolkit">KernelSU Toolkit</string>
+    <string name="settings_kernelsu_toolkit_summary">Utility tool for KernelSU extra feature.</string>
+    <string name="settings_kpatch_next">KPatch Next</string>
+    <string name="settings_kpatch_nextt_summary">Standalone implementation of KPM support.</string>
     <string name="settings_profile_template">App Profile template</string>
     <string name="settings_profile_template_summary">Manage local and online template of App Profile.</string>
     <string name="app_profile_template_create">Create template</string>
