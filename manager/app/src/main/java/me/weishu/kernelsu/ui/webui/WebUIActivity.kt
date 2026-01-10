@@ -26,9 +26,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
@@ -40,6 +43,7 @@ import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import me.weishu.kernelsu.ui.theme.KernelSUTheme
 import me.weishu.kernelsu.ui.util.createRootShell
 import me.weishu.kernelsu.ui.viewmodel.SuperUserViewModel
 import java.io.File
@@ -64,6 +68,7 @@ class WebUIActivity : ComponentActivity() {
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var downloadFilename: String? = null
 
+    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         // Enable edge to edge
@@ -75,11 +80,13 @@ class WebUIActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+            KernelSUTheme {
+                Box(
+                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+                    contentAlignment = Alignment.Center
+                ) {
+                    LoadingIndicator()
+                }
             }
         }
 
