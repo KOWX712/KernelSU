@@ -87,6 +87,10 @@
     <string name="app_profile_import_export">Nhập/Xuất</string>
     <string name="app_profile_template_save_failed">Lưu mẫu thất bại</string>
     <string name="app_profile_template_edit">Chỉnh sửa mẫu</string>
+    <string name="settings_kernelsu_toolkit">Hộp công cụ KernelSU</string>
+    <string name="settings_kernelsu_toolkit_summary">Các tính năng bổ sung của KernelSU.</string>
+    <string name="settings_kpatch_next">KPatch Next</string>
+    <string name="settings_kpatch_nextt_summary">Triển khai hệ thống hỗ trợ KPM.</string>
     <string name="settings_profile_template">Mẫu Hồ sơ ứng dụng</string>
     <string name="app_profile_template_description">Mô tả</string>
     <string name="app_profile_template_save">Lưu</string>
@@ -134,9 +138,11 @@
     <string name="install_only_support_ko_file">Chỉ hỗ trợ các file .ko</string>
     <string name="settings_disable_kernel_umount">Vô hiệu hoá Umount Kernel</string>
     <string name="settings_disable_kernel_umount_summary">Vô hiệu hoá Umount Kernel được kiểm soát bởi KernelSU.</string>
-    <string name="settings_mode_default">Mặc định</string>
-    <string name="settings_mode_temp_enable">Tạm thời kích hoạt</string>
-    <string name="settings_mode_always_enable">Luôn luôn kích hoạt</string>
+    <string name="settings_disable_avc_spoof">Vô hiệu hoá Giả mạo AVC</string>
+    <string name="settings_disable_avc_spoof_summary">Vô hiệu hoá việc sửa lỗi rò rỉ ngữ cảnh SELinux do từ chối AVC trong nhật ký.</string>
+    <string name="settings_mode_default">Tắt</string>
+    <string name="settings_mode_temp_enable">Bật</string>
+    <string name="settings_mode_always_enable">Luôn Bật</string>
     <string name="processing">Đang xử lý…</string>
     <string name="refresh_pulling">Kéo xuống để làm mới</string>
     <string name="refresh_release">Thả để làm mới</string>
@@ -180,4 +186,8 @@
     <string name="tab_releases">Releases</string>
     <string name="tab_info">Info</string>
     <string name="safe_mode_module_disabled">Việc cài đặt module bị vô hiệu hoá ở chế độ an toàn</string>
+    <string name="allow_shell">Luôn cấp quyền root cho Shell</string>
+    <string name="allow_shell_summary">Dùng để khắc phục lỗi bootloop/brick.</string>
+    <string name="enable_adb">Buộc bật Gỡ lỗi ADB khi khởi động</string>
+    <string name="enable_adb_summary">Dùng để khắc phục lỗi bootloop/brick.</string>
 </resources>
