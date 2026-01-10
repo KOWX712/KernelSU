@@ -134,6 +134,8 @@ dependencies {
 
     implementation(libs.lsposed.cxx)
 
+    implementation(libs.material.kolor)
+
     implementation(libs.me.zhanghai.android.appiconloader.coil)
 
     implementation(libs.sheet.compose.dialogs.core)
