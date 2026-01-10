@@ -46,11 +46,18 @@ import java.io.File
 
 @SuppressLint("SetJavaScriptEnabled")
 class WebUIActivity : ComponentActivity() {
+    companion object {
+        private const val DOMAIN = "mui.kernelsu.org"
+        private const val KSU_SCHEME = "ksu"
+        private const val ICON_HOST = "icon"
+    }
+
     private lateinit var webviewInterface: WebViewInterface
     private var webView: WebView? = null
     private lateinit var container: FrameLayout
     private var rootShell: Shell? = null
-    private lateinit var insets: Insets
+    @Volatile
+    private var insets: Insets = Insets(0, 0, 0, 0)
     private var insetsContinuation: CancellableContinuation<Unit>? = null
     private var isInsetsEnabled = false
     private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
@@ -169,7 +176,7 @@ class WebUIActivity : ComponentActivity() {
         }
 
         val webViewAssetLoader = WebViewAssetLoader.Builder()
-            .setDomain("mui.kernelsu.org")
+            .setDomain(DOMAIN)
             .addPathHandler(
                 "/",
                 SuFilePathHandler(this, webRoot, rootShell, { insets }, { enable -> enableInsets(enable) })
@@ -184,9 +191,9 @@ class WebUIActivity : ComponentActivity() {
                 val url = request.url
 
                 // Handle ksu://icon/[packageName] to serve app icon via WebView
-                if (url.scheme.equals("ksu", ignoreCase = true) && url.host.equals("icon", ignoreCase = true)) {
+                if (url.scheme.equals(KSU_SCHEME, ignoreCase = true) && url.host.equals(ICON_HOST, ignoreCase = true)) {
                     val packageName = url.path?.substring(1)
-                    if (!packageName.isNullOrEmpty()) {
+                    if (!packageName.isNullOrEmpty() && packageName.matches(Regex("[a-zA-Z0-9._]+"))) {
                         val icon = AppIconUtil.loadAppIconSync(this@WebUIActivity, packageName, 512)
                         if (icon != null) {
                             val stream = java.io.ByteArrayOutputStream()
