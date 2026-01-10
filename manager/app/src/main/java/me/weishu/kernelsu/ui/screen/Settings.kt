@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.DeveloperMode
 import androidx.compose.material.icons.filled.EnhancedEncryption
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Fence
 import androidx.compose.material.icons.filled.FolderDelete
 import androidx.compose.material.icons.filled.Palette
@@ -38,8 +39,11 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.rounded.UploadFile
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -96,6 +100,7 @@ import me.weishu.kernelsu.ui.component.ExpressiveDropdownItem
 import me.weishu.kernelsu.ui.component.ExpressiveList
 import me.weishu.kernelsu.ui.component.ExpressiveSwitchItem
 import me.weishu.kernelsu.ui.component.ExpressiveListItem
+import me.weishu.kernelsu.ui.component.ExpressiveRadioItem
 import me.weishu.kernelsu.ui.component.KsuIsValid
 import me.weishu.kernelsu.ui.component.rememberConfirmDialog
 import me.weishu.kernelsu.ui.component.rememberCustomDialog
@@ -106,6 +111,9 @@ import me.weishu.kernelsu.ui.util.LocalSnackbarHost
 import me.weishu.kernelsu.ui.util.getBugreportFile
 import me.weishu.kernelsu.ui.util.getFeaturePersistValue
 import me.weishu.kernelsu.ui.util.isWebuiModuleInstalled
+import me.weishu.kernelsu.ui.util.SELinuxMode
+import me.weishu.kernelsu.ui.util.getSELinuxModeRaw
+import me.weishu.kernelsu.ui.util.setSELinuxMode
 import me.weishu.kernelsu.ui.webui.WebUIActivity
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -519,6 +527,110 @@ fun SettingScreen(navigator: DestinationsNavigator) {
             }
 
             KsuIsValid {
+                var selinuxMode by rememberSaveable { mutableStateOf(SELinuxMode.Unknown) }
+                var showSelinuxDialog by rememberSaveable { mutableStateOf(false) }
+
+                LaunchedEffect(Unit) {
+                    selinuxMode = withContext(Dispatchers.IO) { getSELinuxModeRaw() }
+                }
+
+                val selinuxTitle = stringResource(R.string.settings_selinux)
+                val selinuxSummary = stringResource(R.string.settings_selinux_summary)
+                val selinuxDialogTitle = stringResource(R.string.settings_selinux_dialog_title)
+                val enforcingText = stringResource(R.string.selinux_status_enforcing)
+                val permissiveText = stringResource(R.string.selinux_status_permissive)
+                val disabledText = stringResource(R.string.selinux_status_disabled)
+                val unknownText = stringResource(R.string.selinux_status_unknown)
+                val cancelText = stringResource(android.R.string.cancel)
+                val setFailedText = stringResource(R.string.settings_selinux_set_failed)
+
+                val selinuxStatusText = when (selinuxMode) {
+                    SELinuxMode.Enforcing -> enforcingText
+                    SELinuxMode.Permissive -> permissiveText
+                    SELinuxMode.Disabled -> disabledText
+                    SELinuxMode.Unknown -> unknownText
+                }
+
+                ExpressiveList(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    content = listOf {
+                        ExpressiveListItem(
+                            onClick = {
+                                if (selinuxMode != SELinuxMode.Disabled && selinuxMode != SELinuxMode.Unknown) {
+                                    showSelinuxDialog = true
+                                }
+                            },
+                            headlineContent = { Text(selinuxTitle) },
+                            supportingContent = { Text(selinuxSummary) },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Filled.Security,
+                                    contentDescription = selinuxTitle
+                                )
+                            },
+                            trailingContent = {
+                                Text(
+                                    text = selinuxStatusText,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        )
+                    }
+                )
+
+                if (showSelinuxDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showSelinuxDialog = false },
+                        icon = {
+                            Icon(
+                                Icons.Filled.Security,
+                                contentDescription = null
+                            )
+                        },
+                        title = { Text(selinuxDialogTitle) },
+                        text = {
+                            Column {
+                                ExpressiveRadioItem(
+                                    title = enforcingText,
+                                    selected = selinuxMode == SELinuxMode.Enforcing,
+                                    onClick = {
+                                        scope.launch(Dispatchers.IO) {
+                                            if (setSELinuxMode(SELinuxMode.Enforcing)) {
+                                                selinuxMode = SELinuxMode.Enforcing
+                                            } else {
+                                                snackBarHost.showSnackbar(setFailedText)
+                                            }
+                                        }
+                                        showSelinuxDialog = false
+                                    }
+                                )
+                                ExpressiveRadioItem(
+                                    title = permissiveText,
+                                    selected = selinuxMode == SELinuxMode.Permissive,
+                                    onClick = {
+                                        scope.launch(Dispatchers.IO) {
+                                            if (setSELinuxMode(SELinuxMode.Permissive)) {
+                                                selinuxMode = SELinuxMode.Permissive
+                                            } else {
+                                                snackBarHost.showSnackbar(setFailedText)
+                                            }
+                                        }
+                                        showSelinuxDialog = false
+                                    }
+                                )
+                            }
+                        },
+                        confirmButton = {},
+                        dismissButton = {
+                            TextButton(onClick = { showSelinuxDialog = false }) {
+                                Text(cancelText)
+                            }
+                        }
+                    )
+                }
+            }
+
+            KsuIsValid {
                 ExpressiveList(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     content = listOf(
@@ -769,4 +881,46 @@ private fun TopBar(
 @Composable
 private fun SettingsPreview() {
     SettingScreen(EmptyDestinationsNavigator)
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SELinuxDialogPreview() {
+    val title = "Set SELinux Mode"
+    val enforcingText = "Enforcing"
+    val permissiveText = "Permissive"
+    val cancelText = "Cancel"
+
+    MaterialTheme {
+        AlertDialog(
+            onDismissRequest = { },
+            icon = {
+                Icon(
+                    Icons.Filled.Security,
+                    contentDescription = null
+                )
+            },
+            title = { Text(title) },
+            text = {
+                Column {
+                    ExpressiveRadioItem(
+                        title = enforcingText,
+                        selected = true,
+                        onClick = { }
+                    )
+                    ExpressiveRadioItem(
+                        title = permissiveText,
+                        selected = false,
+                        onClick = { }
+                    )
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { }) {
+                    Text(cancelText)
+                }
+            }
+        )
+    }
 }

@@ -110,6 +110,10 @@
     <string name="settings_check_update">檢查更新</string>
     <string name="settings_check_update_summary">開啟應用程式時自動檢查更新</string>
     <string name="settings_uninstall">解除安裝</string>
+    <string name="settings_selinux">SELinux 模式</string>
+    <string name="settings_selinux_summary">設定 SELinux 執行模式。</string>
+    <string name="settings_selinux_dialog_title">設定 SELinux 模式</string>
+    <string name="settings_selinux_set_failed">設定 SELinux 模式失敗</string>
     <string name="save_log">保存日志</string>
     <string name="processing">處理中…</string>
     <string name="refresh_pulling">下拉刷新</string>
