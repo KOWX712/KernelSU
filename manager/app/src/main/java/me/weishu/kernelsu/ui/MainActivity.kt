@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -55,6 +56,7 @@ import me.weishu.kernelsu.ui.screen.FlashIt
 
 class MainActivity : ComponentActivity() {
 
+    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         // Enable edge to edge
