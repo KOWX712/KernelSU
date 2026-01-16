@@ -1,15 +1,21 @@
 package me.weishu.kernelsu.ui.webui
 
 import android.app.Activity
+import android.app.DownloadManager
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import android.net.Uri
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
 import android.util.Base64
 import android.util.Log
 import android.view.Window
+import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
+import android.webkit.URLUtil
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.Toast
 import androidx.core.content.pm.PackageInfoCompat
@@ -20,6 +26,7 @@ import com.topjohnwu.superuser.ShellUtils
 import com.topjohnwu.superuser.internal.UiThreadHandler
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileOutputStream
+import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.util.createRootShell
 import me.weishu.kernelsu.ui.util.listModules
 import me.weishu.kernelsu.ui.util.withNewRootShell
@@ -284,6 +291,49 @@ class WebViewInterface(
 
     fun destroy() {
         fileOutputStream.closeAll()
+    }
+}
+
+class DownloadInterface(val context: Context, private val webView: WebView) {
+    @JavascriptInterface
+    fun download(url: String, contentDisposition: String?, mimetype: String?) {
+        try {
+            val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val fileName = URLUtil.guessFileName(url, contentDisposition, mimetype)
+            val request = DownloadManager.Request(Uri.parse(url))
+
+            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            request.setTitle(fileName)
+            if (!mimetype.isNullOrEmpty()) {
+                request.setMimeType(mimetype)
+            }
+
+            val cookies = CookieManager.getInstance().getCookie(url)
+            if (!cookies.isNullOrEmpty()) {
+                request.addRequestHeader("Cookie", cookies)
+            }
+            request.addRequestHeader("User-Agent", WebSettings.getDefaultUserAgent(context))
+
+            dm.enqueue(request)
+            webView.post {
+                Toast.makeText(context, R.string.start_downloading, Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            webView.post {
+                Toast.makeText(context, context.getString(R.string.download_failed, e.message), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    @JavascriptInterface
+    fun save(base64: String, fileName: String, mimetype: String) {
+        try {
+            val data = Base64.decode(base64, Base64.DEFAULT)
+            (context as? WebUIActivity)?.saveFile(data, fileName, mimetype)
+        } catch (e: Exception) {
+            Log.e(TAG, "Save failed", e)
+        }
     }
 }
 
