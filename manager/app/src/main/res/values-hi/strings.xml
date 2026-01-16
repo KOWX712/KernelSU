@@ -22,9 +22,11 @@
     <string name="reboot_edl">EDL मोड में रिबूट करें</string>
     <string name="restart_app">फिर से चालू करें</string>
     <string name="profile_capabilities">क्षमताएं</string>
+    <string name="home_superuser_count">सुपरयूजर : %d</string>
     <string name="module_start_downloading">%s की डाउनलोडिंग स्टार्ट करें</string>
     <string name="profile_namespace_global">Global</string>
     <string name="settings_umount_modules_default_summary">ऐप प्रोफाइल में \"अनमाउंट मॉड्यूल\" के लिए ग्लोबल डिफ़ॉल्ट वैल्यू। यदि चालू किया गया है, तो यह एप्लीकेशंस के लिऐ सिस्टम के सभी मॉड्यूल मोडिफिकेशन को हटा देगा जिनकी प्रोफ़ाइल सेट नहीं है।</string>
+    <string name="home_module_count">मॉड्यूल्स : %d</string>
     <string name="selinux_status_enforcing">एनफोर्सिंग</string>
     <string name="profile_selinux_context">SELinux context</string>
     <string name="home_fingerprint">फिंगरप्रिंट</string>

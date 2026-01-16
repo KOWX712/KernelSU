@@ -90,6 +90,8 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.result.ResultBackNavigator
 import me.weishu.kernelsu.R
+import me.weishu.kernelsu.ui.component.ExpressiveList
+import me.weishu.kernelsu.ui.component.ExpressiveSwitchItem
 import me.weishu.kernelsu.ui.theme.ColorMode
 import me.weishu.kernelsu.ui.theme.ThemeController
 
@@ -352,10 +354,27 @@ private fun ThemePreviewCard(keyColor: Int, isDark: Boolean, currentLauncherIcon
                     ) {
                         TonalCard(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            modifier = Modifier.fillMaxWidth().height(64.dp),
+                            modifier = Modifier.fillMaxWidth().height(if (classicUi) 72.dp else 48.dp),
                             shape = RoundedCornerShape(12.dp),
                             content = { }
                         )
+                        if (!classicUi) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                TonalCard(
+                                    modifier = Modifier.weight(1f).height(40.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    content = { }
+                                )
+                                TonalCard(
+                                    modifier = Modifier.weight(1f).height(40.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    content = { }
+                                )
+                            }
+                        }
                         TonalCard(
                             modifier = Modifier.fillMaxWidth().height(128.dp),
                             shape = RoundedCornerShape(12.dp),

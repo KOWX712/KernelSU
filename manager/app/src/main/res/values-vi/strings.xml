@@ -61,6 +61,8 @@
     <string name="safe_mode">Chế độ an toàn</string>
     <string name="reboot_to_apply">Khởi động lại để có hiệu lực</string>
     <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
+    <string name="home_superuser_count">Superusers: %d</string>
+    <string name="home_module_count">Modules: %d</string>
     <string name="profile_selinux_domain">Tên miền</string>
     <string name="profile_selinux_rules">Quy tắc</string>
     <string name="launch_app">Khởi chạy</string>

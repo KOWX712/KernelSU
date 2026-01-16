@@ -22,9 +22,11 @@
     <string name="reboot_edl">הפעלה מחדש למצב EDL</string>
     <string name="restart_app">איתחול</string>
     <string name="profile_capabilities">יכולת</string>
+    <string name="home_superuser_count">משתמשי על: %d</string>
     <string name="module_start_downloading">מפעיל מודל: %s</string>
     <string name="profile_namespace_global">גלובלי</string>
     <string name="settings_umount_modules_default_summary">ערך ברירת המחדל הגלובלי עבור \"טעינת מודולים\" בפרופילי אפליקציה. אם מופעל, זה יסיר את כל שינויי המודול למערכת עבור יישומים שאין להם ערכת פרופיל.</string>
+    <string name="home_module_count">מודלים:%d</string>
     <string name="selinux_status_enforcing">אכיפה</string>
     <string name="profile_selinux_context">הקשר SELinux</string>
     <string name="home_fingerprint">טביעת אצבע</string>
