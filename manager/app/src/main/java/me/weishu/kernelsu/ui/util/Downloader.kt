@@ -15,6 +15,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import me.weishu.kernelsu.ksuApp
+import me.weishu.kernelsu.ui.util.isNetworkAvailable
 import me.weishu.kernelsu.ui.util.module.LatestVersionInfo
 import okhttp3.Request
 import java.io.File
@@ -25,7 +26,6 @@ import java.io.IOException
  * @author weishu
  * @date 2023/6/22.
  */
-@SuppressLint("Range")
 fun download(
     url: String,
     fileName: String,
