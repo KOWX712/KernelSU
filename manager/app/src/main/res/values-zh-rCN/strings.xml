@@ -192,4 +192,5 @@
     <string name="allow_shell_summary">用于救砖</string>
     <string name="enable_adb">启动时强制启用 ADB 调试</string>
     <string name="enable_adb_summary">用于救砖</string>
+    <string name="anykernel_install">刷入 AnyKernel</string>
 </resources>

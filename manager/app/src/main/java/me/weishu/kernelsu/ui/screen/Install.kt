@@ -58,6 +58,7 @@ import com.ramcosta.composedestinations.generated.destinations.FlashScreenDestin
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import me.weishu.kernelsu.R
+import me.weishu.kernelsu.getKernelVersion
 import me.weishu.kernelsu.ui.component.DialogHandle
 import me.weishu.kernelsu.ui.component.ExpressiveCheckboxItem
 import me.weishu.kernelsu.ui.component.ExpressiveDropdownItem
@@ -100,6 +101,13 @@ fun InstallScreen(navigator: DestinationsNavigator) {
 
     val onInstall = {
         installMethod?.let { method ->
+            if (method is InstallMethod.AnyKernel) {
+                method.uri?.let {
+                    navigator.navigate(FlashScreenDestination(FlashIt.FlashAnyKernel(it)))
+                }
+                return@let
+            }
+
             val isOta = method is InstallMethod.DirectInstallToInactiveSlot
             val partitionSelection = partitionsState.getOrNull(partitionSelectionIndex)
             val flashIt = FlashIt.FlashBoot(
@@ -124,11 +132,19 @@ fun InstallScreen(navigator: DestinationsNavigator) {
     }
 
     val onClickNext = {
-        if (lkmSelection == LkmSelection.KmiNone && currentKmi.isBlank()) {
-            // no lkm file selected and cannot get current kmi
-            selectKmiDialog.show()
-        } else {
-            onInstall()
+        when (installMethod) {
+            is InstallMethod.AnyKernel -> {
+                onInstall()
+            }
+
+            else -> {
+                if (lkmSelection == LkmSelection.KmiNone && currentKmi.isBlank()) {
+                    // no lkm file selected and cannot get current kmi
+                    selectKmiDialog.show()
+                } else {
+                    onInstall()
+                }
+            }
         }
     }
 
@@ -193,7 +209,7 @@ fun InstallScreen(navigator: DestinationsNavigator) {
             }
             val defaultIndex = partitions.indexOf(defaultPartition).takeIf { it >= 0 } ?: 0
             if (!hasCustomSelected) partitionSelectionIndex = defaultIndex
-            ExpressiveList(
+            if (getKernelVersion().isGKI()) ExpressiveList(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 content = listOf(
                     {
@@ -270,6 +286,12 @@ sealed class InstallMethod {
             get() = R.string.install_inactive_slot
     }
 
+    data class AnyKernel(
+        val uri: Uri? = null,
+        override val label: Int = R.string.anykernel_install,
+        override val summary: String? = null
+    ) : InstallMethod()
+
     abstract val label: Int
     open val summary: String? = null
 }
@@ -286,14 +308,20 @@ private fun SelectInstallMethod(onSelected: (InstallMethod) -> Unit = {}) {
     val selectFileTip = stringResource(
         id = R.string.select_file_tip, defaultPartitionName
     )
-    val radioOptions =
-        mutableListOf<InstallMethod>(InstallMethod.SelectFile(summary = selectFileTip))
+    val radioOptions = mutableListOf<InstallMethod>()
+    if (getKernelVersion().isGKI()) {
+        radioOptions.add(InstallMethod.SelectFile(summary = selectFileTip))
+    }
     if (rootAvailable) {
-        radioOptions.add(InstallMethod.DirectInstall)
+        if (getKernelVersion().isGKI()) {
+            radioOptions.add(InstallMethod.DirectInstall)
 
-        if (isAbDevice) {
-            radioOptions.add(InstallMethod.DirectInstallToInactiveSlot)
+            if (isAbDevice) {
+                radioOptions.add(InstallMethod.DirectInstallToInactiveSlot)
+            }
         }
+
+        radioOptions.add(InstallMethod.AnyKernel())
     }
 
     var selectedOption by remember { mutableStateOf<InstallMethod?>(null) }
@@ -303,6 +331,18 @@ private fun SelectInstallMethod(onSelected: (InstallMethod) -> Unit = {}) {
         if (it.resultCode == Activity.RESULT_OK) {
             it.data?.data?.let { uri ->
                 val option = InstallMethod.SelectFile(uri, summary = selectFileTip)
+                selectedOption = option
+                onSelected(option)
+            }
+        }
+    }
+
+    val selectAnyKernelLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            it.data?.data?.let { uri ->
+                val option = InstallMethod.AnyKernel(uri)
                 selectedOption = option
                 onSelected(option)
             }
@@ -332,6 +372,14 @@ private fun SelectInstallMethod(onSelected: (InstallMethod) -> Unit = {}) {
 
             is InstallMethod.DirectInstallToInactiveSlot -> {
                 confirmDialog.showConfirm(dialogTitle, dialogContent)
+            }
+
+            is InstallMethod.AnyKernel -> {
+                selectAnyKernelLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply {
+                    type = "application/zip"
+                    putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/zip", "application/x-zip-compressed", "application/octet-stream"))
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                })
             }
         }
     }

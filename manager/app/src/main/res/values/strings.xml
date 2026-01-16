@@ -197,4 +197,5 @@
     <string name="allow_shell_summary">For rescue from bootloop.</string>
     <string name="enable_adb">Force enable adb on boot</string>
     <string name="enable_adb_summary">For rescue from bootloop.</string>
+    <string name="anykernel_install">Flash AnyKernel</string>
 </resources>
