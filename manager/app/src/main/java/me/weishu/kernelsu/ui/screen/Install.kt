@@ -8,11 +8,7 @@ import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,20 +16,16 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.DriveFileMove
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -42,17 +34,16 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
@@ -68,7 +59,11 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.component.DialogHandle
-import me.weishu.kernelsu.ui.component.DropdownItem
+import me.weishu.kernelsu.ui.component.ExpressiveCheckboxItem
+import me.weishu.kernelsu.ui.component.ExpressiveDropdownItem
+import me.weishu.kernelsu.ui.component.ExpressiveList
+import me.weishu.kernelsu.ui.component.ExpressiveListItem
+import me.weishu.kernelsu.ui.component.ExpressiveRadioItem
 import me.weishu.kernelsu.ui.component.rememberConfirmDialog
 import me.weishu.kernelsu.ui.component.rememberCustomDialog
 import me.weishu.kernelsu.ui.util.LkmSelection
@@ -182,135 +177,78 @@ fun InstallScreen(navigator: DestinationsNavigator) {
             SelectInstallMethod { method ->
                 installMethod = method
             }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp)
-            ) {
-                val isOta = installMethod is InstallMethod.DirectInstallToInactiveSlot
-
-                val suffix = produceState(initialValue = "", isOta) {
-                    value = getSlotSuffix(isOta)
-                }.value
-                val partitions = produceState(initialValue = emptyList()) {
-                    value = getAvailablePartitions()
-                }.value
-                val defaultPartition = produceState(initialValue = "") {
-                    value = getDefaultPartition()
-                }.value
-                partitionsState = partitions
-                val displayPartitions = partitions.map { name ->
-                    if (defaultPartition == name) "$name (default)" else name
-                }
-                val defaultIndex = partitions.indexOf(defaultPartition).takeIf { it >= 0 } ?: 0
-                if (!hasCustomSelected) partitionSelectionIndex = defaultIndex
-                DropdownItem(
-                    enabled = installMethod is InstallMethod.DirectInstall || installMethod is InstallMethod.DirectInstallToInactiveSlot,
-                    items = displayPartitions,
-                    icon = Icons.Filled.Edit,
-                    title = "${stringResource(R.string.install_select_partition)} (${suffix})",
-                    selectedIndex = partitionSelectionIndex
-                ) { index ->
-                    hasCustomSelected = true
-                    partitionSelectionIndex = index
-                }
-                ListItem(
-                    leadingContent = { Icon(Icons.AutoMirrored.Filled.DriveFileMove, null) },
-                    headlineContent = { Text(stringResource(id = R.string.install_upload_lkm_file)) },
-                    supportingContent = {
-                        (lkmSelection as? LkmSelection.LkmUri)?.let {
-                            Text(stringResource(id = R.string.selected_lkm, it.uri.lastPathSegment ?: "(file)"))
+            val isOta = installMethod is InstallMethod.DirectInstallToInactiveSlot
+            val suffix = produceState(initialValue = "", isOta) {
+                value = getSlotSuffix(isOta)
+            }.value
+            val partitions = produceState(initialValue = emptyList()) {
+                value = getAvailablePartitions()
+            }.value
+            val defaultPartition = produceState(initialValue = "") {
+                value = getDefaultPartition()
+            }.value
+            partitionsState = partitions
+            val displayPartitions = partitions.map { name ->
+                if (defaultPartition == name) "$name (default)" else name
+            }
+            val defaultIndex = partitions.indexOf(defaultPartition).takeIf { it >= 0 } ?: 0
+            if (!hasCustomSelected) partitionSelectionIndex = defaultIndex
+            ExpressiveList(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                content = listOf(
+                    {
+                        if (partitions.isNotEmpty()) {
+                            ExpressiveDropdownItem(
+                                enabled = installMethod is InstallMethod.DirectInstall || installMethod is InstallMethod.DirectInstallToInactiveSlot,
+                                items = displayPartitions,
+                                selectedIndex = partitionSelectionIndex,
+                                title = "${stringResource(R.string.install_select_partition)} (${suffix})",
+                                onItemSelected = { index ->
+                                    hasCustomSelected = true
+                                    partitionSelectionIndex = index
+                                },
+                                icon = Icons.Filled.Edit
+                            )
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onLkmUpload() }
+                    {
+                        ExpressiveListItem(
+                            leadingContent = { Icon(Icons.AutoMirrored.Filled.DriveFileMove, null) },
+                            headlineContent = { Text(stringResource(id = R.string.install_upload_lkm_file)) },
+                            supportingContent = {
+                                (lkmSelection as? LkmSelection.LkmUri)?.let {
+                                    Text(stringResource(id = R.string.selected_lkm, it.uri.lastPathSegment ?: "(file)"))
+                                }
+                            },
+                            trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null)},
+                            onClick = { onLkmUpload() }
+                        )
+                    },
+                    {
+                        ExpressiveCheckboxItem(
+                            title = stringResource(id = R.string.allow_shell),
+                            summary = stringResource(id = R.string.allow_shell_summary),
+                            checked = allowShell,
+                            onCheckedChange = { allowShell = it }
+                        )
+                    },
+                    {
+                        ExpressiveCheckboxItem(
+                            title = stringResource(id = R.string.enable_adb),
+                            summary = stringResource(id = R.string.enable_adb_summary),
+                            checked = enableAdb,
+                            onCheckedChange = { enableAdb = it }
+                        )
+                    }
                 )
-                val allowShellInteractionSource = remember { MutableInteractionSource() }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .toggleable(
-                            value = allowShell,
-                            onValueChange = { allowShell = it },
-                            role = Role.Checkbox,
-                            indication = LocalIndication.current,
-                            interactionSource = allowShellInteractionSource
-                        )
-                ) {
-                    Checkbox(
-                        checked = allowShell,
-                        onCheckedChange = { allowShell = it },
-                        interactionSource = allowShellInteractionSource
-                    )
-                    Column(
-                        modifier = Modifier.padding(vertical = 12.dp)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.allow_shell),
-                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                            fontFamily = MaterialTheme.typography.titleMedium.fontFamily,
-                            fontStyle = MaterialTheme.typography.titleMedium.fontStyle
-                        )
-                        Text(
-                            text = stringResource(id = R.string.allow_shell_summary),
-                            fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                            fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
-                            fontStyle = MaterialTheme.typography.bodySmall.fontStyle
-                        )
-                    }
-                }
-                val enableAdbInteractionSource = remember { MutableInteractionSource() }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .toggleable(
-                            value = enableAdb,
-                            onValueChange = { enableAdb = it },
-                            role = Role.Checkbox,
-                            indication = LocalIndication.current,
-                            interactionSource = enableAdbInteractionSource
-                        )
-                ) {
-                    Checkbox(
-                        checked = enableAdb,
-                        onCheckedChange = { enableAdb = it },
-                        interactionSource = enableAdbInteractionSource
-                    )
-                    Column(
-                        modifier = Modifier.padding(vertical = 12.dp)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.enable_adb),
-                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                            fontFamily = MaterialTheme.typography.titleMedium.fontFamily,
-                            fontStyle = MaterialTheme.typography.titleMedium.fontStyle
-                        )
-                        Text(
-                            text = stringResource(id = R.string.enable_adb_summary),
-                            fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                            fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
-                            fontStyle = MaterialTheme.typography.bodySmall.fontStyle
-                        )
-                    }
-                }
-                Button(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp, horizontal = 16.dp),
-                    enabled = installMethod != null,
-                    onClick = {
-                        onClickNext()
-                    }) {
-                    Text(
-                        stringResource(id = R.string.install_next),
-                        fontSize = MaterialTheme.typography.bodyMedium.fontSize
-                    )
-                }
-            }
+            )
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                enabled = installMethod != null,
+                onClick = { onClickNext() }
+            ) { Text(stringResource(id = R.string.install_next)) }
         }
     }
 }
@@ -398,51 +336,22 @@ private fun SelectInstallMethod(onSelected: (InstallMethod) -> Unit = {}) {
         }
     }
 
-    Column {
-        radioOptions.forEach { option ->
-            val interactionSource = remember { MutableInteractionSource() }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .toggleable(
-                        value = option.javaClass == selectedOption?.javaClass,
-                        onValueChange = {
+    key(isAbDevice) {
+        ExpressiveList(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            content = radioOptions.map { option ->
+                {
+                    ExpressiveRadioItem(
+                        title = stringResource(id = option.label),
+                        summary = option.summary,
+                        selected = option.javaClass == selectedOption?.javaClass,
+                        onClick = {
                             onClick(option)
-                        },
-                        role = Role.RadioButton,
-                        indication = LocalIndication.current,
-                        interactionSource = interactionSource
+                        }
                     )
-            ) {
-                RadioButton(
-                    selected = option.javaClass == selectedOption?.javaClass,
-                    onClick = {
-                        onClick(option)
-                    },
-                    interactionSource = interactionSource
-                )
-                Column(
-                    modifier = Modifier.padding(vertical = 12.dp)
-                ) {
-                    Text(
-                        text = stringResource(id = option.label),
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontFamily = MaterialTheme.typography.titleMedium.fontFamily,
-                        fontStyle = MaterialTheme.typography.titleMedium.fontStyle
-                    )
-                    option.summary?.let {
-                        Text(
-                            text = it,
-                            color = MaterialTheme.colorScheme.outline,
-                            fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                            fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
-                            fontStyle = MaterialTheme.typography.bodySmall.fontStyle
-                        )
-                    }
                 }
             }
-        }
+        )
     }
 }
 

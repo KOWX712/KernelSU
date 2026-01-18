@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
@@ -44,6 +45,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -59,8 +61,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -79,7 +81,10 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -99,6 +104,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.FixedScale
 import androidx.compose.ui.platform.LocalContext
@@ -154,7 +160,7 @@ private enum class ShortcutType {
 }
 
 @SuppressLint("StringFormatInvalid")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Destination<RootGraph>
 @Composable
 fun ModuleScreen(navigator: DestinationsNavigator) {
@@ -195,6 +201,20 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
     val hideInstallButton = isSafeMode || magiskInstalled
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+
+    val pullToRefreshState = rememberPullToRefreshState()
+
+    val onRefresh: () -> Unit = {
+        scope.launch {
+            viewModel.fetchModuleList()
+            scope.launch { viewModel.syncModuleUpdateInfo(viewModel.moduleList) }
+        }
+    }
+    
+    val scaleFraction = {
+        if (viewModel.isRefreshing) 1f
+        else LinearOutSlowInEasing.transform(pullToRefreshState.distanceFraction).coerceIn(0f, 1f)
+    }
 
     var shortcutModuleId by rememberSaveable { mutableStateOf<String?>(null) }
     var shortcutName by rememberSaveable { mutableStateOf("") }
@@ -314,6 +334,11 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
     }
 
     Scaffold(
+        modifier = Modifier.pullToRefresh(
+            state = pullToRefreshState,
+            isRefreshing = viewModel.isRefreshing,
+            onRefresh = onRefresh,
+        ),
         topBar = {
             SearchAppBar(
                 title = { Text(stringResource(R.string.module)) },
@@ -449,7 +474,10 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                     },
                     onModuleAddShortcut = { onModuleAddShortcut(it) },
                     context = context,
-                    snackBarHost = snackBarHost
+                    snackBarHost = snackBarHost,
+                    pullToRefreshState = pullToRefreshState,
+                    isRefreshing = viewModel.isRefreshing,
+                    scaleFraction = scaleFraction()
                 )
             }
         }
@@ -627,7 +655,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ModuleList(
     navigator: DestinationsNavigator,
@@ -638,7 +666,10 @@ private fun ModuleList(
     onClickModule: (id: String, name: String, hasWebUi: Boolean) -> Unit,
     onModuleAddShortcut: (ModuleViewModel.ModuleInfo) -> Unit,
     context: Context,
-    snackBarHost: SnackbarHostState
+    snackBarHost: SnackbarHostState,
+    pullToRefreshState: PullToRefreshState,
+    isRefreshing: Boolean,
+    scaleFraction: Float
 ) {
     val failedEnable = stringResource(R.string.module_failed_to_enable)
     val failedDisable = stringResource(R.string.module_failed_to_disable)
@@ -657,6 +688,7 @@ private fun ModuleList(
     val startDownloadingText = stringResource(R.string.module_start_downloading)
 
     val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
     val loadingDialog = rememberLoadingDialog()
     val confirmDialog = rememberConfirmDialog()
 
@@ -769,15 +801,9 @@ private fun ModuleList(
             reboot()
         }
     }
-    PullToRefreshBox(
-        modifier = boxModifier,
-        onRefresh = {
-            viewModel.fetchModuleList()
-            scope.launch { viewModel.syncModuleUpdateInfo(viewModel.moduleList) }
-        },
-        isRefreshing = viewModel.isRefreshing
-    ) {
+    Box(modifier = boxModifier) {
         LazyColumn(
+            state = listState,
             modifier = modifier,
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = remember {
@@ -805,7 +831,7 @@ private fun ModuleList(
                 }
 
                 else -> {
-                    items(viewModel.moduleList) { module ->
+                    items(viewModel.moduleList, key = { it.id }) { module ->
                         val scope = rememberCoroutineScope()
                         val moduleUpdateInfo = viewModel.updateInfo[module.id] ?: ModuleViewModel.ModuleUpdateInfo.Empty
 
@@ -857,10 +883,17 @@ private fun ModuleList(
                 }
             }
         }
-
-
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .graphicsLayer {
+                    scaleX = scaleFraction
+                    scaleY = scaleFraction
+                }
+        ) {
+            PullToRefreshDefaults.LoadingIndicator(state = pullToRefreshState, isRefreshing = isRefreshing)
+        }
         DownloadListener(context, onInstallModule)
-
     }
 }
 
@@ -876,9 +909,7 @@ fun ModuleItem(
     onAddShortcut: (ModuleViewModel.ModuleInfo) -> Unit,
     onClick: (ModuleViewModel.ModuleInfo) -> Unit
 ) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    TonalCard(modifier = Modifier.fillMaxWidth()) {
         val textDecoration = if (!module.remove) null else TextDecoration.LineThrough
         val interactionSource = remember { MutableInteractionSource() }
         val indication = LocalIndication.current
@@ -1120,7 +1151,9 @@ fun ModuleItem(
                         )
                     } else {
                         Icon(
-                            modifier = Modifier.size(20.dp).rotate(180f),
+                            modifier = Modifier
+                                .size(20.dp)
+                                .rotate(180f),
                             imageVector = Icons.Outlined.Refresh,
                             contentDescription = null,
                         )
