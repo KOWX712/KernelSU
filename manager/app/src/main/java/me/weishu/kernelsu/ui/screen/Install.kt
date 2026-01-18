@@ -434,6 +434,7 @@ private fun SelectInstallMethod(onSelected: (InstallMethod) -> Unit = {}) {
                     option.summary?.let {
                         Text(
                             text = it,
+                            color = MaterialTheme.colorScheme.outline,
                             fontSize = MaterialTheme.typography.bodySmall.fontSize,
                             fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
                             fontStyle = MaterialTheme.typography.bodySmall.fontStyle

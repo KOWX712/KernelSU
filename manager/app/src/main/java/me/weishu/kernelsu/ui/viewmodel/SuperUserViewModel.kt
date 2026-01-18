@@ -18,6 +18,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -82,7 +83,7 @@ class SuperUserViewModel : ViewModel() {
             }
     }
 
-    var search by mutableStateOf("")
+    var search by mutableStateOf(TextFieldValue(""))
     private val prefs = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)!!
     var showSystemApps by mutableStateOf(prefs.getBoolean("show_system_apps", false))
     var isRefreshing by mutableStateOf(false)
@@ -117,8 +118,9 @@ class SuperUserViewModel : ViewModel() {
     }
 
     val appList by derivedStateOf {
+        val search = search.text
         sortedList.filter {
-            it.label.contains(search, true) || it.packageName.contains(
+            search.isEmpty() || it.label.contains(search, true) || it.packageName.contains(
                 search,
                 true
             ) || HanziToPinyin.getInstance()

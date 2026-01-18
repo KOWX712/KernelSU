@@ -30,6 +30,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
@@ -51,6 +52,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.AppProfileTemplateScreenDestination
@@ -86,6 +88,7 @@ fun AppProfileScreen(
     navigator: DestinationsNavigator,
     appInfo: SuperUserViewModel.AppInfo,
 ) {
+    val viewModel: SuperUserViewModel = viewModel()
     val snackBarHost = LocalSnackbarHost.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scope = rememberCoroutineScope()
@@ -180,6 +183,7 @@ fun AppProfileScreen(
                         snackBarHost.showSnackbar(failToUpdateAppProfile.format(appInfo.uid))
                     } else {
                         profile = it
+                        viewModel.loadAppList()
                     }
                 }
             },
@@ -213,18 +217,25 @@ private fun AppProfileInner(
                 supportingContent = {
                     Column {
                         if (!isUidGroup) {
-                            Text("$appVersionName ($appVersionCode)")
-                            Text(packageName)
+                            Text("$appVersionName ($appVersionCode)", color = MaterialTheme.colorScheme.outline)
+                            Text(packageName, color = MaterialTheme.colorScheme.outline)
                         } else {
                             if (sharedUserId.isNotEmpty()) {
-                                Text(text = sharedUserId)
+                                Text(text = sharedUserId, color = MaterialTheme.colorScheme.outline)
                             }
-                            Text(text = stringResource(R.string.group_contains_apps, affectedApps.size))
+                            Text(text = stringResource(R.string.group_contains_apps, affectedApps.size), color = MaterialTheme.colorScheme.outline)
                         }
                     }
                 },
                 leadingContent = appIcon,
-                trailingContent = { LabelText("UID$appUid") }
+                trailingContent = { 
+                    LabelText(
+                        label = "UID$appUid",
+                        modifier = Modifier.padding(top = 4.dp),
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        containerColor = MaterialTheme.colorScheme.tertiary
+                    )
+                }
             )
         }
 
@@ -414,7 +425,7 @@ private fun ProfileBox(
 ) {
     ListItem(
         headlineContent = { Text(stringResource(R.string.profile)) },
-        supportingContent = { Text(mode.text) },
+        supportingContent = { Text(mode.text, color = MaterialTheme.colorScheme.outline) },
         leadingContent = { Icon(Icons.Filled.AccountCircle, null) },
     )
     HorizontalDivider(thickness = Dp.Hairline)
