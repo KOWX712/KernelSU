@@ -39,7 +39,7 @@ import me.weishu.kernelsu.R
 fun AboutCard() {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(20.dp)
     ) {
         Row(
             modifier = Modifier
@@ -95,11 +95,11 @@ private fun AboutCardContent() {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val annotatedString = AnnotatedString.Companion.fromHtml(
+                val annotatedString = AnnotatedString.fromHtml(
                     htmlString = stringResource(
                         id = R.string.about_source_code,
-                        "<b><a href=\"https://github.com/tiann/KernelSU\">GitHub</a></b>",
-                        "<b><a href=\"https://t.me/KernelSU\">Telegram</a></b>"
+                        "<b><a href=\"https://github.com/KOWX712/KernelSU\">GitHub</a></b>",
+                        "<b><a href=\"https://t.me/kowsu_build\">Telegram</a></b>"
                     ),
                     linkStyles = TextLinkStyles(
                         style = SpanStyle(
