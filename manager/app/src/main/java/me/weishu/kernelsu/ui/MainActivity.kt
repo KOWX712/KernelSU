@@ -97,6 +97,8 @@ class MainActivity : ComponentActivity() {
         val isManager = Natives.isManager
         if (isManager && !Natives.requireNewKernel()) install()
 
+        val isAnyKernel = intent.component?.className?.endsWith("FlashAnyKernel") == true
+
         // Check if launched with a ZIP file
         val zipUri: ArrayList<Uri>? = if (intent.data != null) {
             arrayListOf(intent.data!!)
@@ -147,10 +149,13 @@ class MainActivity : ComponentActivity() {
 
                 LaunchedEffect(zipUri) {
                     if (!zipUri.isNullOrEmpty()) {
+                        val flashIt = if (isAnyKernel) {
+                            FlashIt.FlashAnyKernel(zipUri.first())
+                        } else {
+                            FlashIt.FlashModules(zipUri)
+                        }
                         navigator.navigate(
-                            FlashScreenDestination(
-                                FlashIt.FlashModules(zipUri)
-                            )
+                            FlashScreenDestination(flashIt)
                         )
                     }
                 }
