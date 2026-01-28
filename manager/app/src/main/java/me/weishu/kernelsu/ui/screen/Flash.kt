@@ -57,6 +57,7 @@ import me.weishu.kernelsu.ui.navigation3.LocalNavigator
 import me.weishu.kernelsu.ui.util.FlashResult
 import me.weishu.kernelsu.ui.util.LkmSelection
 import me.weishu.kernelsu.ui.util.LocalSnackbarHost
+import me.weishu.kernelsu.ui.util.flashAnyKernelZip
 import me.weishu.kernelsu.ui.util.flashModule
 import me.weishu.kernelsu.ui.util.installBoot
 import me.weishu.kernelsu.ui.util.reboot
@@ -259,6 +260,9 @@ sealed class FlashIt : Parcelable {
     data class FlashModules(val uris: List<Uri>, val skipConfirm: Boolean = false) : FlashIt()
 
     @Parcelize
+    data class FlashAnyKernel(val uri: Uri) : FlashIt()
+
+    @Parcelize
     data object FlashRestore : FlashIt()
 
     @Parcelize
@@ -285,6 +289,12 @@ fun flashIt(
         is FlashIt.FlashModules -> {
             flashModulesSequentially(flashIt.uris, onStdout, onStderr)
         }
+
+        is FlashIt.FlashAnyKernel -> flashAnyKernelZip(
+            flashIt.uri,
+            onStdout,
+            onStderr
+        )
 
         FlashIt.FlashRestore -> restoreBoot(onStdout, onStderr)
 

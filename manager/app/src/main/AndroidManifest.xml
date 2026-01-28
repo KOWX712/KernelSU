@@ -26,6 +26,13 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <activity-alias
+            android:name=".FlashModule"
+            android:exported="true"
+            android:label="@string/flash_module"
+            android:targetActivity=".ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -36,7 +43,24 @@
                     android:mimeType="application/zip"
                     android:scheme="content" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".FlashAnyKernel"
+            android:exported="true"
+            android:label="@string/anykernel_install"
+            android:targetActivity=".ui.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:mimeType="application/zip"
+                    android:scheme="content" />
+            </intent-filter>
+        </activity-alias>
 
         <activity-alias
             android:name=".MainActivityOfficial"
@@ -48,16 +72,6 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:mimeType="application/zip"
-                    android:scheme="content" />
             </intent-filter>
         </activity-alias>
 
