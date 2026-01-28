@@ -287,6 +287,7 @@ class WebUIActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         runCatching {
+            webviewInterface.destroy()
             webView?.destroy()
             rootShell?.close()
         }
