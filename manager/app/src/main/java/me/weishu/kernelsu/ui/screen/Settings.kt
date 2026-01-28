@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ContactPage
 import androidx.compose.material.icons.filled.Delete
@@ -267,6 +269,28 @@ fun SettingScreen(navigator: Navigator) {
                     if (Natives.setKernelUmountEnabled(it)) {
                         execKsud("feature save", true)
                         isKernelUmountEnabled = it
+                    }
+                }
+
+                var isAvcSpoofEnabled by rememberSaveable { mutableStateOf(Natives.isAvcSpoofEnabled()) }
+                val avcSpoofStatus by produceState(initialValue = "") {
+                    value = getFeatureStatus("avc_spoof")
+                }
+                val avcSpoofSummary = when (avcSpoofStatus) {
+                    "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                    "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                    else -> stringResource(id = R.string.settings_avc_spoof_summary)
+                }
+                SwitchItem(
+                    icon = Icons.AutoMirrored.Filled.Article,
+                    title = stringResource(id = R.string.settings_avc_spoof),
+                    summary = avcSpoofSummary,
+                    enabled = avcSpoofStatus == "supported",
+                    checked = isAvcSpoofEnabled,
+                ) {
+                    if (Natives.setAvcSpoofEnabled(it)) {
+                        execKsud("feature save", true)
+                        isAvcSpoofEnabled = it
                     }
                 }
 
