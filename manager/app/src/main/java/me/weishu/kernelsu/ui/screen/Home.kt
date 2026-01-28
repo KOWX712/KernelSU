@@ -95,9 +95,9 @@ fun HomeScreen(navigator: Navigator) {
             StatusCard(kernelVersion, ksuVersion, lkmMode) {
                 navigator.push(Route.Install)
             }
-            if (ksuVersion != null && !Natives.isLkmMode) {
-                WarningCard(stringResource(id = R.string.home_gki_warning))
-            }
+//            if (ksuVersion != null && !Natives.isLkmMode) {
+//                WarningCard(stringResource(id = R.string.home_gki_warning))
+//            }
             if (isManager && Natives.requireNewKernel()) {
                 WarningCard(
                     stringResource(id = R.string.require_kernel_version).format(
@@ -110,12 +110,12 @@ fun HomeScreen(navigator: Navigator) {
                     stringResource(id = R.string.grant_root_failed)
                 )
             }
-            val checkUpdate =
-                LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
-                    .getBoolean("check_update", true)
-            if (checkUpdate) {
-                UpdateCard()
-            }
+//            val checkUpdate =
+//                LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
+//                    .getBoolean("check_update", true)
+//            if (checkUpdate) {
+//                UpdateCard()
+//            }
             InfoCard()
             DonateCard()
             LearnMoreCard()
