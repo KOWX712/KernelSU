@@ -1,76 +1,28 @@
 package me.weishu.kernelsu.ui.component
 
 import androidx.annotation.StringRes
-import androidx.compose.animation.core.EaseInOut
-import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Cottage
-import androidx.compose.material.icons.rounded.Extension
-import androidx.compose.material.icons.rounded.Security
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.outlined.Extension
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.hazeEffect
-import kotlinx.coroutines.launch
-import me.weishu.kernelsu.Natives
 import me.weishu.kernelsu.R
-import me.weishu.kernelsu.ui.LocalPagerState
-import me.weishu.kernelsu.ui.util.rootAvailable
-import top.yukonga.miuix.kmp.basic.NavigationBar
-import top.yukonga.miuix.kmp.basic.NavigationItem
+import me.weishu.kernelsu.ui.navigation3.Route
 
-
-@Composable
-fun BottomBar(
-    hazeState: HazeState,
-    hazeStyle: HazeStyle
+enum class BottomBar(
+    val route: Route,
+    @StringRes val label: Int,
+    val iconSelected: ImageVector,
+    val iconNotSelected: ImageVector,
+    val rootRequired: Boolean,
 ) {
-    val isManager = Natives.isManager
-    val fullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
-
-    val pageState = LocalPagerState.current
-    val coroutineScope = rememberCoroutineScope()
-
-    if (!fullFeatured) return
-
-    val item = BottomBarDestination.entries.map { destination ->
-        NavigationItem(
-            label = stringResource(destination.label),
-            icon = destination.icon,
-        )
-    }
-
-    NavigationBar(
-        modifier = Modifier
-            .hazeEffect(hazeState) {
-                style = hazeStyle
-                blurRadius = 30.dp
-                noiseFactor = 0f
-            },
-        color = Color.Transparent,
-        items = item,
-        selected = pageState.targetPage,
-        onClick = {
-            coroutineScope.launch {
-                pageState.animateScrollToPage(page = it, animationSpec = tween(easing = EaseInOut))
-            }
-        }
-    )
-}
-
-enum class BottomBarDestination(
-    @get:StringRes val label: Int,
-    val icon: ImageVector,
-) {
-    Home(R.string.home, Icons.Rounded.Cottage),
-    SuperUser(R.string.superuser, Icons.Rounded.Security),
-    Module(R.string.module, Icons.Rounded.Extension),
-    Setting(R.string.settings, Icons.Rounded.Settings)
+    Home(Route.Home, R.string.home, Icons.Filled.Home, Icons.Outlined.Home, false),
+    SuperUser(Route.SuperUser, R.string.superuser, Icons.Filled.Shield, Icons.Outlined.Shield, true),
+    Module(Route.Module, R.string.module, Icons.Filled.Extension, Icons.Outlined.Extension, true),
+    Settings(Route.Settings, R.string.settings, Icons.Filled.Settings, Icons.Outlined.Settings, false)
 }

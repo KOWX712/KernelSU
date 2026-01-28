@@ -24,13 +24,9 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
@@ -40,11 +36,9 @@ import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import me.weishu.kernelsu.R
-import me.weishu.kernelsu.ui.theme.KernelSUTheme
 import me.weishu.kernelsu.ui.util.createRootShell
 import me.weishu.kernelsu.ui.viewmodel.ModuleViewModel
 import me.weishu.kernelsu.ui.viewmodel.SuperUserViewModel
-import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import java.io.File
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -70,22 +64,11 @@ class WebUIActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val prefs = LocalContext.current.getSharedPreferences("settings", MODE_PRIVATE)
-            var colorMode by remember { mutableIntStateOf(prefs.getInt("color_mode", 0)) }
-            var keyColorInt by remember { mutableIntStateOf(prefs.getInt("key_color", 0)) }
-            val keyColor =
-                remember(keyColorInt) {
-                    if (keyColorInt == 0) null else androidx.compose.ui.graphics.Color(
-                        keyColorInt
-                    )
-                }
-            KernelSUTheme(colorMode = colorMode, keyColor = keyColor) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    InfiniteProgressIndicator()
-                }
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
         }
 
@@ -112,7 +95,7 @@ class WebUIActivity : ComponentActivity() {
                 return@launch
             }
 
-            if (!moduleInfo.enabled || moduleInfo.update || moduleInfo.remove) {
+            if (!moduleInfo.enabled || moduleInfo.remove) {
                 Toast.makeText(this@WebUIActivity, getString(R.string.module_unavailable, moduleName), Toast.LENGTH_SHORT).show()
                 finish()
                 return@launch
