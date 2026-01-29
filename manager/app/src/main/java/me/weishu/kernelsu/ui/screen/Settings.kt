@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.DeveloperMode
 import androidx.compose.material.icons.filled.Fence
 import androidx.compose.material.icons.filled.FolderDelete
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material.icons.filled.RemoveModerator
 import androidx.compose.material.icons.filled.Save
@@ -212,6 +213,25 @@ fun SettingScreen(navigator: Navigator) {
                     )
                 )
             }
+
+            val theme = stringResource(id = R.string.settings_theme)
+            ExpressiveColumn(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                content = listOf {
+                    ExpressiveListItem(
+                        onClick = { navigator.push(Route.ColorPalette) },
+                        headlineContent = { Text(theme) },
+                        supportingContent = { Text(stringResource(id = R.string.settings_theme_summary)) },
+                        leadingContent = { Icon(Icons.Filled.Palette, theme) },
+                        trailingContent = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                null
+                            )
+                        }
+                    )
+                }
+            )
 
             val profileTemplate = stringResource(id = R.string.settings_profile_template)
             KsuIsValid {

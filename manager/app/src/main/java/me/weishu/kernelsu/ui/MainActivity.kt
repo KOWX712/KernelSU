@@ -2,6 +2,7 @@ package me.weishu.kernelsu.ui
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
@@ -44,10 +45,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -70,6 +75,7 @@ import me.weishu.kernelsu.ui.navigation3.Route
 import me.weishu.kernelsu.ui.navigation3.rememberNavigator
 import me.weishu.kernelsu.ui.screen.AppProfileScreen
 import me.weishu.kernelsu.ui.screen.AppProfileTemplateScreen
+import me.weishu.kernelsu.ui.screen.ColorPaletteScreen
 import me.weishu.kernelsu.ui.screen.ExecuteModuleActionScreen
 import me.weishu.kernelsu.ui.screen.FlashIt
 import me.weishu.kernelsu.ui.screen.FlashScreen
@@ -81,7 +87,10 @@ import me.weishu.kernelsu.ui.screen.ModuleScreen
 import me.weishu.kernelsu.ui.screen.SettingScreen
 import me.weishu.kernelsu.ui.screen.SuperUserScreen
 import me.weishu.kernelsu.ui.screen.TemplateEditorScreen
+import me.weishu.kernelsu.ui.theme.AppSettings
+import me.weishu.kernelsu.ui.theme.ColorMode
 import me.weishu.kernelsu.ui.theme.KernelSUTheme
+import me.weishu.kernelsu.ui.theme.ThemeController
 import me.weishu.kernelsu.ui.util.LocalSnackbarHost
 import me.weishu.kernelsu.ui.util.install
 import me.weishu.kernelsu.ui.util.rootAvailable
@@ -104,8 +113,33 @@ class MainActivity : ComponentActivity() {
         val isManager = Natives.isManager
         if (isManager && !Natives.requireNewKernel()) install()
 
+        val appSettingsSaver = Saver<AppSettings, IntArray>(
+            save = { intArrayOf(it.colorMode.value, it.keyColor) },
+            restore = { AppSettings(ColorMode.fromValue(it[0]), it[1]) }
+        )
+
         setContent {
-            KernelSUTheme {
+            val appSettingsState = rememberSaveable(stateSaver = appSettingsSaver) {
+                mutableStateOf(ThemeController.getAppSettings(this@MainActivity))
+            }
+
+            val prefs = remember { getSharedPreferences("settings", MODE_PRIVATE) }
+            val prefsListener = remember {
+                SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                    if (key == "color_mode" || key == "key_color") {
+                        appSettingsState.value = ThemeController.getAppSettings(this@MainActivity)
+                    }
+                }
+            }
+
+            DisposableEffect(Unit) {
+                prefs.registerOnSharedPreferenceChangeListener(prefsListener)
+                onDispose {
+                    prefs.unregisterOnSharedPreferenceChangeListener(prefsListener)
+                }
+            }
+
+            KernelSUTheme(appSettings = appSettingsState.value) {
                 val snackBarHostState = remember { SnackbarHostState() }
                 val navigator = rememberNavigator(Route.Home)
 
@@ -218,6 +252,7 @@ class MainActivity : ComponentActivity() {
                             entryProvider = entryProvider {
                                 entry<Route.AppProfileTemplate> { AppProfileTemplateScreen() }
                                 entry<Route.TemplateEditor> { key -> TemplateEditorScreen(key.template, key.readOnly) }
+                                entry<Route.ColorPalette> { ColorPaletteScreen() }
                                 entry<Route.AppProfile> { key -> AppProfileScreen(key.packageName) }
                                 entry<Route.ModuleRepo> { ModuleRepoScreen() }
                                 entry<Route.ModuleRepoDetail> { key -> ModuleRepoDetailScreen(key.module) }
