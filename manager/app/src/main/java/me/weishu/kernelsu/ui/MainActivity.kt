@@ -418,7 +418,12 @@ private fun ZipFileIntentHandler(
             )
                 .show()
         } else {
-            navigator.push(Route.Flash(FlashIt.FlashModules(listOf(uri))))
+            val component = currentIntent.component?.className
+            val flashIt = when {
+                component?.endsWith("FlashAnyKernel") == true -> FlashIt.FlashAnyKernel(uri)
+                else -> FlashIt.FlashModules(listOf(uri))
+            }
+            navigator.push(Route.Flash(flashIt))
         }
     }
 }
