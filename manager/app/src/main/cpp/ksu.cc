@@ -153,6 +153,25 @@ bool is_su_enabled() {
     return cmd.value != 0;
 }
 
+bool set_avc_spoof_enabled(bool enabled) {
+    struct ksu_set_feature_cmd cmd = {};
+    cmd.feature_id = KSU_FEATURE_AVC_SPOOF;
+    cmd.value = enabled ? 1 : 0;
+    return ksuctl(KSU_IOCTL_SET_FEATURE, &cmd) == 0;
+}
+
+bool is_avc_spoof_enabled() {
+    struct ksu_get_feature_cmd cmd = {};
+    cmd.feature_id = KSU_FEATURE_AVC_SPOOF;
+    if (ksuctl(KSU_IOCTL_GET_FEATURE, &cmd) != 0) {
+        return false;
+    }
+    if (!cmd.supported) {
+        return false;
+    }
+    return cmd.value != 0;
+}
+
 static inline bool get_feature(uint32_t feature_id, uint64_t *out_value, bool *out_supported) {
     struct ksu_get_feature_cmd cmd = {};
     cmd.feature_id = feature_id;
