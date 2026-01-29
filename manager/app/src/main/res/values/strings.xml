@@ -181,6 +181,7 @@
     <string name="settings_key_color_summary">Customize accent when using Monet.</string>
     <string name="settings_key_color_default">Default</string>
     <string name="settings_classic_home_ui">Classic Home UI</string>
+    <string name="settings_new_module_button">New module button</string>
     <string name="color_blue">Blue</string>
     <string name="color_red">Red</string>
     <string name="color_green">Green</string>

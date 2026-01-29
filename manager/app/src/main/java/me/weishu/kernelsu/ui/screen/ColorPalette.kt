@@ -87,6 +87,8 @@ import androidx.core.content.edit
 import androidx.lifecycle.compose.dropUnlessResumed
 import com.materialkolor.rememberDynamicColorScheme
 import me.weishu.kernelsu.R
+import me.weishu.kernelsu.ui.component.ExpressiveColumn
+import me.weishu.kernelsu.ui.component.ExpressiveSwitchItem
 import me.weishu.kernelsu.ui.navigation3.LocalNavigator
 import me.weishu.kernelsu.ui.theme.ColorMode
 import me.weishu.kernelsu.ui.theme.ThemeController
@@ -113,6 +115,7 @@ fun ColorPaletteScreen() {
     var currentKeyColor by remember { mutableIntStateOf(appSettings.keyColor) }
     var currentLauncherIcon by remember { mutableStateOf(prefs.getBoolean("enable_official_launcher", false)) }
     var currentClassicUi by remember { mutableStateOf(prefs.getBoolean("classic_ui", false)) }
+    var newModuleButton by remember { mutableStateOf(prefs.getBoolean("new_module_button", false)) }
 
     Scaffold(
         topBar = {
@@ -271,6 +274,22 @@ fun ColorPaletteScreen() {
                         }
                     }
                 }
+
+                ExpressiveColumn(
+                    modifier = Modifier.padding(top = 4.dp),
+                    content = listOf(
+                        {
+                            ExpressiveSwitchItem(
+                                title = stringResource(R.string.settings_classic_home_ui),
+                                checked = currentClassicUi,
+                                onCheckedChange = {
+                                    currentClassicUi = it
+                                    prefs.edit { putBoolean("classic_ui", it) }
+                                }
+                            )
+                        }
+                    )
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -336,10 +355,27 @@ private fun ThemePreviewCard(keyColor: Int, isDark: Boolean, currentLauncherIcon
                     ) {
                         TonalCard(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            modifier = Modifier.fillMaxWidth().height(64.dp),
+                            modifier = Modifier.fillMaxWidth().height(if (classicUi) 72.dp else 48.dp),
                             shape = RoundedCornerShape(12.dp),
                             content = { }
                         )
+                        if (!classicUi) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                TonalCard(
+                                    modifier = Modifier.weight(1f).height(40.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    content = { }
+                                )
+                                TonalCard(
+                                    modifier = Modifier.weight(1f).height(40.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    content = { }
+                                )
+                            }
+                        }
                         TonalCard(
                             modifier = Modifier.fillMaxWidth().height(128.dp),
                             shape = RoundedCornerShape(12.dp),

@@ -175,6 +175,7 @@
     <string name="settings_key_color_summary">在使用 Monet 时自定义种子色。</string>
     <string name="settings_key_color_default">默认</string>
     <string name="settings_classic_home_ui">经典主页样式</string>
+    <string name="settings_new_module_button">新模块按钮样式</string>
     <string name="color_blue">蓝色</string>
     <string name="color_red">红色</string>
     <string name="color_green">绿色</string>
