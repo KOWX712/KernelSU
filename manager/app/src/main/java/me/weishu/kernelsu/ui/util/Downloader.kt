@@ -129,12 +129,16 @@ fun DownloadListener(context: Context, onDownloaded: (Uri) -> Unit) {
                             cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
                         )
                         if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                            val uri = cursor.getString(
-                                cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI)
-                            )
-                            onDownloaded(uri.toUri())
+                            val description = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_DESCRIPTION))
+                            if (description?.startsWith("WebUI: ") != true) { // Ignore WebUI downloads
+                                val uri = cursor.getString(
+                                    cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI)
+                                )
+                                onDownloaded(uri.toUri())
+                            }
                         }
                     }
+                    cursor.close()
                 }
             }
         }
