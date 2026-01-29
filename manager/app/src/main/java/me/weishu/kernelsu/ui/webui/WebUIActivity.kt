@@ -3,6 +3,7 @@ package me.weishu.kernelsu.ui.webui
 import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -133,6 +134,10 @@ class WebUIActivity : ComponentActivity() {
         }
     }
 
+    private fun erudaConsole(context: Context): String {
+        return context.assets.open("eruda.min.js").bufferedReader().use { it.readText() }
+    }
+
     private suspend fun setupWebView(moduleId: String, name: String) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             @Suppress("DEPRECATION")
@@ -143,7 +148,9 @@ class WebUIActivity : ComponentActivity() {
         }
 
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
-        WebView.setWebContentsDebuggingEnabled(prefs.getBoolean("enable_web_debugging", false))
+        val enableWebDebugging = prefs.getBoolean("enable_web_debugging", false)
+
+        WebView.setWebContentsDebuggingEnabled(enableWebDebugging)
 
         val moduleDir = "/data/adb/modules/${moduleId}"
         val webRoot = File("${moduleDir}/webroot")
@@ -218,6 +225,13 @@ class WebUIActivity : ComponentActivity() {
                 }
 
                 return webViewAssetLoader.shouldInterceptRequest(url)
+            }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                if (enableWebDebugging) {
+                    view?.evaluateJavascript(erudaConsole(this@WebUIActivity), null)
+                    view?.evaluateJavascript("eruda.init();", null)
+                }
             }
         }
 
