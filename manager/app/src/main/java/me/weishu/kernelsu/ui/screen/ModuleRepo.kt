@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -48,15 +49,16 @@ import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
@@ -96,6 +98,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.component.ConfirmDialogHandle
+import me.weishu.kernelsu.ui.component.ExpressiveColumn
+import me.weishu.kernelsu.ui.component.ExpressiveListItem
 import me.weishu.kernelsu.ui.component.GithubMarkdown
 import me.weishu.kernelsu.ui.component.SearchAppBar
 import me.weishu.kernelsu.ui.component.rememberConfirmDialog
@@ -145,7 +149,7 @@ data class RepoModuleArg(
 ) : Parcelable
 
 @SuppressLint("LocalContextGetResourceValueCall")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ModuleRepoScreen() {
     val navigator = LocalNavigator.current
@@ -229,7 +233,7 @@ fun ModuleRepoScreen() {
                         }
                     }
                 } else {
-                    CircularProgressIndicator()
+                    LoadingIndicator()
                 }
             }
         } else {
@@ -261,24 +265,23 @@ fun ModuleRepoScreen() {
                     val latestReleaseTime = remember(module.latestReleaseTime) { module.latestReleaseTime }
                     val moduleAuthor = stringResource(id = R.string.module_author)
 
-                    ElevatedCard(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        onClick = {
-                            val args = RepoModuleArg(
-                                moduleId = module.moduleId,
-                                moduleName = module.moduleName,
-                                authors = module.authors,
-                                authorsList = module.authorList.map { AuthorArg(it.name, it.link) },
-                                latestRelease = module.latestRelease,
-                                latestReleaseTime = module.latestReleaseTime,
-                                releases = emptyList()
-                            )
-                            navigator.push(Route.ModuleRepoDetail(args))
-                        }
-                    ) {
+                    TonalCard(modifier = Modifier.fillMaxWidth()) {
                         Column(
-                            modifier = Modifier.padding(22.dp, 18.dp, 22.dp, 12.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    val args = RepoModuleArg(
+                                        moduleId = module.moduleId,
+                                        moduleName = module.moduleName,
+                                        authors = module.authors,
+                                        authorsList = module.authorList.map { AuthorArg(it.name, it.link) },
+                                        latestRelease = module.latestRelease,
+                                        latestReleaseTime = module.latestReleaseTime,
+                                        releases = emptyList()
+                                    )
+                                    navigator.push(Route.ModuleRepoDetail(args))
+                                }
+                                .padding(22.dp, 18.dp, 22.dp, 12.dp)
                         ) {
                             if (module.moduleName.isNotEmpty()) {
                                 Text(
@@ -367,7 +370,7 @@ fun ModuleRepoScreen() {
 }
 
 @SuppressLint("StringFormatInvalid", "DefaultLocale")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ModuleRepoDetailScreen(
     module: RepoModuleArg
@@ -515,7 +518,7 @@ fun ModuleRepoDetailScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ReadmePage(
     readmeHtml: String?,
@@ -532,7 +535,7 @@ private fun ReadmePage(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                LoadingIndicator()
             }
         }
         if (readmeLoaded && readmeHtml != null) {
@@ -560,7 +563,7 @@ private fun ReadmePage(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @SuppressLint("DefaultLocale")
 @Composable
 fun ReleasesPage(
@@ -593,7 +596,7 @@ fun ReleasesPage(
                 key = { it.tagName },
             ) { rel ->
                 val title = remember(rel.name, rel.tagName) { rel.name.ifBlank { rel.tagName } }
-                ElevatedCard {
+                TonalCard {
                     Column(
                         modifier = Modifier.padding(vertical = 18.dp, horizontal = 22.dp)
                     ) {
@@ -705,10 +708,9 @@ fun ReleasesPage(
                                             contentPadding = ButtonDefaults.TextButtonContentPadding
                                         ) {
                                             if (isDownloading) {
-                                                CircularProgressIndicator(
+                                                CircularWavyProgressIndicator(
                                                     progress = { progress / 100f },
-                                                    gapSize = 20.dp,
-                                                    strokeWidth = 2.dp
+                                                    modifier = Modifier.size(20.dp),
                                                 )
                                             } else {
                                                 Icon(
@@ -756,106 +758,79 @@ fun InfoPage(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         contentPadding = PaddingValues(
             top = innerPadding.calculateTopPadding(),
-            start = innerPadding.calculateStartPadding(layoutDirection) + 16.dp,
-            end = innerPadding.calculateEndPadding(layoutDirection) + 16.dp,
+            start = innerPadding.calculateStartPadding(layoutDirection),
+            end = innerPadding.calculateEndPadding(layoutDirection),
             bottom = innerPadding.calculateBottomPadding(),
         ),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         if (module.authorsList.isNotEmpty()) {
             item {
-                ElevatedCard {
-                    Column(
-                        modifier = Modifier.padding(vertical = 18.dp, horizontal = 22.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.module_author),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        module.authorsList.forEachIndexed { index, author ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text(
-                                    text = author.name,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                val clickable = author.link.isNotEmpty()
-                                FilledTonalButton(
-                                    modifier = Modifier.defaultMinSize(52.dp, 32.dp),
-                                    enabled = clickable,
-                                    onClick = {
-                                        if (clickable) {
-                                            uriHandler.openUri(author.link)
-                                        }
-                                    },
-                                    contentPadding = ButtonDefaults.TextButtonContentPadding
-                                ) {
-                                    Icon(
-                                        modifier = Modifier.size(20.dp),
-                                        imageVector = Icons.Outlined.Link,
-                                        contentDescription = null
+                ExpressiveColumn(
+                    modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp),
+                    title = stringResource(R.string.module_author),
+                    content = module.authorsList.map { author ->
+                        {
+                            ExpressiveListItem(
+                                headlineContent = {
+                                    Text(
+                                        text = author.name,
+                                        fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                                        lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
+                                        fontFamily = MaterialTheme.typography.bodySmall.fontFamily
                                     )
+                                },
+                                trailingContent = {
+                                    FilledTonalButton(
+                                        modifier = Modifier.defaultMinSize(52.dp, 32.dp),
+                                        onClick = { uriHandler.openUri(author.link) },
+                                        contentPadding = ButtonDefaults.TextButtonContentPadding
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.size(20.dp),
+                                            imageVector = Icons.Outlined.Link,
+                                            contentDescription = null
+                                        )
+                                    }
                                 }
-                            }
-                            if (index != module.authorsList.lastIndex) {
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                    thickness = Dp.Hairline
-                                )
-                            }
+                            )
                         }
                     }
-                }
+                )
             }
         }
         if (sourceUrl.isNotEmpty()) {
             item {
-                ElevatedCard {
-                    Column(
-                        modifier = Modifier.padding(vertical = 18.dp, horizontal = 22.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.module_repos_source_code),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = sourceUrl,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.weight(1f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            FilledTonalButton(
-                                modifier = Modifier.defaultMinSize(52.dp, 32.dp),
-                                onClick = {
-                                    uriHandler.openUri(sourceUrl)
+                ExpressiveColumn(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    title = stringResource(R.string.module_repos_source_code),
+                    content = listOf(
+                        {
+                            ExpressiveListItem(
+                                headlineContent = {
+                                    Text(
+                                        text = sourceUrl,
+                                        fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                                        lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
+                                        fontFamily = MaterialTheme.typography.bodySmall.fontFamily
+                                    )
                                 },
-                                contentPadding = ButtonDefaults.TextButtonContentPadding
-                            ) {
-                                Icon(
-                                    modifier = Modifier.size(20.dp),
-                                    imageVector = Icons.Outlined.Link,
-                                    contentDescription = null
-                                )
-                            }
+                                trailingContent = {
+                                    FilledTonalButton(
+                                        modifier = Modifier.defaultMinSize(52.dp, 32.dp),
+                                        onClick = { uriHandler.openUri(sourceUrl) },
+                                        contentPadding = ButtonDefaults.TextButtonContentPadding
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.size(20.dp),
+                                            imageVector = Icons.Outlined.Link,
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
+                            )
                         }
-                    }
-                }
+                    )
+                )
             }
         }
     }
