@@ -34,13 +34,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.webkit.WebViewAssetLoader
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.util.createRootShell
 import me.weishu.kernelsu.ui.viewmodel.ModuleViewModel
 import me.weishu.kernelsu.ui.viewmodel.SuperUserViewModel
 import java.io.File
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedDeque
 
 @SuppressLint("SetJavaScriptEnabled")
 class WebUIActivity : ComponentActivity() {
@@ -48,6 +53,55 @@ class WebUIActivity : ComponentActivity() {
         private const val DOMAIN = "mui.kernelsu.org"
         private const val KSU_SCHEME = "ksu"
         private const val ICON_HOST = "icon"
+        private const val DOWNLOAD_JS = """
+            (function() {
+                if (window.ksu_download_enabled) return;
+                window.ksu_download_enabled = true;
+                const blobMap = new Map();
+                const orgCreate = URL.createObjectURL;
+                URL.createObjectURL = (obj) => {
+                    const url = orgCreate(obj);
+                    if (obj instanceof Blob) blobMap.set(url, obj);
+                    return url;
+                };
+                const orgRevoke = URL.revokeObjectURL;
+                URL.revokeObjectURL = (url) => {
+                    setTimeout(() => blobMap.delete(url), 10000);
+                    orgRevoke(url);
+                };
+                const handleDownload = async (a) => {
+                    const urlParsed = new URL(a.href, location.href);
+                    const url = urlParsed.href;
+                    const fileName = a.download || url.split("/").pop().split("?")[0] || "download.bin";
+                    const isInternal = urlParsed.hostname === 'mui.kernelsu.org';
+                    if (url.startsWith('blob:') || url.startsWith('data:') || isInternal) {
+                        const blob = (url.startsWith('blob:') && blobMap.has(url)) ? blobMap.get(url) : await (await fetch(url)).blob();
+                        if (blob.size > 16 * 1024 * 1024) {
+                            console.error("File too large, please use FileOutputStreamInterface instead.");
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            ksu_download.save(reader.result.split(',')[1], fileName, blob.type);
+                        };
+                        reader.readAsDataURL(blob);
+                    } else {
+                        ksu_download.download(url, null, null);
+                    }
+                };
+                document.addEventListener("click", (e) => {
+                    const a = e.target.closest("a[download]");
+                    if (a) {
+                        e.preventDefault();
+                        handleDownload(a);
+                    }
+                }, true);
+                const orgClick = HTMLAnchorElement.prototype.click;
+                HTMLAnchorElement.prototype.click = function () {
+                    this.hasAttribute("download") ? handleDownload(this) : orgClick.apply(this, arguments);
+                };
+            })();
+        """
     }
 
     private lateinit var webviewInterface: WebViewInterface
@@ -60,6 +114,9 @@ class WebUIActivity : ComponentActivity() {
     private var isInsetsEnabled = false
     private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
+    private val pendingSaves = ConcurrentHashMap<String, ByteArray>()
+    private val pendingSaveIds = ConcurrentLinkedDeque<String>()
+    private lateinit var fileSaveLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -138,6 +195,23 @@ class WebUIActivity : ComponentActivity() {
             }
             filePathCallback?.onReceiveValue(uris)
             filePathCallback = null
+        }
+
+        fileSaveLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            val saveId = pendingSaveIds.pollFirst() ?: ""
+            val uri = if (result.resultCode == RESULT_OK) result.data?.data else null
+            val data = pendingSaves.remove(saveId)
+            if (uri != null && data != null) {
+                lifecycleScope.launch {
+                    try {
+                        withContext(Dispatchers.IO) {
+                            contentResolver.openOutputStream(uri)?.use { it.write(data) }
+                        }
+                    } catch (_: Exception) { }
+                }
+            }
         }
     }
 
@@ -239,6 +313,7 @@ class WebUIActivity : ComponentActivity() {
                     view?.evaluateJavascript(erudaConsole(this@WebUIActivity), null)
                     view?.evaluateJavascript("eruda.init();", null)
                 }
+                view?.evaluateJavascript(DOWNLOAD_JS, null)
             }
         }
 
@@ -248,6 +323,12 @@ class WebUIActivity : ComponentActivity() {
             settings.allowFileAccess = false
             webviewInterface = WebViewInterface(this@WebUIActivity, this, moduleDir)
             addJavascriptInterface(webviewInterface, "ksu")
+            val downloadInterface = DownloadInterface(this@WebUIActivity, this)
+            addJavascriptInterface(downloadInterface, "ksu_download")
+
+            setDownloadListener { url, _, contentDisposition, mimetype, _ ->
+                downloadInterface.download(url, contentDisposition, mimetype)
+            }
             setWebViewClient(webViewClient)
             webChromeClient = object : WebChromeClient() {
                 override fun onShowFileChooser(
@@ -281,6 +362,20 @@ class WebUIActivity : ComponentActivity() {
                 isInsetsEnabled = enable
                 ViewCompat.requestApplyInsets(container)
             }
+        }
+    }
+
+    fun saveFile(data: ByteArray, fileName: String, mimeType: String) {
+        val saveId = UUID.randomUUID().toString()
+        pendingSaves[saveId] = data
+        pendingSaveIds.add(saveId)
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = mimeType
+            putExtra(Intent.EXTRA_TITLE, fileName)
+        }
+        runOnUiThread {
+            fileSaveLauncher.launch(intent)
         }
     }
 

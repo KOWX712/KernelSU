@@ -79,6 +79,8 @@
     <string name="module_update">更新</string>
     <string name="module_downloading">正在下载模块：%s</string>
     <string name="module_start_downloading">开始下载：%s</string>
+    <string name="start_downloading">开始下载</string>
+    <string name="download_failed">下载失败: %s</string>
     <string name="new_version_available">发现新版本：%s，点击升级！</string>
     <string name="launch_app">启动</string>
     <string name="force_stop_app">强制停止</string>
