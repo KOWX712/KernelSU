@@ -1,48 +1,70 @@
 package me.weishu.kernelsu.ui.component
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import top.yukonga.miuix.kmp.basic.DropdownColors
-import top.yukonga.miuix.kmp.basic.DropdownDefaults
-import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.theme.MiuixTheme
+import androidx.compose.ui.graphics.vector.ImageVector
 
 @Composable
 fun DropdownItem(
-    text: String,
-    optionSize: Int,
-    index: Int,
-    dropdownColors: DropdownColors = DropdownDefaults.dropdownColors(),
-    onSelectedIndexChange: (Int) -> Unit
+    icon: ImageVector,
+    title: String,
+    summary: String? = null,
+    items: List<String>,
+    selectedIndex: Int,
+    enabled: Boolean = true,
+    onItemSelected: (Int) -> Unit
 ) {
-    val currentOnSelectedIndexChange = rememberUpdatedState(onSelectedIndexChange)
-    val additionalTopPadding = if (index == 0) 20f.dp else 12f.dp
-    val additionalBottomPadding = if (index == optionSize - 1) 20f.dp else 12f.dp
+    var expanded by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier
-            .clickable { currentOnSelectedIndexChange.value(index) }
-            .background(dropdownColors.containerColor)
-            .padding(horizontal = 20.dp)
-            .padding(
-                top = additionalTopPadding,
-                bottom = additionalBottomPadding
-            ),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = text,
-            fontSize = MiuixTheme.textStyles.body1.fontSize,
-            fontWeight = FontWeight.Medium,
-            color = dropdownColors.contentColor,
-        )
-    }
+    ListItem(
+        modifier = if (enabled) {
+            Modifier.clickable { expanded = true }
+        } else {
+            Modifier
+        },
+        leadingContent = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null
+            )
+        },
+        headlineContent = { Text(text = title) },
+        supportingContent = summary?.let { { Text(it) } },
+        trailingContent = {
+            Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
+                Text(
+                    text = items[selectedIndex],
+                    color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    items.forEachIndexed { index, text ->
+                        DropdownMenuItem(
+                            text = { Text(text) },
+                            onClick = {
+                                onItemSelected(index)
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    )
 }
