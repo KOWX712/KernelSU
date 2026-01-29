@@ -115,7 +115,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.FixedScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -513,12 +512,18 @@ fun ModuleScreen(navigator: Navigator) {
                             modifier = Modifier
                                 .size(100.dp)
                                 .background(Color.White)
-                        )
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                            contentDescription = null,
-                            contentScale = FixedScale(1.5f)
-                        )
+                        ) {
+                            val defaultBitmap = remember(context) {
+                                Shortcut.getDefaultIconBitmap(context)?.asImageBitmap()
+                            }
+                            if (defaultBitmap != null) {
+                                Image(
+                                    bitmap = defaultBitmap,
+                                    contentDescription = null,
+                                    contentScale = FixedScale(1.5f)
+                                )
+                            }
+                        }
                     }
                 }
                 Row(

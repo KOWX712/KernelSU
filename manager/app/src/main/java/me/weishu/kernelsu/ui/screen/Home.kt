@@ -52,6 +52,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Shape
 import androidx.core.content.pm.PackageInfoCompat
 import kotlinx.coroutines.Dispatchers
@@ -185,8 +186,13 @@ fun UpdateCard() {
 private fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    val isOfficialEnabled = prefs.getBoolean("enable_official_launcher", false)
+    val appNameId = if (isOfficialEnabled) R.string.app_name else R.string.app_name_kowsu
+
     TopAppBar(
-        title = { Text(stringResource(R.string.app_name)) },
+        title = { Text(stringResource(appNameId)) },
         actions = { RebootListPopup() },
         windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         scrollBehavior = scrollBehavior
