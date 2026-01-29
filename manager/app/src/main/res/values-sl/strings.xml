@@ -3,6 +3,7 @@
     <string name="home_click_to_install">Klikni za namestitev</string>
     <string name="home_working">V obdelavi</string>
     <string name="home_working_version">Verzija: %d</string>
+    <string name="home_superuser_count">Superuporabniki: %d</string>
     <string name="home_unsupported_reason">KernelSU podpira samo GKI kernele</string>
     <string name="home_kernel">Kernel</string>
     <string name="home_manager_version">Verzija upravitelja</string>
@@ -45,6 +46,7 @@
     <string name="module_changelog">Dnevnik sprememb</string>
     <string name="settings_profile_template">Predloga za aplikacijski profil</string>
     <string name="home">Domov</string>
+    <string name="home_module_count">Moduli: %d</string>
     <string name="home_unsupported">Ne podpira</string>
     <string name="superuser">SuperUporabnik</string>
     <string name="module_failed_to_enable">Napaka pri omogočanju modula: %s</string>
