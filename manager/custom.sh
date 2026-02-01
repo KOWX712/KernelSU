@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Generate 3 custom lowercase words
 word1="com"
 word2="kowx712"
 word3="supermanager"
@@ -18,8 +19,5 @@ find . -type f -exec sed -i \
     -e "s/me\/weishu\/kernelsu/$word1\/$word2\/$word3/g" \
     -e "s/me_weishu_kernelsu/${word1}_${word2}_${word3}/g" {} +
 
-if [ -f "./app/build.gradle.kts" ]; then
-    sed -i 's/outputFileName = "KernelSU_${managerVersionName}_${managerVersionCode}-\$name.apk"/outputFileName = "KowSU_${managerVersionName}_${managerVersionCode}-\$name.apk"/' ./app/build.gradle.kts
-fi
-
+# Done
 echo "Done."
