@@ -63,8 +63,8 @@
     <string name="safe_mode">Chế độ an toàn</string>
     <string name="reboot_to_apply">Khởi động lại để có hiệu lực</string>
     <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_superuser_count">Superusers: %d</string>
-    <string name="home_module_count">Modules: %d</string>
+    <string name="home_superuser_count">Superuser: %d</string>
+    <string name="home_module_count">Module: %d</string>
     <string name="profile_selinux_domain">Tên miền</string>
     <string name="profile_selinux_rules">Quy tắc</string>
     <string name="launch_app">Khởi chạy</string>
@@ -144,8 +144,8 @@
     <string name="settings_sucompat_summary">Cho phép truy cập root qua /system/bin/su, trong các quy trình mới.</string>
     <string name="settings_kernel_umount">Gỡ kết nối mô-đun</string>
     <string name="settings_kernel_umount_summary">Gỡ kết nối các mô-đun khỏi hạt nhân trong Hồ sơ ứng dụng</string>
-    <string name="settings_avc_spoof">Giả mạo AVC</string>
-    <string name="settings_avc_spoof_summary">Giả mạo AVC để sửa lỗi rò rỉ ngữ cảnh SELinux do từ chối AVC trong nhật ký.</string>
+    <string name="settings_avc_spoof">Giả mạo nhật ký AVC</string>
+    <string name="settings_avc_spoof_summary">Khắc phục lỗi rò rỉ ngữ cảnh SELinux do từ chối AVC trong nhật ký.</string>
     <string name="processing">Đang xử lý…</string>
     <string name="refresh_pulling">Kéo xuống để làm mới</string>
     <string name="refresh_release">Thả để làm mới</string>
@@ -168,7 +168,8 @@
     <string name="settings_theme_mode_monet_dark">Monet (Tối)</string>
     <string name="settings_key_color_summary">Tùy chỉnh màu nhấn khi sử dụng Monet.</string>
     <string name="settings_key_color_default">Mặc định</string>
-    <string name="settings_classic_home_ui">Giao diện Trang chủ Cổ điển</string>
+    <string name="settings_classic_home_ui">Trang chủ Cổ điển</string>
+    <string name="settings_new_module_button">Kiểu nút module mới</string>
     <string name="color_blue">Dương</string>
     <string name="color_red">Đỏ</string>
     <string name="color_green">Lục</string>
