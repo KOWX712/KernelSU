@@ -302,6 +302,7 @@ class DownloadInterface(private val state: WebUIState) {
 
             request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            request.setDescription("WebUI: $fileName")
             request.setTitle(fileName)
             if (!mimetype.isNullOrEmpty()) {
                 request.setMimeType(mimetype)
