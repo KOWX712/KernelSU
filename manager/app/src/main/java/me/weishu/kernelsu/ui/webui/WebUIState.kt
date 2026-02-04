@@ -19,6 +19,27 @@ sealed class WebUIEvent {
     data class ShowConfirm(val message: String, val result: JsResult) : WebUIEvent()
     data class ShowPrompt(val message: String, val defaultValue: String, val result: JsPromptResult) : WebUIEvent()
     data class ShowFileChooser(val intent: Intent) : WebUIEvent()
+    data class SaveFile(val data: ByteArray, val fileName: String, val mimeType: String) : WebUIEvent() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as SaveFile
+
+            if (!data.contentEquals(other.data)) return false
+            if (fileName != other.fileName) return false
+            if (mimeType != other.mimeType) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = data.contentHashCode()
+            result = 31 * result + fileName.hashCode()
+            result = 31 * result + mimeType.hashCode()
+            return result
+        }
+    }
 }
 
 class WebUIState {
@@ -63,6 +84,14 @@ class WebUIState {
     fun onFileChooserResult(uris: Array<Uri>?) {
         filePathCallback?.onReceiveValue(uris)
         filePathCallback = null
+        uiEvent = WebUIEvent.WebViewReady
+    }
+
+    fun onSaveFile(data: ByteArray, fileName: String, mimeType: String) {
+        uiEvent = WebUIEvent.SaveFile(data, fileName, mimeType)
+    }
+
+    fun onSaveFileResult() {
         uiEvent = WebUIEvent.WebViewReady
     }
 

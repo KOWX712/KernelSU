@@ -1,6 +1,7 @@
 package me.weishu.kernelsu.ui.webui
 
 import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import android.view.View
 import android.view.ViewGroup
@@ -28,9 +29,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -39,6 +42,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.weishu.kernelsu.R
 
 
@@ -118,6 +124,8 @@ fun WebUIScreen(webUIState: WebUIState) {
 
 @Composable
 private fun HandleWebUIEvent(webUIState: WebUIState) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     val fileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -132,6 +140,27 @@ private fun HandleWebUIEvent(webUIState: WebUIState) {
             }
         } else null
         webUIState.onFileChooserResult(uris)
+    }
+
+    val fileSaveLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val uri = if (result.resultCode == Activity.RESULT_OK) result.data?.data else null
+        val event = webUIState.uiEvent
+        if (uri != null && event is WebUIEvent.SaveFile) {
+            scope.launch {
+                try {
+                    withContext(Dispatchers.IO) {
+                        context.contentResolver.openOutputStream(uri)?.use { it.write(event.data) }
+                    }
+                } catch (_: Exception) {
+                } finally {
+                    webUIState.onSaveFileResult()
+                }
+            }
+        } else {
+            webUIState.onSaveFileResult()
+        }
     }
 
     when (val event = webUIState.uiEvent) {
@@ -245,6 +274,21 @@ private fun HandleWebUIEvent(webUIState: WebUIState) {
                     fileLauncher.launch(event.intent)
                 } catch (_: Exception) {
                     webUIState.onFileChooserResult(null)
+                }
+            }
+        }
+
+        is WebUIEvent.SaveFile -> {
+            LaunchedEffect(event) {
+                val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = event.mimeType
+                    putExtra(Intent.EXTRA_TITLE, event.fileName)
+                }
+                try {
+                    fileSaveLauncher.launch(intent)
+                } catch (_: Exception) {
+                    webUIState.onSaveFileResult()
                 }
             }
         }
