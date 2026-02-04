@@ -2,6 +2,7 @@ package me.weishu.kernelsu.ui
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -16,19 +17,30 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -36,7 +48,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -112,14 +126,11 @@ class MainActivity : ComponentActivity() {
                         intentState = intentState,
                     )
 
+                    val configuration = LocalConfiguration.current
                     val bottomBarRouteNames = setOf("Home", "SuperUser", "Module", "Settings")
-
-                    Scaffold(
-                        bottomBar = { BottomBar(navigator) },
-                        contentWindowInsets = WindowInsets(0, 0, 0, 0)
-                    ) { innerPadding ->
+                    val navDisplayContent: @Composable (Modifier) -> Unit = { modifier ->
                         NavDisplay(
-                            modifier = Modifier.padding(innerPadding),
+                            modifier = modifier,
                             backStack = navigator.backStack,
                             entryDecorators = listOf(
                                 rememberSaveableStateHolderNavEntryDecorator(),
@@ -221,6 +232,33 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
+
+                    if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                        Surface(
+                            modifier = Modifier.fillMaxSize(),
+                            color = MaterialTheme.colorScheme.background
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                SideBar(navigator = navigator)
+                                navDisplayContent(
+                                    Modifier
+                                        .weight(1f)
+                                        .consumeWindowInsets(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
+                                )
+                            }
+                        }
+                    } else {
+                        Scaffold(
+                            bottomBar = {
+                                BottomBar(navigator)
+                            },
+                            contentWindowInsets = WindowInsets(0, 0, 0, 0)
+                        ) { innerPadding ->
+                            navDisplayContent(Modifier.padding(innerPadding))
+                        }
+                    }
                 }
             }
         }
@@ -243,7 +281,6 @@ private fun BottomBar(navigator: Navigator) {
     val currentRoute = backStack.lastOrNull { it in bottomBarRoutes }
 
     NavigationBar(
-        tonalElevation = 8.dp,
         windowInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout).only(
             WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
         )
@@ -268,6 +305,49 @@ private fun BottomBar(navigator: Navigator) {
                 label = { Text(stringResource(destination.label)) },
                 alwaysShowLabel = false
             )
+        }
+    }
+}
+
+@Composable
+private fun SideBar(navigator: Navigator, modifier: Modifier = Modifier) {
+    val isManager = Natives.isManager
+    val fullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
+    val backStack = navigator.backStack
+    val bottomBarRoutes = setOf(Route.Home, Route.SuperUser, Route.Module, Route.Settings)
+    val currentRoute = backStack.lastOrNull { it in bottomBarRoutes }
+
+    NavigationRail(
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.background,
+        windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Vertical + WindowInsetsSides.Start)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxHeight().padding(start = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
+        ) {
+            BottomBar.entries.forEach { destination ->
+                if (!fullFeatured && destination.rootRequired) return@forEach
+                val selected = currentRoute == destination.route
+                NavigationRailItem(
+                    selected = selected,
+                    onClick = {
+                        if (selected) {
+                            return@NavigationRailItem
+                        }
+                        backStack.clear()
+                        backStack.add(destination.route)
+                    },
+                    icon = {
+                        Icon(
+                            if (selected) destination.iconSelected else destination.iconNotSelected,
+                            stringResource(destination.label)
+                        )
+                    },
+                    label = { Text(stringResource(destination.label)) },
+                    alwaysShowLabel = false
+                )
+            }
         }
     }
 }
