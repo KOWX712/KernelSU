@@ -146,6 +146,8 @@
     <string name="settings_sucompat_summary">允许通过 /system/bin/su 获取 Root 权限</string>
     <string name="settings_kernel_umount">内核处理卸载模块</string>
     <string name="settings_kernel_umount_summary">在内核给需要的应用卸载模块</string>
+    <string name="settings_avc_spoof">avc 日志伪装</string>
+    <string name="settings_avc_spoof_summary">修复日志中 avc denial 导致的 selinux 上下文泄漏。</string>
     <string name="module_install_prompt_with_name">将安装以下模块：%1$s</string>
     <string name="confirm">确认</string>
     <string name="processing">处理中…</string>
