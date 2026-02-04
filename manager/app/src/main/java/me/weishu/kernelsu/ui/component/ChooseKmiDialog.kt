@@ -1,13 +1,9 @@
 package me.weishu.kernelsu.ui.component
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -69,26 +65,29 @@ fun ChooseKmiDialog(
         },
         title = {
             Text(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                 text = stringResource(R.string.select_kmi),
                 textAlign = TextAlign.Center
             )
         },
         text = {
-            LazyColumn {
-                items(supportedKMIs) { kmi ->
-                    RadioItem(
-                        title = kmi,
-                        summary = if (kmi == currentKmi) stringResource(R.string.current_device_kmi) else null,
-                        selected = selectedKmi.value == kmi,
-                        onClick = { selectedKmi.value = kmi }
-                    )
+            ExpressiveColumn(
+                content = supportedKMIs.map { kmi ->
+                    {
+                        ExpressiveRadioItem(
+                            title = kmi,
+                            summary = if (kmi == currentKmi) stringResource(R.string.current_device_kmi) else null,
+                            selected = selectedKmi.value == kmi,
+                            onClick = { selectedKmi.value = kmi }
+                        )
+                    }
                 }
-            }
+            )
         }
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Preview
 @Composable
 fun ChooseKmiDialogPreview() {
