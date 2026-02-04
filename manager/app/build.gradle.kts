@@ -138,7 +138,7 @@ android {
 
 androidComponents {
     onVariants(selector().withBuildType("release")) {
-        it.packaging.resources.excludes.addAll(listOf("META-INF/**", "kotlin/**", "org/**", "**.bin"))
+        it.packaging.resources.excludes.addAll(listOf("META-INF/*.version", "kotlin/**", "org/**", "**.bin"))
     }
 }
 
@@ -146,6 +146,20 @@ base {
     archivesName.set(
         "KernelSU_${managerVersionName}_${managerVersionCode}"
     )
+}
+
+tasks.register<Copy>("mergeScripts") {
+    into("${project.projectDir}/src/main/resources/META-INF/com/google/android")
+    from(rootProject.file("scripts/update_binary.sh")) {
+        rename { "update-binary" }
+    }
+    from(rootProject.file("scripts/updater_script.sh")) {
+        rename { "updater-script" }
+    }
+}
+
+tasks.named("preBuild") {
+    dependsOn("mergeScripts")
 }
 
 dependencies {
