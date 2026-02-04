@@ -18,6 +18,7 @@ libsu = "6.0.0"
 apksign = "1.4"
 okhttp = "5.3.2"
 material3 = "1.5.0-alpha13"
+materialKolor = "4.1.1"
 
 [plugins]
 agp-app = { id = "com.android.application", version.ref = "agp" }
@@ -67,6 +68,8 @@ androidx-navigationevent-compose = { module = "androidx.navigationevent:navigati
 markwon = { group = "io.noties.markwon", name = "core", version.ref = "markwon" }
 
 lsposed-cxx = { module = "org.lsposed.libcxx:libcxx", version.ref = "ndk" }
+
+material-kolor = { group = "com.materialkolor", name = "material-kolor", version.ref = "materialKolor" }
 
 sheet-compose-dialogs-core = { group = "com.maxkeppeler.sheets-compose-dialogs", name = "core", version.ref = "sheets-compose-dialogs" }
 sheet-compose-dialogs-list = { group = "com.maxkeppeler.sheets-compose-dialogs", name = "list", version.ref = "sheets-compose-dialogs" }

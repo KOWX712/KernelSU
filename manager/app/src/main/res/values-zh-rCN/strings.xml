@@ -170,6 +170,8 @@
     <string name="settings_key_color">强调色</string>
     <string name="settings_key_color_summary">在使用 Monet 时自定义种子色。</string>
     <string name="settings_key_color_default">默认</string>
+    <string name="settings_use_expressive_color">使用 Expressive 色彩主题</string>
+    <string name="settings_use_new_color_spec">使用新配方案</string>
     <string name="color_blue">蓝色</string>
     <string name="color_red">红色</string>
     <string name="color_green">绿色</string>

@@ -175,6 +175,8 @@
     <string name="settings_key_color">Key color</string>
     <string name="settings_key_color_summary">Customize accent when using Monet.</string>
     <string name="settings_key_color_default">Default</string>
+    <string name="settings_use_expressive_color">Use Expressive color</string>
+    <string name="settings_use_new_color_spec">Use new color spec</string>
     <string name="color_blue">Blue</string>
     <string name="color_red">Red</string>
     <string name="color_green">Green</string>
