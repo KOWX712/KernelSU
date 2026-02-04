@@ -1,7 +1,9 @@
 package me.weishu.kernelsu.ui.screen
 
 import android.annotation.SuppressLint
+import android.content.ComponentName
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -28,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -74,6 +77,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -121,6 +125,8 @@ fun ColorPaletteScreen() {
     var expressiveColor by remember { mutableStateOf(appSettings.expressiveColor) }
     var newColorSpec by remember { mutableStateOf(appSettings.newColorSpec) }
 
+    var officialIcon by remember { mutableStateOf(prefs.getBoolean("enable_official_launcher", false)) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -149,6 +155,7 @@ fun ColorPaletteScreen() {
                 isDark = isDark,
                 expressiveColor = expressiveColor,
                 newColorSpec = newColorSpec,
+                officialIcon = officialIcon,
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -239,6 +246,55 @@ fun ColorPaletteScreen() {
                     }
                 }
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                ) {
+                    val launcherOptions = listOf(false, true)
+                    launcherOptions.forEachIndexed { index, isOfficial ->
+                        ToggleButton(
+                            checked = officialIcon == isOfficial,
+                            onCheckedChange = { enabled ->
+                                if (enabled) {
+                                    officialIcon = isOfficial
+                                    prefs.edit { putBoolean("enable_official_launcher", isOfficial) }
+                                    val pm = context.packageManager
+                                    val pkg = context.packageName
+                                    val mainComponent   = ComponentName(pkg, "$pkg.ui.MainActivity")
+                                    val aliasComponent  = ComponentName(pkg, "$pkg.MainActivityOfficial")
+                                    val (enableComp, disableComp) = if (isOfficial) aliasComponent to mainComponent else mainComponent to aliasComponent
+
+                                    pm.setComponentEnabledSetting(enableComp, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
+                                    pm.setComponentEnabledSetting(disableComp, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .semantics { role = Role.RadioButton },
+                            shapes = when (index) {
+                                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                1 -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                            },
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = if (isOfficial) R.drawable.ic_launcher_monochrome else R.drawable.ic_launcher_kowsu),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .wrapContentSize(unbounded = true)
+                                        .requiredSize(48.dp)
+                                )
+                                Text(if (isOfficial) stringResource(R.string.app_name) else stringResource(R.string.app_name_kowsu))
+                            }
+                        }
+                    }
+                }
+
                 ExpressiveColumn(
                     modifier = Modifier.padding(top = 4.dp),
                     content = listOf(
@@ -279,6 +335,7 @@ private fun ThemePreviewCard(
     isDark: Boolean,
     expressiveColor: Boolean = false,
     newColorSpec: Boolean = false,
+    officialIcon: Boolean = false,
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -332,11 +389,11 @@ private fun ThemePreviewCard(
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(start = 12.dp, top = 16.dp, bottom = 8.dp),
+                            .padding(start = 12.dp, top = 16.dp, end = 12.dp, bottom = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = stringResource(id = R.string.app_name),
+                            text = if (officialIcon) stringResource(R.string.app_name) else stringResource(R.string.app_name_kowsu),
                             style = MaterialTheme.typography.bodyLarge,
                             color = colorScheme.onSurface
                         )
