@@ -221,6 +221,9 @@ private fun StatusCard(
     onClickSuperuser: () -> Unit = {},
     onclickModule: () -> Unit = {},
 ) {
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    val classicUi = prefs.getBoolean("classic_ui", false)
     Column(verticalArrangement = Arrangement.spacedBy(16.dp),) {
         TonalCard(
             containerColor = run {
@@ -273,6 +276,19 @@ private fun StatusCard(
                                 text = stringResource(R.string.home_working_version, ksuVersion),
                                 style = MaterialTheme.typography.bodyMedium
                             )
+                            if (classicUi) {
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = stringResource(
+                                        R.string.home_superuser_count, getSuperuserCount()
+                                    ), style = MaterialTheme.typography.bodyMedium
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = stringResource(R.string.home_module_count, getModuleCount()),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
                         }
                     }
 
@@ -308,7 +324,7 @@ private fun StatusCard(
                 }
             }
         }
-        if (fullFeatured == true) {
+        if (fullFeatured == true && !classicUi) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -483,6 +499,7 @@ private fun InfoCard() {
             val uname = Os.uname()
             val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
             val isOfficial by remember { mutableStateOf(prefs.getBoolean("enable_official_launcher", false)) }
+            val isClassicUi by remember { mutableStateOf(prefs.getBoolean("classic_ui", false)) }
 
             @Composable
             fun InfoCardItem(
@@ -494,8 +511,10 @@ private fun InfoCard() {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    icon()
-                    Spacer(Modifier.width(16.dp))
+                    if (!isClassicUi) {
+                        icon()
+                        Spacer(Modifier.width(16.dp))
+                    }
                     Column {
                         Text(text = label, style = MaterialTheme.typography.bodyLarge)
                         Text(

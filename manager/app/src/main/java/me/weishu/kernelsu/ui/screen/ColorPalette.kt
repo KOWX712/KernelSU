@@ -126,6 +126,8 @@ fun ColorPaletteScreen() {
     var newColorSpec by remember { mutableStateOf(appSettings.newColorSpec) }
 
     var officialIcon by remember { mutableStateOf(prefs.getBoolean("enable_official_launcher", false)) }
+    var classicUi by remember { mutableStateOf(prefs.getBoolean("classic_ui", false)) }
+    var showSwitchIcon by remember { mutableStateOf(prefs.getBoolean("show_switch_icon", false)) }
 
     Scaffold(
         topBar = {
@@ -156,6 +158,7 @@ fun ColorPaletteScreen() {
                 expressiveColor = expressiveColor,
                 newColorSpec = newColorSpec,
                 officialIcon = officialIcon,
+                classicUi = classicUi,
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -317,6 +320,26 @@ fun ColorPaletteScreen() {
                                     prefs.edit { putBoolean("new_color_spec", it) }
                                 }
                             )
+                        },
+                        {
+                            ExpressiveSwitchItem(
+                                title = stringResource(R.string.settings_classic_home_ui),
+                                checked = classicUi,
+                                onCheckedChange = {
+                                    classicUi = it
+                                    prefs.edit { putBoolean("classic_ui", it) }
+                                }
+                            )
+                        },
+                        {
+                            ExpressiveSwitchItem(
+                                title = stringResource(R.string.settings_switch_icon),
+                                checked = showSwitchIcon,
+                                onCheckedChange = {
+                                    showSwitchIcon = it
+                                    prefs.edit { putBoolean("show_switch_icon", it) }
+                                }
+                            )
                         }
                     )
                 )
@@ -336,6 +359,7 @@ private fun ThemePreviewCard(
     expressiveColor: Boolean = false,
     newColorSpec: Boolean = false,
     officialIcon: Boolean = false,
+    classicUi: Boolean = false,
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -410,10 +434,27 @@ private fun ThemePreviewCard(
                     ) {
                         TonalCard(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            modifier = Modifier.fillMaxWidth().height(64.dp),
+                            modifier = Modifier.fillMaxWidth().height(if (classicUi) 72.dp else 48.dp),
                             shape = RoundedCornerShape(12.dp),
                             content = { }
                         )
+                        if (!classicUi) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                TonalCard(
+                                    modifier = Modifier.weight(1f).height(40.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    content = { }
+                                )
+                                TonalCard(
+                                    modifier = Modifier.weight(1f).height(40.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    content = { }
+                                )
+                            }
+                        }
                         TonalCard(
                             modifier = Modifier.fillMaxWidth().height(128.dp),
                             shape = RoundedCornerShape(12.dp),
