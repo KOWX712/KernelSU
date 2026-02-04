@@ -23,7 +23,7 @@ object DeepLinkResolver {
         return when (shortcutType) {
             "module_action" -> {
                 val moduleId = intent.getStringExtra("module_id") ?: return emptyList()
-                listOf(Route.Main, Route.ExecuteModuleAction(moduleId))
+                listOf(Route.Home, Route.ExecuteModuleAction(moduleId))
             }
 
             else -> emptyList()

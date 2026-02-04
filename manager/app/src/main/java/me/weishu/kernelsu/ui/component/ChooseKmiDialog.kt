@@ -1,98 +1,101 @@
 package me.weishu.kernelsu.ui.component
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import me.weishu.kernelsu.R
+import me.weishu.kernelsu.ui.theme.KernelSUTheme
 import me.weishu.kernelsu.ui.util.getCurrentKmi
 import me.weishu.kernelsu.ui.util.getSupportedKmis
-import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.extra.CheckboxLocation
-import top.yukonga.miuix.kmp.extra.SuperCheckbox
-import top.yukonga.miuix.kmp.extra.SuperDialog
 
 @Composable
 fun ChooseKmiDialog(
     showDialog: MutableState<Boolean>,
     onSelected: (String?) -> Unit
 ) {
-    val supportedKMIs by produceState(initialValue = emptyList()) {
+    if (!showDialog.value) return
+
+    val supportedKMIs by produceState(initialValue = emptyList<String>()) {
         value = getSupportedKmis()
     }
+
     val currentKmi by produceState(initialValue = "") {
         value = getCurrentKmi()
     }
-    val currentSelection = rememberSaveable(currentKmi) { mutableStateOf(currentKmi) }
-    SuperDialog(
-        show = showDialog,
-        title = stringResource(R.string.select_kmi),
-        summary = stringResource(R.string.current_kmi, currentKmi.let { it.ifBlank { "Unknown" } }),
-        insideMargin = DpSize(0.dp, 24.dp),
+
+    val selectedKmi = remember(currentKmi) { mutableStateOf(currentKmi) }
+
+    AlertDialog(
         onDismissRequest = {
             showDialog.value = false
-            currentSelection.value = currentKmi
+            selectedKmi.value = currentKmi
         },
-    ) {
-        Column(modifier = Modifier.heightIn(max = 500.dp)) {
-            LazyColumn(modifier = Modifier.weight(1f, fill = false)) {
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onSelected(selectedKmi.value)
+                    showDialog.value = false
+                },
+                enabled = supportedKMIs.contains(selectedKmi.value)
+            ) {
+                Text(stringResource(id = R.string.confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                showDialog.value = false
+                selectedKmi.value = currentKmi
+            }) {
+                Text(stringResource(id = android.R.string.cancel))
+            }
+        },
+        title = {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.select_kmi),
+                textAlign = TextAlign.Center
+            )
+        },
+        text = {
+            LazyColumn {
                 items(supportedKMIs) { kmi ->
-                    SuperCheckbox(
+                    RadioItem(
                         title = kmi,
                         summary = if (kmi == currentKmi) stringResource(R.string.current_device_kmi) else null,
-                        insideMargin = PaddingValues(horizontal = 30.dp, vertical = 16.dp),
-                        checkboxLocation = CheckboxLocation.End,
-                        checked = currentSelection.value == kmi,
-                        holdDownState = currentSelection.value == kmi,
-                        onCheckedChange = { _ ->
-                            currentSelection.value = kmi
-                        }
+                        selected = selectedKmi.value == kmi,
+                        onClick = { selectedKmi.value = kmi }
                     )
                 }
             }
-            Spacer(Modifier.height(12.dp))
-            Row(
-                modifier = Modifier.padding(horizontal = 24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                TextButton(
-                    onClick = {
-                        showDialog.value = false
-                        currentSelection.value = currentKmi
-                    },
-                    text = stringResource(android.R.string.cancel),
-                    modifier = Modifier.weight(1f),
-                )
-                Spacer(modifier = Modifier.width(20.dp))
-                TextButton(
-                    enabled = supportedKMIs.contains(currentSelection.value),
-                    onClick = {
-                        onSelected(currentSelection.value)
-                        showDialog.value = false
-                    },
-                    text = stringResource(R.string.confirm),
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.textButtonColorsPrimary()
-                )
-            }
         }
+    )
+}
+
+@Preview
+@Composable
+fun ChooseKmiDialogPreview() {
+    KernelSUTheme {
+        ChooseKmiDialog(
+            showDialog = remember { mutableStateOf(true) },
+            onSelected = {}
+        )
     }
 }

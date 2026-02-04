@@ -34,6 +34,8 @@ val baseCppFlags = baseCFlags + "-fno-rtti"
 
 android {
     namespace = "me.weishu.kernelsu"
+    ndkVersion = androidCompileNdkVersion
+    buildToolsVersion = androidBuildToolsVersion
 
     buildTypes {
         debug {
@@ -151,6 +153,8 @@ dependencies {
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.compose.material)
+    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
 
@@ -163,6 +167,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
     implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.navigationevent.compose)
 
     implementation(libs.com.github.topjohnwu.libsu.core)
@@ -170,6 +175,8 @@ dependencies {
     implementation(libs.com.github.topjohnwu.libsu.io)
 
     implementation(libs.dev.rikka.rikkax.parcelablelist)
+
+    implementation(libs.io.coil.kt.coil.compose)
 
     implementation(libs.kotlinx.coroutines.core)
 
@@ -179,13 +186,12 @@ dependencies {
 
     implementation(libs.lsposed.cxx)
 
-    implementation(libs.miuix)
-    implementation(libs.miuix.icons)
-    implementation(libs.miuix.navigation3.ui)
+    implementation(libs.me.zhanghai.android.appiconloader.coil)
 
     implementation(platform(libs.okhttp.bom))
     implementation(libs.okhttp)
 
-    implementation(libs.haze)
-    implementation(libs.capsule)
+    implementation(libs.sheet.compose.dialogs.core)
+    implementation(libs.sheet.compose.dialogs.list)
+    implementation(libs.sheet.compose.dialogs.input)
 }
