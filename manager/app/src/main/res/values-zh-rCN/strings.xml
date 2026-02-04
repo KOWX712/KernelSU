@@ -88,6 +88,10 @@
     <string name="failed_to_update_sepolicy">为 %s 更新 SELinux 策略失败</string>
     <string name="su_not_allowed">无法授予 %s 超级用户权限</string>
     <string name="module_changelog">更新日志</string>
+    <string name="settings_kernelsu_toolkit">KernelSU 工具箱</string>
+    <string name="settings_kernelsu_toolkit_summary">KernelSU 的附加功能。</string>
+    <string name="settings_kpatch_next">KPatch Next</string>
+    <string name="settings_kpatch_nextt_summary">KPM 支持的独立实现。</string>
     <string name="settings_profile_template">App Profile 模版</string>
     <string name="settings_profile_template_summary">管理本地和在线的 App Profile 模版。</string>
     <string name="app_profile_template_create">创建模版</string>
