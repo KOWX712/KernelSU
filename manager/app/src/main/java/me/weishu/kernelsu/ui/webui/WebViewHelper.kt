@@ -168,6 +168,7 @@ internal suspend fun prepareWebView(
 
             // JS Interface
             val webviewInterface = WebViewInterface(webUIState)
+            webUIState.webviewInterface = webviewInterface
             webUIState.webView = webView
             webView.addJavascriptInterface(webviewInterface, "ksu")
             webUIState.uiEvent = WebUIEvent.WebViewReady

@@ -23,6 +23,7 @@ sealed class WebUIEvent {
 
 class WebUIState {
     var webView: WebView? = null
+    var webviewInterface: WebViewInterface? = null
     var rootShell: Shell? = null
     lateinit var modDir: String
     var moduleName: String = ""
@@ -70,6 +71,8 @@ class WebUIState {
     }
 
     fun dispose() {
+        webviewInterface?.destroy()
+        webviewInterface = null
         webView?.let { view ->
             (view.parent as? android.view.ViewGroup)?.removeView(view)
             view.destroy()
