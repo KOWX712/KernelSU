@@ -31,6 +31,7 @@
         <activity-alias
             android:name=".FlashModule"
             android:exported="true"
+            android:icon="@drawable/module"
             android:label="@string/flash_module"
             android:targetActivity=".ui.MainActivity">
             <intent-filter>
@@ -48,6 +49,7 @@
         <activity-alias
             android:name=".FlashAnyKernel"
             android:exported="true"
+            android:icon="@drawable/anykernel"
             android:label="@string/anykernel_install"
             android:targetActivity=".ui.MainActivity">
             <intent-filter>
