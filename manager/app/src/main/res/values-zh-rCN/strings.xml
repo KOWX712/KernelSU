@@ -168,6 +168,8 @@
     <string name="settings_key_color_default">默认</string>
     <string name="settings_page_scale">界面缩放</string>
     <string name="settings_page_scale_summary">调整全局显示比例。</string>
+    <string name="settings_color_spec">色彩规范</string>
+    <string name="settings_color_style">色彩风格</string>
     <string name="color_blue">蓝色</string>
     <string name="color_red">红色</string>
     <string name="color_green">绿色</string>
