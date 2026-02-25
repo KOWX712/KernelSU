@@ -168,8 +168,8 @@
     <string name="settings_theme_mode_monet_dark">Monet (Tối)</string>
     <string name="settings_key_color_summary">Tùy chỉnh màu nhấn khi sử dụng Monet.</string>
     <string name="settings_key_color_default">Mặc định</string>
-    <string name="settings_color_spec">Thông số màu</string>
-    <string name="settings_color_style">Kiểu màu</string>
+    <string name="settings_color_spec">Thông số màu sắc</string>
+    <string name="settings_color_style">Kiểu màu sắc</string>
     <string name="settings_classic_home_ui">Trang chủ Cổ điển</string>
     <string name="settings_switch_icon">Công tắc hiện đại</string>
     <string name="color_blue">Xanh dương</string>
