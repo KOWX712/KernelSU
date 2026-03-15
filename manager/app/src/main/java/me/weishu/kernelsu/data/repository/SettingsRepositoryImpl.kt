@@ -57,6 +57,18 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getBoolean("enable_official_launcher", false)
         set(value) = prefs.edit { putBoolean("enable_official_launcher", value) }
 
+    override var classicUi: Boolean
+        get() = prefs.getBoolean("classic_ui", false)
+        set(value) = prefs.edit { putBoolean("classic_ui", value) }
+
+    override var showSwitchIcon: Boolean
+        get() = prefs.getBoolean("show_switch_icon", false)
+        set(value) = prefs.edit { putBoolean("show_switch_icon", value) }
+
+    override var scrollAnimation: Boolean
+        get() = prefs.getBoolean("scroll_animation", false)
+        set(value) = prefs.edit { putBoolean("scroll_animation", value) }
+
     override var enablePredictiveBack: Boolean
         get() = prefs.getBoolean("enable_predictive_back", true)
         set(value) = prefs.edit { putBoolean("enable_predictive_back", value) }

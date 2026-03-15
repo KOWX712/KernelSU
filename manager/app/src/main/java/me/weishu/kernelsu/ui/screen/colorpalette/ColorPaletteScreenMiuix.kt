@@ -40,6 +40,7 @@ import androidx.compose.material.icons.rounded.CallToAction
 import androidx.compose.material.icons.rounded.Colorize
 import androidx.compose.material.icons.rounded.DesignServices
 import androidx.compose.material.icons.rounded.Style
+import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.material.icons.rounded.Wallpaper
 import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.runtime.Composable
@@ -323,6 +324,22 @@ fun ColorPaletteScreenMiuix(
 
                             pm.setComponentEnabledSetting(enableComp, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
                             pm.setComponentEnabledSetting(disableComp, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
+                        }
+                    )
+
+                    SuperSwitch(
+                        title = stringResource(id = R.string.settings_scroll_animation),
+                        startAction = {
+                            Icon(
+                                Icons.Rounded.ViewCarousel,
+                                modifier = Modifier.padding(end = 6.dp),
+                                contentDescription = stringResource(id = R.string.settings_scroll_animation),
+                                tint = colorScheme.onBackground
+                            )
+                        },
+                        checked = uiState.scrollAnimation,
+                        onCheckedChange = { enabled ->
+                            actions.onSetScrollAnimation(enabled)
                         }
                     )
                 }

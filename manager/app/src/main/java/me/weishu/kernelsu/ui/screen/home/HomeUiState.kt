@@ -7,6 +7,7 @@ import me.weishu.kernelsu.ui.util.module.LatestVersionInfo
 @Immutable
 data class HomeUiState(
     val appName: String,
+    val classicUi: Boolean = false,
     val kernelVersion: KernelVersion,
     val ksuVersion: Int?,
     val lkmMode: Boolean?,
