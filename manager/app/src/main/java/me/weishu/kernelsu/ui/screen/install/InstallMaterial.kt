@@ -1,5 +1,10 @@
 package me.weishu.kernelsu.ui.screen.install
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -80,59 +85,66 @@ internal fun InstallScreenMaterial(
                 state = state,
                 onSelected = actions.onSelectMethod,
                 onSelectBootImage = actions.onSelectBootImage,
+                onSelectAnyKernel = actions.onSelectAnyKernel,
             )
-            SegmentedColumn(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                content = buildList {
-                    if (state.displayPartitions.isNotEmpty()) add {
-                        SegmentedDropdownItem(
-                            enabled = state.canSelectPartition,
-                            items = state.displayPartitions,
-                            selectedIndex = state.partitionSelectionIndex,
-                            title = "${stringResource(R.string.install_select_partition)} (${state.slotSuffix})",
-                            onItemSelected = actions.onSelectPartition,
-                            icon = Icons.Filled.Edit
-                        )
-                    }
-                    add {
-                        SegmentedListItem(
-                            leadingContent = { Icon(Icons.AutoMirrored.Filled.DriveFileMove, null) },
-                            headlineContent = { Text(stringResource(R.string.install_upload_lkm_file)) },
-                            supportingContent = {
-                                (state.lkmSelection as? LkmSelection.LkmUri)?.let {
-                                    Text(stringResource(R.string.selected_lkm, it.uri.lastPathSegment ?: "(file)"))
-                                }
-                            },
-                            trailingContent = {
-                                if (state.lkmSelection is LkmSelection.LkmUri) {
-                                    IconButton(onClick = actions.onClearLkm) {
-                                        Icon(Icons.Filled.Close, contentDescription = stringResource(android.R.string.cancel))
+            AnimatedVisibility(
+                visible = state.showInstallOptions,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                SegmentedColumn(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    content = buildList {
+                        if (state.displayPartitions.isNotEmpty()) add {
+                            SegmentedDropdownItem(
+                                enabled = state.canSelectPartition,
+                                items = state.displayPartitions,
+                                selectedIndex = state.partitionSelectionIndex,
+                                title = "${stringResource(R.string.install_select_partition)} (${state.slotSuffix})",
+                                onItemSelected = actions.onSelectPartition,
+                                icon = Icons.Filled.Edit
+                            )
+                        }
+                        add {
+                            SegmentedListItem(
+                                leadingContent = { Icon(Icons.AutoMirrored.Filled.DriveFileMove, null) },
+                                headlineContent = { Text(stringResource(R.string.install_upload_lkm_file)) },
+                                supportingContent = {
+                                    (state.lkmSelection as? LkmSelection.LkmUri)?.let {
+                                        Text(stringResource(R.string.selected_lkm, it.uri.lastPathSegment ?: "(file)"))
                                     }
-                                } else {
-                                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null)
-                                }
-                            },
-                            onClick = actions.onUploadLkm
-                        )
+                                },
+                                trailingContent = {
+                                    if (state.lkmSelection is LkmSelection.LkmUri) {
+                                        IconButton(onClick = actions.onClearLkm) {
+                                            Icon(Icons.Filled.Close, contentDescription = stringResource(android.R.string.cancel))
+                                        }
+                                    } else {
+                                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null)
+                                    }
+                                },
+                                onClick = actions.onUploadLkm
+                            )
+                        }
+                        add {
+                            SegmentedCheckboxItem(
+                                title = stringResource(id = R.string.allow_shell),
+                                summary = stringResource(id = R.string.allow_shell_summary),
+                                checked = state.allowShell,
+                                onCheckedChange = actions.onSelectAllowShell,
+                            )
+                        }
+                        add {
+                            SegmentedCheckboxItem(
+                                title = stringResource(id = R.string.enable_adb),
+                                summary = stringResource(id = R.string.enable_adb_summary),
+                                checked = state.enableAdb,
+                                onCheckedChange = actions.onSelectEnableAdb,
+                            )
+                        }
                     }
-                    add {
-                        SegmentedCheckboxItem(
-                            title = stringResource(id = R.string.allow_shell),
-                            summary = stringResource(id = R.string.allow_shell_summary),
-                            checked = state.allowShell,
-                            onCheckedChange = actions.onSelectAllowShell,
-                        )
-                    }
-                    add {
-                        SegmentedCheckboxItem(
-                            title = stringResource(id = R.string.enable_adb),
-                            summary = stringResource(id = R.string.enable_adb_summary),
-                            checked = state.enableAdb,
-                            onCheckedChange = actions.onSelectEnableAdb,
-                        )
-                    }
-                }
-            )
+                )
+            }
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -149,6 +161,7 @@ private fun SelectInstallMethod(
     state: InstallUiState,
     onSelected: (InstallMethod) -> Unit,
     onSelectBootImage: () -> Unit,
+    onSelectAnyKernel: () -> Unit,
 ) {
     val confirmDialog = rememberConfirmDialog(
         onConfirm = {
@@ -164,6 +177,7 @@ private fun SelectInstallMethod(
             is InstallMethod.SelectFile -> onSelectBootImage()
             is InstallMethod.DirectInstall -> onSelected(option)
             is InstallMethod.DirectInstallToInactiveSlot -> confirmDialog.showConfirm(dialogTitle, dialogContent)
+            is InstallMethod.AnyKernel -> onSelectAnyKernel()
         }
     }
 

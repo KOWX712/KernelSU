@@ -2,6 +2,8 @@ package me.weishu.kernelsu.ui.screen.install
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -121,6 +123,7 @@ internal fun InstallScreenMiuix(
                         state = uiState,
                         onSelected = actions.onSelectMethod,
                         onSelectBootImage = actions.onSelectBootImage,
+                        onSelectAnyKernel = actions.onSelectAnyKernel,
                     )
                 }
                 AnimatedVisibility(
@@ -149,63 +152,69 @@ internal fun InstallScreenMiuix(
                         )
                     }
                 }
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp),
+                AnimatedVisibility(
+                    visible = uiState.showInstallOptions,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
                 ) {
-                    BasicComponent(
-                        title = stringResource(id = R.string.install_upload_lkm_file),
-                        summary = (uiState.lkmSelection as? LkmSelection.LkmUri)?.let {
-                            stringResource(id = R.string.selected_lkm, it.uri.lastPathSegment ?: "(file)")
-                        },
-                        onClick = actions.onUploadLkm,
-                        startAction = {
-                            Icon(
-                                MiuixIcons.MoveFile,
-                                tint = colorScheme.onSurface,
-                                modifier = Modifier.padding(end = 12.dp),
-                                contentDescription = null
-                            )
-                        },
-                        endActions = {
-                            if (uiState.lkmSelection is LkmSelection.LkmUri) {
-                                IconButton(onClick = actions.onClearLkm) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp),
+                    ) {
+                        BasicComponent(
+                            title = stringResource(id = R.string.install_upload_lkm_file),
+                            summary = (uiState.lkmSelection as? LkmSelection.LkmUri)?.let {
+                                stringResource(id = R.string.selected_lkm, it.uri.lastPathSegment ?: "(file)")
+                            },
+                            onClick = actions.onUploadLkm,
+                            startAction = {
+                                Icon(
+                                    MiuixIcons.MoveFile,
+                                    tint = colorScheme.onSurface,
+                                    modifier = Modifier.padding(end = 12.dp),
+                                    contentDescription = null
+                                )
+                            },
+                            endActions = {
+                                if (uiState.lkmSelection is LkmSelection.LkmUri) {
+                                    IconButton(onClick = actions.onClearLkm) {
+                                        Icon(
+                                            MiuixIcons.Close,
+                                            modifier = Modifier.size(16.dp),
+                                            contentDescription = stringResource(android.R.string.cancel),
+                                            tint = colorScheme.onSurfaceVariantActions
+                                        )
+                                    }
+                                } else {
+                                    val layoutDirection = LocalLayoutDirection.current
                                     Icon(
-                                        MiuixIcons.Close,
-                                        modifier = Modifier.size(16.dp),
-                                        contentDescription = stringResource(android.R.string.cancel),
-                                        tint = colorScheme.onSurfaceVariantActions
+                                        modifier = Modifier
+                                            .size(width = 10.dp, height = 16.dp)
+                                            .graphicsLayer {
+                                                scaleX = if (layoutDirection == LayoutDirection.Rtl) -1f else 1f
+                                            }
+                                            .align(Alignment.CenterVertically),
+                                        imageVector = MiuixIcons.Basic.ArrowRight,
+                                        contentDescription = null,
+                                        tint = colorScheme.onSurfaceVariantActions,
                                     )
                                 }
-                            } else {
-                                val layoutDirection = LocalLayoutDirection.current
-                                Icon(
-                                    modifier = Modifier
-                                        .size(width = 10.dp, height = 16.dp)
-                                        .graphicsLayer {
-                                            scaleX = if (layoutDirection == LayoutDirection.Rtl) -1f else 1f
-                                        }
-                                        .align(Alignment.CenterVertically),
-                                    imageVector = MiuixIcons.Basic.ArrowRight,
-                                    contentDescription = null,
-                                    tint = colorScheme.onSurfaceVariantActions,
-                                )
                             }
-                        }
-                    )
-                    SuperCheckbox(
-                        title = stringResource(id = R.string.allow_shell),
-                        checked = uiState.allowShell,
-                        summary = stringResource(id = R.string.allow_shell_summary),
-                        onCheckedChange = actions.onSelectAllowShell
-                    )
-                    SuperCheckbox(
-                        title = stringResource(id = R.string.enable_adb),
-                        checked = uiState.enableAdb,
-                        summary = stringResource(id = R.string.enable_adb_summary),
-                        onCheckedChange = actions.onSelectEnableAdb
-                    )
+                        )
+                        SuperCheckbox(
+                            title = stringResource(id = R.string.allow_shell),
+                            checked = uiState.allowShell,
+                            summary = stringResource(id = R.string.allow_shell_summary),
+                            onCheckedChange = actions.onSelectAllowShell
+                        )
+                        SuperCheckbox(
+                            title = stringResource(id = R.string.enable_adb),
+                            checked = uiState.enableAdb,
+                            summary = stringResource(id = R.string.enable_adb_summary),
+                            onCheckedChange = actions.onSelectEnableAdb
+                        )
+                    }
                 }
                 TextButton(
                     modifier = Modifier
@@ -232,6 +241,7 @@ private fun SelectInstallMethod(
     state: InstallUiState,
     onSelected: (InstallMethod) -> Unit,
     onSelectBootImage: () -> Unit,
+    onSelectAnyKernel: () -> Unit,
 ) {
     val confirmDialog = rememberConfirmDialog(
         onConfirm = {
@@ -246,6 +256,7 @@ private fun SelectInstallMethod(
             is InstallMethod.SelectFile -> onSelectBootImage()
             is InstallMethod.DirectInstall -> onSelected(option)
             is InstallMethod.DirectInstallToInactiveSlot -> confirmDialog.showConfirm(dialogTitle, dialogContent)
+            is InstallMethod.AnyKernel -> onSelectAnyKernel()
         }
     }
 

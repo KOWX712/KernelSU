@@ -58,9 +58,12 @@ fun InstallScreen() {
     val installMethodOptions = remember(rootAvailable, isAbDevice, isGkiDevice, selectFileTip, selectFileTipNoGki) {
         buildList {
             add(InstallMethod.SelectFile(summary = if (isGkiDevice) selectFileTip else selectFileTipNoGki))
-            if (rootAvailable && isGkiDevice) {
-                add(InstallMethod.DirectInstall)
-                if (isAbDevice) add(InstallMethod.DirectInstallToInactiveSlot)
+            if (rootAvailable) {
+                if (isGkiDevice) {
+                    add(InstallMethod.DirectInstall)
+                    if (isAbDevice) add(InstallMethod.DirectInstallToInactiveSlot)
+                }
+                add(InstallMethod.AnyKernel())
             }
         }
     }
@@ -86,16 +89,22 @@ fun InstallScreen() {
 
     val onInstall = {
         installMethod?.let { method ->
-            navigator.push(
-                Route.Flash(
-                    FlashIt.FlashBoot(
-                        boot = if (method is InstallMethod.SelectFile) method.uri else null,
-                        lkm = lkmSelection,
-                        ota = method is InstallMethod.DirectInstallToInactiveSlot,
-                        partition = partitions.getOrNull(partitionSelectionIndex)
+            if (method is InstallMethod.AnyKernel) {
+                method.uri?.let { uri ->
+                    navigator.push(Route.Flash(FlashIt.FlashAnyKernel(uri)))
+                }
+            } else {
+                navigator.push(
+                    Route.Flash(
+                        FlashIt.FlashBoot(
+                            boot = if (method is InstallMethod.SelectFile) method.uri else null,
+                            lkm = lkmSelection,
+                            ota = method is InstallMethod.DirectInstallToInactiveSlot,
+                            partition = partitions.getOrNull(partitionSelectionIndex)
+                        )
                     )
                 )
-            )
+            }
         }
     }
 
@@ -133,6 +142,15 @@ fun InstallScreen() {
             }
         }
     }
+    val selectAnyKernelLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            it.data?.data?.let { uri ->
+                installMethod = InstallMethod.AnyKernel(uri)
+            }
+        }
+    }
 
     val state = InstallUiState(
         installMethod = installMethod,
@@ -143,6 +161,7 @@ fun InstallScreen() {
         slotSuffix = slotSuffix,
         installMethodOptions = installMethodOptions,
         canSelectPartition = installMethod is InstallMethod.DirectInstall || installMethod is InstallMethod.DirectInstallToInactiveSlot,
+        showInstallOptions = installMethod != null && installMethod !is InstallMethod.AnyKernel,
         allowShell = allowShell,
         enableAdb = enableAdb,
     )
@@ -151,6 +170,20 @@ fun InstallScreen() {
         onSelectMethod = { method -> installMethod = method },
         onSelectBootImage = {
             selectImageLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply { type = "application/octet-stream" })
+        },
+        onSelectAnyKernel = {
+            selectAnyKernelLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply {
+                type = "application/zip"
+                putExtra(
+                    Intent.EXTRA_MIME_TYPES,
+                    arrayOf(
+                        "application/zip",
+                        "application/x-zip-compressed",
+                        "application/octet-stream"
+                    )
+                )
+                addCategory(Intent.CATEGORY_OPENABLE)
+            })
         },
         onUploadLkm = {
             selectLkmLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply { type = "application/octet-stream" })
