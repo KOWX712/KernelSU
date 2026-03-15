@@ -19,6 +19,8 @@
 #include "sucompat.h"
 #include "app_profile.h"
 
+extern void write_sulog(uint8_t sym);
+
 #define SU_PATH "/system/bin/su"
 #define SH_PATH "/system/bin/sh"
 
@@ -82,6 +84,7 @@ int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
     strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
     if (unlikely(!memcmp(path, su, sizeof(su)))) {
+        write_sulog('a');
         pr_info("faccessat su->sh!\n");
         *filename_user = sh_user_path();
     }
@@ -107,6 +110,7 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
     strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
     if (unlikely(!memcmp(path, su, sizeof(su)))) {
+        write_sulog('s');
         pr_info("newfstatat su->sh!\n");
         *filename_user = sh_user_path();
     }
@@ -142,6 +146,8 @@ int ksu_handle_execve_sucompat(const char __user **filename_user,
 
     if (likely(memcmp(path, su, sizeof(su))))
         return 0;
+
+    write_sulog('x');
 
     pr_info("sys_execve su found\n");
     *filename_user = ksud_user_path();
