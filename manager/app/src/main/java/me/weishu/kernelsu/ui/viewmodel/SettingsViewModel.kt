@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import me.weishu.kernelsu.getKernelVersion
 import me.weishu.kernelsu.data.repository.SettingsRepository
 import me.weishu.kernelsu.data.repository.SettingsRepositoryImpl
 import me.weishu.kernelsu.ui.screen.settings.SettingsUiState
@@ -53,6 +54,7 @@ class SettingsViewModel(
             val isDefaultUmountModules = repo.isDefaultUmountModules()
             val uiMode = repo.uiMode
             val autoJailbreak = repo.autoJailbreak
+            val kernelVersion = getKernelVersion()
 
             _uiState.update {
                 it.copy(
@@ -77,7 +79,8 @@ class SettingsViewModel(
                     isKernelUmountEnabled = isKernelUmountEnabled,
                     isDefaultUmountModules = isDefaultUmountModules,
                     isLkmMode = isLkmMode,
-                    autoJailbreak = autoJailbreak
+                    autoJailbreak = autoJailbreak,
+                    kernelVersion = kernelVersion
                 )
             }
         }

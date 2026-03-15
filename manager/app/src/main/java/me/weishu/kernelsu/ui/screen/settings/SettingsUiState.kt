@@ -3,6 +3,7 @@ package me.weishu.kernelsu.ui.screen.settings
 import androidx.compose.runtime.Immutable
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
+import me.weishu.kernelsu.KernelVersion
 import me.weishu.kernelsu.ui.UiMode
 
 data class SettingsUiState(
@@ -36,7 +37,8 @@ data class SettingsUiState(
     val isLkmMode: Boolean = false,
 
     // Auto Jailbreak
-    val autoJailbreak: Boolean = false
+    val autoJailbreak: Boolean = false,
+    val kernelVersion: KernelVersion,
 )
 
 @Immutable

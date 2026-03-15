@@ -303,6 +303,7 @@ fun SettingPagerMiuix(
                                     tint = colorScheme.onBackground
                                 )
                             },
+                            enabled = uiState.kernelVersion.isGKI(),
                             checked = uiState.autoJailbreak,
                             onCheckedChange = actions.onSetAutoJailbreak
                         )
