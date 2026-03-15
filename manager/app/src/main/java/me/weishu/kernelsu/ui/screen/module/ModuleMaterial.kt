@@ -111,7 +111,6 @@ import androidx.compose.ui.layout.FixedScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -133,6 +132,7 @@ import me.weishu.kernelsu.ui.component.material.SearchAppBar
 import me.weishu.kernelsu.ui.component.rebootlistpopup.RebootListPopup
 import me.weishu.kernelsu.ui.component.statustag.StatusTag
 import me.weishu.kernelsu.ui.screen.home.TonalCard
+import me.weishu.kernelsu.ui.util.AppInfo
 import me.weishu.kernelsu.ui.util.LocalSnackbarHost
 import me.weishu.kernelsu.ui.util.reboot
 
@@ -563,7 +563,7 @@ private fun ModuleShortcutSheet(
                             .background(Color.White)
                     )
                     Image(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        painter = AppInfo.appIconForeground(),
                         contentDescription = null,
                         contentScale = FixedScale(1.5f)
                     )

@@ -80,7 +80,6 @@ import androidx.compose.ui.layout.FixedScale
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
@@ -109,6 +108,7 @@ import me.weishu.kernelsu.ui.component.miuix.SearchPager
 import me.weishu.kernelsu.ui.component.rebootlistpopup.RebootListPopupMiuix
 import me.weishu.kernelsu.ui.theme.LocalEnableBlur
 import me.weishu.kernelsu.ui.theme.isInDarkTheme
+import me.weishu.kernelsu.ui.util.AppInfo
 import me.weishu.kernelsu.ui.util.getFileName
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -571,7 +571,7 @@ private fun ModuleShortcutDialog(
                                 .background(Color.White)
                         )
                         Image(
-                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            painter = AppInfo.appIconForeground(),
                             contentDescription = null,
                             contentScale = FixedScale(1.5f)
                         )

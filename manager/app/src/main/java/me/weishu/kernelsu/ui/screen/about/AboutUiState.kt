@@ -6,6 +6,7 @@ import androidx.compose.runtime.Immutable
 data class AboutUiState(
     val title: String,
     val appName: String,
+    val appIconRes: Int,
     val versionName: String,
     val links: List<LinkInfo>,
 )

@@ -14,6 +14,7 @@ data class SettingsUiState(
     val keyColor: Int = 0,
     val colorStyle: String = PaletteStyle.TonalSpot.name,
     val colorSpec: String = ColorSpec.SpecVersion.Default.name,
+    val enableOfficialLauncher: Boolean = false,
     val enablePredictiveBack: Boolean = true,
     val enableBlur: Boolean = true,
     val enableFloatingBottomBar: Boolean = false,

@@ -37,6 +37,7 @@ class SettingsViewModel(
             val enableFloatingBottomBarBlur = repo.enableFloatingBottomBarBlur
             val pageScale = repo.pageScale
             val enableWebDebugging = repo.enableWebDebugging
+            val enableOfficialLauncher = repo.enableOfficialLauncher
             val colorStyle = repo.colorStyle
             val colorSpec = repo.colorSpec
             val isLkmMode = repo.isLkmMode()
@@ -64,6 +65,7 @@ class SettingsViewModel(
                     themeMode = themeMode,
                     miuixMonet = miuixMonet,
                     keyColor = keyColor,
+                    enableOfficialLauncher = enableOfficialLauncher,
                     enablePredictiveBack = enablePredictiveBack,
                     enableBlur = enableBlur,
                     enableFloatingBottomBar = enableFloatingBottomBar,
@@ -169,6 +171,11 @@ class SettingsViewModel(
     fun setColorSpec(spec: String) {
         repo.colorSpec = spec
         _uiState.update { it.copy(colorSpec = spec) }
+    }
+
+    fun setEnableOfficialLauncher(enabled: Boolean) {
+        repo.enableOfficialLauncher = enabled
+        _uiState.update { it.copy(enableOfficialLauncher = enabled) }
     }
 
     fun setEnablePredictiveBack(enabled: Boolean) {

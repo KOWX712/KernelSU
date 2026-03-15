@@ -38,7 +38,6 @@ import androidx.compose.ui.layout.FixedScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.component.material.SegmentedColumn
 import me.weishu.kernelsu.ui.component.material.SegmentedListItem
 
@@ -94,7 +93,7 @@ fun AboutScreenMaterial(
                             .background(Color.White)
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            painter = painterResource(id = state.appIconRes),
                             contentDescription = null,
                             contentScale = FixedScale(1f)
                         )

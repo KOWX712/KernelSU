@@ -40,9 +40,8 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeSource
-import me.weishu.kernelsu.R
-import me.weishu.kernelsu.ui.util.defaultHazeEffect
 import me.weishu.kernelsu.ui.theme.LocalEnableBlur
+import me.weishu.kernelsu.ui.util.defaultHazeEffect
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -131,7 +130,7 @@ fun AboutScreenMiuix(
                             .background(Color.White)
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            painter = painterResource(id = state.appIconRes),
                             contentDescription = null,
                             contentScale = FixedScale(1f)
                         )
