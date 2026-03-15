@@ -5,6 +5,8 @@
     <string name="home_click_to_install">按一下以安裝</string>
     <string name="home_working">運作中</string>
     <string name="home_working_version">KernelSU 版本：%d</string>
+    <string name="home_superuser_count">超級使用者：%d 個</string>
+    <string name="home_module_count">已安裝模組：%d 個</string>
     <string name="home_unsupported">不支援</string>
     <string name="home_unsupported_reason">KernelSU 現在僅支援 GKI 核心</string>
     <string name="home_kernel">核心</string>
