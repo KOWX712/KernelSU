@@ -20,9 +20,11 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
@@ -30,6 +32,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.weishu.kernelsu.ui.LocalUiMode
 import me.weishu.kernelsu.ui.UiMode
 
@@ -50,12 +55,39 @@ fun rememberFileLauncher(webUIState: WebUIState): ActivityResultLauncher<Intent>
 }
 
 @Composable
+fun rememberFileSaveLauncher(webUIState: WebUIState): ActivityResultLauncher<Intent> {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    return rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val uri = if (result.resultCode == Activity.RESULT_OK) result.data?.data else null
+        val event = webUIState.uiEvent
+        if (uri != null && event is WebUIEvent.SaveFile) {
+            scope.launch {
+                try {
+                    withContext(Dispatchers.IO) {
+                        context.contentResolver.openOutputStream(uri)?.use { it.write(event.data) }
+                    }
+                } catch (_: Exception) {
+                } finally {
+                    webUIState.onSaveFileResult()
+                }
+            }
+        } else {
+            webUIState.onSaveFileResult()
+        }
+    }
+}
+
+@Composable
 fun WebUIScreen(webUIState: WebUIState) {
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
     val windowInsets = WindowInsets.safeDrawing
     val innerPadding = if (webUIState.isInsetsEnabled) PaddingValues(0.dp) else windowInsets.asPaddingValues()
     val fileLauncher = rememberFileLauncher(webUIState)
+    val fileSaveLauncher = rememberFileSaveLauncher(webUIState)
 
     LaunchedEffect(density, layoutDirection, windowInsets, webUIState.isInsetsEnabled) {
         if (!webUIState.isInsetsEnabled) {
@@ -120,8 +152,8 @@ fun WebUIScreen(webUIState: WebUIState) {
     }
 
     when (LocalUiMode.current) {
-        UiMode.Miuix -> HandleWebUIEventMiuix(webUIState, fileLauncher)
-        UiMode.Material -> HandleWebUIEventMaterial(webUIState, fileLauncher)
+        UiMode.Miuix -> HandleWebUIEventMiuix(webUIState, fileLauncher, fileSaveLauncher)
+        UiMode.Material -> HandleWebUIEventMaterial(webUIState, fileLauncher, fileSaveLauncher)
     }
 
     HandleWebViewLifecycle(webUIState)

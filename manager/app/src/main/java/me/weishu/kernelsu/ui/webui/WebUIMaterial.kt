@@ -19,7 +19,8 @@ import me.weishu.kernelsu.R
 @Composable
 fun HandleWebUIEventMaterial(
     webUIState: WebUIState,
-    fileLauncher: ActivityResultLauncher<Intent>
+    fileLauncher: ActivityResultLauncher<Intent>,
+    fileSaveLauncher: ActivityResultLauncher<Intent>
 ) {
     when (val event = webUIState.uiEvent) {
         is WebUIEvent.ShowAlert -> {
@@ -131,6 +132,21 @@ fun HandleWebUIEventMaterial(
                     fileLauncher.launch(event.intent)
                 } catch (_: Exception) {
                     webUIState.onFileChooserResult(null)
+                }
+            }
+        }
+
+        is WebUIEvent.SaveFile -> {
+            LaunchedEffect(event) {
+                val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = event.mimeType
+                    putExtra(Intent.EXTRA_TITLE, event.fileName)
+                }
+                try {
+                    fileSaveLauncher.launch(intent)
+                } catch (_: Exception) {
+                    webUIState.onSaveFileResult()
                 }
             }
         }
