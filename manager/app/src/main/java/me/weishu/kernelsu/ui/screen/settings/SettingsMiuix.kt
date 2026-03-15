@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.ContactPage
 import androidx.compose.material.icons.rounded.Dashboard
@@ -206,6 +207,49 @@ fun SettingPagerMiuix(
                             },
                             onClick = actions.onOpenProfileTemplate
                         )
+                    }
+                }
+
+                if (uiState.isToolkitInstalled || uiState.isKpatchNextInstalled) KsuIsValid {
+                    Card(
+                        modifier = Modifier
+                            .padding(top = 12.dp)
+                            .fillMaxWidth(),
+                    ) {
+                        if (uiState.isToolkitInstalled) {
+                            SuperArrow(
+                                title = stringResource(R.string.settings_kernelsu_toolkit),
+                                summary = stringResource(R.string.settings_kernelsu_toolkit_summary),
+                                startAction = {
+                                    Icon(
+                                        Icons.Filled.Build,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = stringResource(id = R.string.settings_kernelsu_toolkit),
+                                        tint = colorScheme.onBackground
+                                    )
+                                },
+                                onClick = {
+                                    actions.onOpenWebUi("ksu_toolkit", "KernelSU Toolkit")
+                                }
+                            )
+                        }
+                        if (uiState.isKpatchNextInstalled) {
+                            SuperArrow(
+                                title = stringResource(R.string.settings_kpatch_next),
+                                summary = stringResource(R.string.settings_kpatch_next_summary),
+                                startAction = {
+                                    Icon(
+                                        Icons.Filled.Build,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = stringResource(id = R.string.settings_kpatch_next),
+                                        tint = colorScheme.onBackground
+                                    )
+                                },
+                                onClick = {
+                                    actions.onOpenWebUi("KPatch-Next", "KPatch-Next")
+                                }
+                            )
+                        }
                     }
                 }
 

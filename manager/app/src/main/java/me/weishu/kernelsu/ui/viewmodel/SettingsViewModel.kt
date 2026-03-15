@@ -12,6 +12,7 @@ import me.weishu.kernelsu.data.repository.SettingsRepository
 import me.weishu.kernelsu.data.repository.SettingsRepositoryImpl
 import me.weishu.kernelsu.ui.screen.settings.SettingsUiState
 import me.weishu.kernelsu.ui.theme.ColorMode
+import me.weishu.kernelsu.ui.util.isWebuiModuleInstalled
 
 class SettingsViewModel(
     private val repo: SettingsRepository = SettingsRepositoryImpl()
@@ -41,6 +42,10 @@ class SettingsViewModel(
             val colorStyle = repo.colorStyle
             val colorSpec = repo.colorSpec
             val isLkmMode = repo.isLkmMode()
+
+            // WebUI modules shortcut entry
+            val isToolkitInstalled = isWebuiModuleInstalled("ksu_toolkit")
+            val isKpatchNextInstalled = isWebuiModuleInstalled("KPatch-Next")
 
             // Async loading for natives/features
             val suCompatStatus = repo.getSuCompatStatus()
@@ -83,6 +88,8 @@ class SettingsViewModel(
                     isAvcSpoofEnabled = isAvcSpoofEnabled,
                     isDefaultUmountModules = isDefaultUmountModules,
                     isLkmMode = isLkmMode,
+                    isToolkitInstalled = isToolkitInstalled,
+                    isKpatchNextInstalled = isKpatchNextInstalled,
                     autoJailbreak = autoJailbreak
                 )
             }

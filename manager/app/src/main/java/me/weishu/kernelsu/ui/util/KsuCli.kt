@@ -502,3 +502,9 @@ fun restartApp(packageName: String, userId: Int? = null) {
     forceStopApp(packageName, userId)
     launchApp(packageName, userId)
 }
+
+fun isWebuiModuleInstalled(modId: String): Boolean {
+    val shell = getRootShell()
+    val result = shell.newJob().add("test -d /data/adb/modules/$modId/webroot").exec()
+    return result.isSuccess
+}
