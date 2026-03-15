@@ -25,8 +25,7 @@
     (((uint64_t)((n) << (63u - (len - 1))) >> 63u) ?                           \
          ((n) | (0xFFFFFFFFFFFFFFFF << (len))) :                               \
          n)
-#define align_ceil(x, align)                                                   \
-    (((u64)(x) + (u64)(align) - 1) & ~((u64)(align) - 1))
+#define align_ceil(x, align) (((u64)(x) + (u64)(align)-1) & ~((u64)(align)-1))
 
 typedef uint32_t inst_type_t;
 typedef uint32_t inst_mask_t;
