@@ -18,6 +18,7 @@ kernelsu-objs += pte.o
 kernelsu-objs += patch.o
 kernelsu-objs += inline_hook.o
 kernelsu-objs += trampoline.o
+kernelsu-objs += extras.o
 
 kernelsu-objs += selinux/selinux.o
 kernelsu-objs += selinux/sepolicy.o
@@ -121,6 +122,6 @@ ccflags-y += -DKSU_MTE_SYNC_TAGS_OLD_PTE=$(KSU_MTE_SYNC_TAGS_OLD_PTE)
 ccflags-y += -DKSU_MTE_SYNC_TAGS_NORMAL=$(KSU_MTE_SYNC_TAGS_NORMAL)
 
 ccflags-y += -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat -Wno-missing-prototypes
-ccflags-y += -Wno-declaration-after-statement -Wno-unused-function
+ccflags-y += -Wno-declaration-after-statement -Wno-unused-function -Wno-unused-variable
 
 # Keep a new line here!! Because someone may append config
