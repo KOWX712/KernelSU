@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.ContactPage
 import androidx.compose.material.icons.rounded.Dashboard
@@ -261,6 +262,27 @@ fun SettingPagerMiuix(
                             enabled = uiState.kernelUmountStatus == "supported",
                             checked = uiState.isKernelUmountEnabled,
                             onCheckedChange = actions.onSetKernelUmountEnabled
+                        )
+
+                        val avcSpoofSummary = when (uiState.avcSpoofStatus) {
+                            "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                            "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                            else -> stringResource(id = R.string.settings_avc_spoof_summary)
+                        }
+                        SuperSwitch(
+                            title = stringResource(id = R.string.settings_avc_spoof),
+                            summary = avcSpoofSummary,
+                            startAction = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.Article,
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    contentDescription = stringResource(id = R.string.settings_avc_spoof),
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            enabled = uiState.avcSpoofStatus == "supported",
+                            checked = uiState.isAvcSpoofEnabled,
+                            onCheckedChange = actions.onSetAvcSpoofEnabled
                         )
 
                         SuperSwitch(
