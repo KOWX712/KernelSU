@@ -112,7 +112,7 @@ android {
         targetSdk = androidTargetSdkVersion
         versionCode = managerVersionCode
         versionName = managerVersionName
-        applicationId = "io.github.a13e300.mksu"
+        applicationId = "com.kowx712.supermanager"
 
         val isPrBuild = project.findProperty("IS_PR_BUILD")?.toString()?.toBoolean() ?: false
         buildConfigField("boolean", "IS_PR_BUILD", isPrBuild.toString())
@@ -149,7 +149,7 @@ androidComponents {
 
 base {
     archivesName.set(
-        "MKSU_${managerVersionName}_${managerVersionCode}"
+        "KowSU_${managerVersionName}_${managerVersionCode}"
     )
 }
 

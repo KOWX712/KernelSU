@@ -20,7 +20,7 @@ object Natives {
     // 12143: breaking: new supercall impl
     // 32310: new get_allow_list ioctl
     // 32336: new set_sepolicy ioctl
-    const val MINIMAL_SUPPORTED_KERNEL = 32336
+    const val MINIMAL_SUPPORTED_KERNEL = 32336 + 50 // MKSU + KowSU commit around 50
 
     const val KERNEL_SU_DOMAIN = "u:r:su:s0"
 
