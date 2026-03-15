@@ -54,7 +54,7 @@ class SettingsRepositoryImpl : SettingsRepository {
         set(value) = prefs.edit { putString("color_spec", value) }
 
     override var enablePredictiveBack: Boolean
-        get() = prefs.getBoolean("enable_predictive_back", false)
+        get() = prefs.getBoolean("enable_predictive_back", true)
         set(value) = prefs.edit { putBoolean("enable_predictive_back", value) }
 
     override var enableBlur: Boolean
