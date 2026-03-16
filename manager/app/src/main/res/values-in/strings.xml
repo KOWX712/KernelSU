@@ -167,10 +167,12 @@
     <string name="settings_theme_mode_dark">Gelap</string>
     <string name="settings_key_color">Warna utama</string>
     <string name="settings_key_color_default">Default</string>
+    <string name="settings_official_icon">Gunakan ikon aplikasi resmi</string>
     <string name="settings_color_spec">Warna spesifik</string>
     <string name="settings_color_style">Gaya warna</string>
     <string name="settings_classic_home_ui">Tampilan beranda klasik</string>
     <string name="settings_switch_icon">Beralih ikon tombol</string>
+    <string name="settings_scroll_animation">Gunakan animasi gulir</string>
     <string name="color_blue">Biru</string>
     <string name="color_red">Merah</string>
     <string name="color_green">Hijau</string>
