@@ -143,7 +143,7 @@ internal fun InstallScreenMaterial(
 
             SegmentedColumn(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                visibleIndex = if (uiState.advancedOptionsShown) 0 else 1,
+                visibleLen = if (uiState.advancedOptionsShown) 0 else 1,
                 content = buildList {
                     val rotationState by animateFloatAsState(
                         targetValue = if (uiState.advancedOptionsShown) 180f else 0f,
