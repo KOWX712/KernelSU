@@ -229,7 +229,7 @@ pub fn uninstall(magiskboot_path: Option<PathBuf>) -> Result<()> {
     })?;
     println!("- Uninstall KernelSU manager..");
     Command::new("pm")
-        .args(["uninstall", "com.kowx712.supermanager"])
+        .args(["uninstall", "com.cafes.org"])
         .spawn()?;
     println!("- Rebooting in 5 seconds..");
     std::thread::sleep(std::time::Duration::from_secs(5));
