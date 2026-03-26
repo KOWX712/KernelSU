@@ -112,7 +112,7 @@ android {
         targetSdk = androidTargetSdkVersion
         versionCode = managerVersionCode
         versionName = managerVersionName
-        applicationId = "com.kowx712.supermanager"
+        applicationId = "com.cafes.org"
 
         val isPrBuild = project.findProperty("IS_PR_BUILD")?.toString()?.toBoolean() ?: false
         buildConfigField("boolean", "IS_PR_BUILD", isPrBuild.toString())
@@ -126,7 +126,7 @@ android {
         }
 
         ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+            abiFilters += listOf("arm64-v8a", "x86_64")
         }
     }
 
@@ -143,28 +143,14 @@ android {
 
 androidComponents {
     onVariants(selector().withBuildType("release")) {
-        it.packaging.resources.excludes.addAll(listOf("META-INF/*.version", "kotlin/**", "org/**", "**.bin"))
+        it.packaging.resources.excludes.addAll(listOf("META-INF/**", "kotlin/**", "org/**", "**.bin"))
     }
 }
 
 base {
     archivesName.set(
-        "KowSU_${managerVersionName}_${managerVersionCode}"
+        "KernelSU_${managerVersionName}_${managerVersionCode}"
     )
-}
-
-tasks.register<Copy>("mergeScripts") {
-    into("${project.projectDir}/src/main/resources/META-INF/com/google/android")
-    from(rootProject.file("scripts/update_binary.sh")) {
-        rename { "update-binary" }
-    }
-    from(rootProject.file("scripts/updater_script.sh")) {
-        rename { "updater-script" }
-    }
-}
-
-tasks.named("preBuild") {
-    dependsOn("mergeScripts")
 }
 
 dependencies {
