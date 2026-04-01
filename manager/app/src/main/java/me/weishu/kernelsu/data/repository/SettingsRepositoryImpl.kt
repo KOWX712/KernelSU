@@ -118,6 +118,12 @@ class SettingsRepositoryImpl : SettingsRepository {
 
     override fun setSulogEnabled(enabled: Boolean): Boolean = execKsud("feature set sulog ${if (enabled) 1 else 0}", true)
 
+    override suspend fun getAvcSpoofStatus(): String = getFeatureStatus("avc_spoof")
+
+    override fun isAvcSpoofEnabled(): Boolean = Natives.isAvcSpoofEnabled()
+
+    override fun setAvcSpoofEnabled(enabled: Boolean): Boolean = Natives.setAvcSpoofEnabled(enabled)
+
     override fun isDefaultUmountModules(): Boolean = Natives.isDefaultUmountModules()
 
     override fun setDefaultUmountModules(enabled: Boolean): Boolean = Natives.setDefaultUmountModules(enabled)

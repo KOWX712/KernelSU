@@ -19,6 +19,7 @@ import androidx.compose.material.icons.rounded.ContactPage
 import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DeveloperMode
+import androidx.compose.material.icons.rounded.EditNote
 import androidx.compose.material.icons.rounded.ElectricalServices
 import androidx.compose.material.icons.rounded.Fence
 import androidx.compose.material.icons.rounded.FolderDelete
@@ -283,6 +284,27 @@ fun SettingPagerMiuix(
                             enabled = uiState.sulogStatus == "supported",
                             checked = uiState.isSulogEnabled,
                             onCheckedChange = actions.onSetSulogEnabled
+                        )
+
+                        val avcSpoofSummary = when (uiState.avcSpoofStatus) {
+                            "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                            "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                            else -> stringResource(id = R.string.settings_avc_spoof_summary)
+                        }
+                        SuperSwitch(
+                            title = stringResource(id = R.string.settings_avc_spoof),
+                            summary = avcSpoofSummary,
+                            startAction = {
+                                Icon(
+                                    Icons.Rounded.EditNote,
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    contentDescription = stringResource(id = R.string.settings_avc_spoof),
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            enabled = uiState.avcSpoofStatus == "supported",
+                            checked = uiState.isAvcSpoofEnabled,
+                            onCheckedChange = actions.onSetAvcSpoofEnabled
                         )
 
                         SuperSwitch(

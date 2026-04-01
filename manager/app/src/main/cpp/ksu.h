@@ -42,6 +42,11 @@ bool set_kernel_umount_enabled(bool enabled);
 
 bool is_kernel_umount_enabled();
 
+// Avc spoof
+bool set_avc_spoof_enabled(bool enabled);
+
+bool is_avc_spoof_enabled();
+
 bool get_allow_list(struct ksu_new_get_allow_list_cmd *);
 
 inline std::pair<int, int> legacy_get_info() {
