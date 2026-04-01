@@ -164,8 +164,10 @@
     <string name="settings_theme_mode_light">Sáng</string>
     <string name="settings_theme_mode_dark">Tối</string>
     <string name="settings_key_color_default">Mặc định</string>
-    <string name="settings_classic_home_ui">Trang chủ Cổ điển</string>
+    <string name="settings_official_icon">Biểu tượng Bàn cờ</string>
+    <string name="settings_classic_home_ui">Trang chủ cổ điển</string>
     <string name="settings_switch_icon">Công tắc hiện đại</string>
+    <string name="settings_scroll_animation">Trượt để chuyển tab</string>
     <string name="color_blue">Xanh dương</string>
     <string name="color_red">Đỏ</string>
     <string name="color_green">Xanh lục</string>
