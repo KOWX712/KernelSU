@@ -459,13 +459,21 @@ private fun ZipFileIntentHandler(
     val activity = LocalActivity.current ?: return
     val context = LocalContext.current
     var zipUri by remember { mutableStateOf<Uri?>(null) }
+    var isAnyKernel by remember { mutableStateOf(false) }
     val isSafeMode = Natives.isSafeMode
     val clearZipUri = { zipUri = null }
     val navigator = LocalNavigator.current
 
     val installDialog = rememberConfirmDialog(
         onConfirm = {
-            zipUri?.let { uri -> navigator.push(Route.Flash(FlashIt.FlashModules(listOf(uri)))) }
+            zipUri?.let { uri ->
+                val flashIt = if (isAnyKernel) {
+                    FlashIt.FlashAnyKernel(uri)
+                } else {
+                    FlashIt.FlashModules(listOf(uri))
+                }
+                navigator.push(Route.Flash(flashIt))
+            }
             clearZipUri()
         },
         onDismiss = clearZipUri
@@ -480,17 +488,34 @@ private fun ZipFileIntentHandler(
         val currentIntent = activity.intent
         val uri = currentIntent?.data ?: return@LaunchedEffect
 
-        if (!isManager || uri.scheme != "content" || currentIntent.type != "application/zip") {
+        if (uri.scheme != "content" || currentIntent.type != "application/zip") {
             return@LaunchedEffect
         }
 
+        val component = currentIntent.component?.className
+        val isAnyKernelIntent = component?.endsWith("FlashAnyKernel") == true
+
+        if (!isAnyKernelIntent && !isManager) return@LaunchedEffect
+
         activity.intent.data = null
         activity.intent.type = null
+
+        if (isAnyKernelIntent) {
+            if (!rootAvailable()) return@LaunchedEffect
+            zipUri = uri
+            isAnyKernel = true
+            installDialog.showConfirm(
+                title = context.getString(R.string.anykernel_install),
+                content = getDisplayName(uri)
+            )
+            return@LaunchedEffect
+        }
 
         if (isSafeMode) {
             Toast.makeText(context, context.getString(R.string.safe_mode_module_disabled), Toast.LENGTH_SHORT).show()
         } else {
             zipUri = uri
+            isAnyKernel = false
             installDialog.showConfirm(
                 title = context.getString(R.string.module),
                 content = context.getString(
