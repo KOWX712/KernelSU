@@ -1,6 +1,8 @@
 package me.weishu.kernelsu.ui.screen.colorpalette
 
 import android.annotation.SuppressLint
+import android.content.ComponentName
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -24,8 +26,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -52,7 +56,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -66,6 +72,7 @@ import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeSource
 import me.weishu.kernelsu.R
+import me.weishu.kernelsu.ui.MainActivity
 import me.weishu.kernelsu.ui.component.miuix.ScaleDialog
 import me.weishu.kernelsu.ui.theme.LocalEnableBlur
 import me.weishu.kernelsu.ui.theme.keyColorOptions
@@ -107,6 +114,8 @@ fun ColorPaletteScreenMiuix(
     val uiState = state.uiState
     val currentColorMode = state.currentColorMode
     val isDark = currentColorMode.isDark || currentColorMode.isSystem && isSystemInDarkTheme()
+
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -283,6 +292,39 @@ fun ColorPaletteScreenMiuix(
                             }
                         }
                     }
+                }
+
+                Card(
+                    modifier = Modifier
+                        .padding(top = 12.dp)
+                        .fillMaxWidth(),
+                ) {
+                    SuperSwitch(
+                        title = stringResource(id = R.string.settings_official_icon),
+                        startAction = {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_launcher_monochrome),
+                                contentDescription = stringResource(id = R.string.settings_official_icon),
+                                modifier = Modifier
+                                    .padding(end = 6.dp)
+                                    .size(24.dp)
+                                    .wrapContentSize(unbounded = true)
+                                    .requiredSize(48.dp),
+                                tint = colorScheme.onBackground
+                            )
+                        },
+                        checked = uiState.enableOfficialLauncher,
+                        onCheckedChange = { enabled ->
+                            actions.onSetEnableOfficialLauncher(enabled)
+                            val pm = context.packageManager
+                            val mainComponent = ComponentName(context, MainActivity::class.java)
+                            val aliasComponent = ComponentName(context, "me.weishu.kernelsu.MainActivityOfficial")
+                            val (enableComp, disableComp) = if (enabled) aliasComponent to mainComponent else mainComponent to aliasComponent
+
+                            pm.setComponentEnabledSetting(enableComp, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
+                            pm.setComponentEnabledSetting(disableComp, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
+                        }
+                    )
                 }
 
                 Card(

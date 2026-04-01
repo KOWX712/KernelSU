@@ -51,6 +51,7 @@ class MainActivityViewModel : ViewModel() {
             "key_color",
             "color_style",
             "color_spec",
+            "enable_official_launcher",
             "page_scale",
             "enable_blur",
             "enable_floating_bottom_bar",

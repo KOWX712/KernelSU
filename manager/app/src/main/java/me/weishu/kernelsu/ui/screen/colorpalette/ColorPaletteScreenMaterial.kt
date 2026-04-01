@@ -1,6 +1,8 @@
 package me.weishu.kernelsu.ui.screen.colorpalette
 
 import android.annotation.SuppressLint
+import android.content.ComponentName
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -30,9 +32,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -85,6 +89,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -94,6 +99,7 @@ import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.rememberDynamicColorScheme
 import me.weishu.kernelsu.R
+import me.weishu.kernelsu.ui.MainActivity
 import me.weishu.kernelsu.ui.component.material.SegmentedColumn
 import me.weishu.kernelsu.ui.component.material.SegmentedDropdownItem
 import me.weishu.kernelsu.ui.component.material.SegmentedSwitchItem
@@ -114,6 +120,7 @@ fun ColorPaletteScreenMaterial(
     val colorStyle = state.currentPaletteStyle
     val colorSpec = state.currentColorSpec
     val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         scrollBehavior.state.heightOffset = scrollBehavior.state.heightOffsetLimit
@@ -154,6 +161,7 @@ fun ColorPaletteScreenMaterial(
                 isDark = isDark,
                 paletteStyle = colorStyle,
                 colorSpec = colorSpec,
+                officialIcon = uiState.enableOfficialLauncher,
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -236,6 +244,54 @@ fun ColorPaletteScreenMaterial(
                                     },
                                     contentDescription = label
                                 )
+                            }
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                ) {
+                    val launcherOptions = listOf(false, true)
+                    launcherOptions.forEachIndexed { index, isOfficial ->
+                        ToggleButton(
+                            checked = uiState.enableOfficialLauncher == isOfficial,
+                            onCheckedChange = { enabled ->
+                                if (enabled) {
+                                    actions.onSetEnableOfficialLauncher(isOfficial)
+                                    val pm = context.packageManager
+                                    val mainComponent = ComponentName(context, MainActivity::class.java)
+                                    val aliasComponent = ComponentName(context, "me.weishu.kernelsu.MainActivityOfficial")
+                                    val (enableComp, disableComp) = if (isOfficial) aliasComponent to mainComponent else mainComponent to aliasComponent
+
+                                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                                    pm.setComponentEnabledSetting(enableComp, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
+                                    pm.setComponentEnabledSetting(disableComp, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .semantics { role = Role.RadioButton },
+                            shapes = when (index) {
+                                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                1 -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                            },
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = if (isOfficial) R.drawable.ic_launcher_monochrome else R.drawable.ic_launcher_kowsu),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .wrapContentSize(unbounded = true)
+                                        .requiredSize(48.dp)
+                                )
+                                Text(if (isOfficial) stringResource(R.string.app_name) else stringResource(R.string.app_name_kowsu))
                             }
                         }
                     }
@@ -350,6 +406,7 @@ private fun ThemePreviewCard(
     isDark: Boolean,
     paletteStyle: PaletteStyle = PaletteStyle.TonalSpot,
     colorSpec: ColorSpec.SpecVersion = ColorSpec.SpecVersion.SPEC_2021,
+    officialIcon: Boolean = false,
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -405,11 +462,11 @@ private fun ThemePreviewCard(
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(start = 12.dp, top = 16.dp, bottom = 8.dp),
+                            .padding(start = 12.dp, top = 16.dp, end = 12.dp, bottom = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = stringResource(id = R.string.app_name),
+                            text = if (officialIcon) stringResource(R.string.app_name) else stringResource(R.string.app_name_kowsu),
                             style = MaterialTheme.typography.bodyMedium,
                             color = colorScheme.onSurface
                         )
