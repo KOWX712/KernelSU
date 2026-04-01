@@ -13,6 +13,7 @@ import android.util.Log
 import com.topjohnwu.superuser.CallbackList
 import com.topjohnwu.superuser.Shell
 import com.topjohnwu.superuser.ShellUtils
+import com.topjohnwu.superuser.io.SuFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
@@ -502,4 +503,8 @@ fun launchApp(packageName: String, userId: Int? = null) {
 fun restartApp(packageName: String, userId: Int? = null) {
     forceStopApp(packageName, userId)
     launchApp(packageName, userId)
+}
+
+fun isWebuiModuleInstalled(modId: String): Boolean {
+    return SuFile("/data/adb/modules/$modId/webroot/index.html").exists()
 }
