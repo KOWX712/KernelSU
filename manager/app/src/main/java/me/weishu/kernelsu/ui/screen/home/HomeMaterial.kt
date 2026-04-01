@@ -16,14 +16,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.Memory
+import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,9 +49,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,6 +65,7 @@ import me.weishu.kernelsu.ui.component.dialog.rememberConfirmDialog
 import me.weishu.kernelsu.ui.component.material.TonalCard
 import me.weishu.kernelsu.ui.component.rebootlistpopup.RebootListPopup
 import me.weishu.kernelsu.ui.component.statustag.StatusTag
+import me.weishu.kernelsu.ui.theme.LocalEnableOfficialLauncher
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -298,46 +309,66 @@ private fun StatusCard(
                     modifier = Modifier.weight(1f),
                     onClick = actions.onSuperuserClick
                 ) {
-                    Column(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 16.dp)
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = stringResource(R.string.superuser),
-                            style = MaterialTheme.typography.bodyLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                        Icon(
+                            imageVector = Icons.Outlined.Security,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = state.superuserCount.toString(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.outline
-                        )
+                        Spacer(Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.superuser),
+                                style = MaterialTheme.typography.bodyLarge,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = state.superuserCount.toString(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
                     }
                 }
                 TonalCard(
                     modifier = Modifier.weight(1f),
                     onClick = actions.onModuleClick
                 ) {
-                    Column(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 16.dp)
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = stringResource(R.string.module),
-                            style = MaterialTheme.typography.bodyLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                        Icon(
+                            imageVector = Icons.Outlined.Widgets,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = state.moduleCount.toString(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.outline
-                        )
+                        Spacer(Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.module),
+                                style = MaterialTheme.typography.bodyLarge,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = state.moduleCount.toString(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
                     }
                 }
             }
@@ -414,27 +445,77 @@ private fun DonateCard(onOpenUrl: (String) -> Unit) {
 
 @Composable
 private fun InfoCard(systemInfo: SystemInfo) {
+    val isOfficial = LocalEnableOfficialLauncher.current
+
     TonalCard {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 16.dp)
+                .padding(horizontal = 20.dp, vertical = 24.dp)
         ) {
             @Composable
-            fun InfoCardItem(label: String, content: String) {
-                Text(text = label, style = MaterialTheme.typography.bodyLarge)
-                Text(
-                    text = content,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outline
-                )
+            fun InfoCardItem(
+                label: String,
+                content: String,
+                icon: @Composable () -> Unit
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    icon()
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text(text = label, style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = content,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.outline,
+                        )
+                    }
+                }
             }
 
-            InfoCardItem(stringResource(R.string.home_kernel), systemInfo.kernelVersion)
+            @Composable
+            fun InfoCardItem(icon: ImageVector, label: String, content: String) = InfoCardItem(
+                label = label,
+                content = content,
+                icon = {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            )
+
+            InfoCardItem(
+                icon = Icons.Outlined.Memory,
+                label = stringResource(R.string.home_kernel),
+                content = systemInfo.kernelVersion
+            )
+
             Spacer(Modifier.height(16.dp))
-            InfoCardItem(stringResource(R.string.home_manager_version), systemInfo.managerVersion)
+            InfoCardItem(
+                icon = {
+                    Icon(
+                        painter = painterResource(if (isOfficial) R.drawable.ic_launcher_foreground else R.drawable.ic_launcher_kowsu),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp).wrapContentSize(unbounded = true).requiredSize(48.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                label = stringResource(R.string.home_manager_version),
+                content = systemInfo.managerVersion
+            )
+
             Spacer(Modifier.height(16.dp))
-            InfoCardItem(stringResource(R.string.home_fingerprint), systemInfo.fingerprint)
+            InfoCardItem(
+                icon = Icons.Outlined.Fingerprint,
+                label = stringResource(R.string.home_fingerprint),
+                content = systemInfo.fingerprint
+            )
+
             Spacer(Modifier.height(16.dp))
             val selinuxDisplay = when (systemInfo.selinuxStatus) {
                 "Enforcing" -> stringResource(R.string.selinux_status_enforcing)
@@ -442,7 +523,11 @@ private fun InfoCard(systemInfo: SystemInfo) {
                 "Disabled" -> stringResource(R.string.selinux_status_disabled)
                 else -> stringResource(R.string.selinux_status_unknown)
             }
-            InfoCardItem(stringResource(R.string.home_selinux_status), selinuxDisplay)
+            InfoCardItem(
+                icon = Icons.Outlined.VerifiedUser,
+                label = stringResource(R.string.home_selinux_status),
+                content = selinuxDisplay
+            )
         }
     }
 }
