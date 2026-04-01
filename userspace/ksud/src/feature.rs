@@ -19,6 +19,7 @@ pub enum FeatureId {
     SuCompat = 0,
     KernelUmount = 1,
     Sulog = 2,
+    AvcSpoof = 10003,
 }
 
 impl FeatureId {
@@ -27,6 +28,7 @@ impl FeatureId {
             0 => Some(Self::SuCompat),
             1 => Some(Self::KernelUmount),
             2 => Some(Self::Sulog),
+            10003 => Some(Self::AvcSpoof),
             _ => None,
         }
     }
@@ -36,6 +38,7 @@ impl FeatureId {
             Self::SuCompat => "su_compat",
             Self::KernelUmount => "kernel_umount",
             Self::Sulog => "sulog",
+            Self::AvcSpoof => "avc_spoof",
         }
     }
 
@@ -50,6 +53,9 @@ impl FeatureId {
             Self::Sulog => {
                 "SU Log - streams kernel sulog events to userspace and persists them to disk"
             }
+            Self::AvcSpoof => {
+                "AVC Spoof - fix selinux context leak due to avc denial"
+            }
         }
     }
 }
@@ -59,6 +65,7 @@ fn parse_feature_id(name: &str) -> Result<FeatureId> {
         "su_compat" | "0" => Ok(FeatureId::SuCompat),
         "kernel_umount" | "1" => Ok(FeatureId::KernelUmount),
         "sulog" | "2" => Ok(FeatureId::Sulog),
+        "avc_spoof" | "10003" => Ok(FeatureId::AvcSpoof),
         _ => bail!("Unknown feature: {name}"),
     }
 }
@@ -303,6 +310,7 @@ pub fn list_features() {
         FeatureId::SuCompat,
         FeatureId::KernelUmount,
         FeatureId::Sulog,
+        FeatureId::AvcSpoof,
     ];
 
     for feature_id in &all_features {
@@ -364,6 +372,7 @@ pub fn save_config() -> Result<()> {
         FeatureId::SuCompat,
         FeatureId::KernelUmount,
         FeatureId::Sulog,
+        FeatureId::AvcSpoof,
     ];
 
     for feature_id in &all_features {
