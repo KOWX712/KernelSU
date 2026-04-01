@@ -214,6 +214,9 @@
     <string name="settings_official_icon">Use official app icon</string>
     <string name="settings_color_spec">Color Spec</string>
     <string name="settings_color_style">Color Style</string>
+    <string name="settings_classic_home_ui">Classic Home UI</string>
+    <string name="settings_switch_icon">Switch icon</string>
+    <string name="settings_scroll_animation">Use scroll animation</string>
     <string name="color_blue">Blue</string>
     <string name="color_red">Red</string>
     <string name="color_green">Green</string>

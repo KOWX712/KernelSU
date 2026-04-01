@@ -54,7 +54,10 @@ import androidx.compose.material.icons.rounded.Adb
 import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.DesignServices
+import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Style
+import androidx.compose.material.icons.rounded.ToggleOn
+import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -162,6 +165,7 @@ fun ColorPaletteScreenMaterial(
                 paletteStyle = colorStyle,
                 colorSpec = colorSpec,
                 officialIcon = uiState.enableOfficialLauncher,
+                classicUi = uiState.classicUi,
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -323,6 +327,42 @@ fun ColorPaletteScreenMaterial(
                                     actions.onSetColorSpec(specs[index].name)
                                 }
                             )
+                        },
+                    )
+                )
+
+                SegmentedColumn(
+                    modifier = Modifier.padding(top = 4.dp),
+                    content = listOf(
+                        {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.Home,
+                                title = stringResource(R.string.settings_classic_home_ui),
+                                checked = uiState.classicUi,
+                                onCheckedChange = {
+                                    actions.onSetClassicUi(it)
+                                }
+                            )
+                        },
+                        {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.ToggleOn,
+                                title = stringResource(R.string.settings_switch_icon),
+                                checked = uiState.showSwitchIcon,
+                                onCheckedChange = {
+                                    actions.onSetShowSwitchIcon(it)
+                                }
+                            )
+                        },
+                        {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.ViewCarousel,
+                                title = stringResource(R.string.settings_scroll_animation),
+                                checked = uiState.scrollAnimation,
+                                onCheckedChange = {
+                                    actions.onSetScrollAnimation(it)
+                                }
+                            )
                         }
                     )
                 )
@@ -407,6 +447,7 @@ private fun ThemePreviewCard(
     paletteStyle: PaletteStyle = PaletteStyle.TonalSpot,
     colorSpec: ColorSpec.SpecVersion = ColorSpec.SpecVersion.SPEC_2021,
     officialIcon: Boolean = false,
+    classicUi: Boolean = false,
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -487,28 +528,26 @@ private fun ThemePreviewCard(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(40.dp),
+                                .height(if (classicUi) 64.dp else 40.dp),
                             shape = RoundedCornerShape(12.dp),
                             content = { }
                         )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            TonalCard(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(32.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                content = { }
-                            )
-                            TonalCard(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(32.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                content = { }
-                            )
+                        if (!classicUi) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                TonalCard(
+                                    modifier = Modifier.weight(1f).height(40.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    content = { }
+                                )
+                                TonalCard(
+                                    modifier = Modifier.weight(1f).height(40.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    content = { }
+                                )
+                            }
                         }
                         TonalCard(
                             modifier = Modifier
