@@ -155,9 +155,9 @@ fun HomePagerMiuix(
                         state = state,
                         actions = actions,
                     )
-                    if (state.checkUpdateEnabled) {
-                        UpdateCard(state = state, actions = actions)
-                    }
+//                    if (state.checkUpdateEnabled) {
+//                        UpdateCard(state = state, actions = actions)
+//                    }
                     InfoCard(systemInfo = state.systemInfo)
                     DonateCard(onOpenUrl = actions.onOpenUrl)
                     LearnMoreCard(onOpenUrl = actions.onOpenUrl)

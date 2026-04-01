@@ -2,7 +2,7 @@ name: Build Manager
 
 on:
   push:
-    branches: [ "main", "dev", "ci" ]
+    branches: [ "main", "dev", "ci", "master" ]
     paths:
       - 'README.md'
       - '.github/workflows/build-manager.yml'
@@ -150,7 +150,7 @@ jobs:
       - name: Setup need_upload
         id: need_upload
         run: |
-          if [ ! -z "${{ secrets.BOT_TOKEN }}" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+          if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
             echo "UPLOAD=true" >> $GITHUB_OUTPUT
           else
             echo "UPLOAD=false" >> $GITHUB_OUTPUT
