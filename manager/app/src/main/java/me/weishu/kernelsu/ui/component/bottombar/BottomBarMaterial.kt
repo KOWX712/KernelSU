@@ -71,7 +71,8 @@ fun BottomBarMaterial() {
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                }
+                },
+                alwaysShowLabel = false
             )
         }
     }
