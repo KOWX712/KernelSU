@@ -11,6 +11,12 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -94,6 +100,8 @@ import me.weishu.kernelsu.ui.util.rememberContentReady
 import me.weishu.kernelsu.ui.util.rootAvailable
 import me.weishu.kernelsu.ui.viewmodel.MainActivityViewModel
 import me.weishu.kernelsu.ui.viewmodel.MainPagerConfig
+import me.weishu.kernelsu.ui.viewmodel.ModuleViewModel
+import me.weishu.kernelsu.ui.viewmodel.SuperUserViewModel
 import me.weishu.kernelsu.ui.webui.WebUIActivity
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.blur.layerBackdrop
@@ -113,6 +121,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val viewModel = viewModel<MainActivityViewModel>()
+            val superUserViewModel = viewModel<SuperUserViewModel>()
+            val moduleViewModel = viewModel<ModuleViewModel>()
+
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             val selectedMainPage by viewModel.selectedMainPage.collectAsStateWithLifecycle()
             val appSettings = uiState.appSettings
@@ -150,6 +161,16 @@ class MainActivity : ComponentActivity() {
                 LocalUiMode provides uiMode,
             ) {
                 KernelSUTheme(appSettings = appSettings, uiMode = uiMode) {
+                    val isFullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
+                    LaunchedEffect(isFullFeatured) {
+                        if (isFullFeatured) {
+                            superUserViewModel.initializePreferences()
+                            superUserViewModel.loadAppList()
+                            moduleViewModel.initializePreferences()
+                            moduleViewModel.fetchModuleList()
+                        }
+                    }
+
                     HandleDeepLink(intentState = intentState.collectAsStateWithLifecycle())
                     ZipFileIntentHandler(intentState = intentState, isManager = isManager)
                     ShortcutIntentHandler(intentState = intentState)
@@ -179,6 +200,21 @@ class MainActivity : ComponentActivity() {
 
                                     else -> navigator.pop()
                                 }
+                            },
+                            transitionSpec = {
+                                val enter = slideInHorizontally(initialOffsetX = { it })
+                                val exit = slideOutHorizontally(targetOffsetX = { -it / 4 }) + fadeOut()
+                                enter togetherWith exit
+                            },
+                            popTransitionSpec = {
+                                val enter = slideInHorizontally(initialOffsetX = { -it / 4 }) + fadeIn()
+                                val exit = scaleOut(targetScale = 0.9f) + fadeOut()
+                                enter togetherWith exit
+                            },
+                            predictivePopTransitionSpec = {
+                                val enter = slideInHorizontally(initialOffsetX = { -it / 4 }) + fadeIn()
+                                val exit = scaleOut(targetScale = 0.9f) + fadeOut()
+                                enter togetherWith exit
                             },
                             entryProvider = entryProvider {
                                 entry<Route.Main> { mainScreenEntry() }
