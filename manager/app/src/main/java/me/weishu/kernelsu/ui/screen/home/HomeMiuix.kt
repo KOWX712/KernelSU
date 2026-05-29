@@ -90,6 +90,7 @@ fun HomePagerMiuix(
     Scaffold(
         topBar = {
             TopBar(
+                appName = state.appName,
                 scrollBehavior = scrollBehavior,
                 backdrop = backdrop,
                 barColor = barColor,
@@ -197,6 +198,7 @@ private fun UpdateCard(
 
 @Composable
 private fun TopBar(
+    appName: String,
     scrollBehavior: ScrollBehavior,
     backdrop: LayerBackdrop?,
     barColor: Color,
@@ -204,7 +206,7 @@ private fun TopBar(
     BlurredBar(backdrop) {
         TopAppBar(
             color = barColor,
-            title = stringResource(R.string.app_name),
+            title = appName,
             actions = {
                 RebootListPopupMiuix()
             },
@@ -639,6 +641,7 @@ private fun previewHomeScreenState(
     moduleCount: Int = 0,
     selinuxStatus: String = "Enforcing",
 ) = HomeUiState(
+    appName = "KernelSU",
     kernelVersion = KernelVersion(6, 1, 0),
     ksuVersion = ksuVersion,
     lkmMode = lkmMode,

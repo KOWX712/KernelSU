@@ -1,6 +1,7 @@
 package me.weishu.kernelsu.ui.viewmodel
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Build
 import android.system.Os
 import androidx.lifecycle.ViewModel
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.weishu.kernelsu.BuildConfig
 import me.weishu.kernelsu.Natives
+import me.weishu.kernelsu.R
 import me.weishu.kernelsu.getKernelVersion
 import me.weishu.kernelsu.ksuApp
 import me.weishu.kernelsu.ui.screen.home.HomeUiState
@@ -28,8 +30,24 @@ import me.weishu.kernelsu.ui.util.rootAvailable
 
 class HomeViewModel : ViewModel() {
 
+    private val prefs = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        when (key) {
+            "enable_official_launcher" -> _uiState.update { it.copy(appName = buildState().appName) }
+        }
+    }
+
     private val _uiState = MutableStateFlow(buildState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    init {
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+    }
+
+    override fun onCleared() {
+        prefs.unregisterOnSharedPreferenceChangeListener(listener)
+        super.onCleared()
+    }
 
     fun refresh() {
         viewModelScope.launch {
@@ -43,6 +61,9 @@ class HomeViewModel : ViewModel() {
     }
 
     private fun buildState(): HomeUiState {
+        val prefs = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val isOfficial = prefs.getBoolean("enable_official_launcher", false)
+        val appName = if (isOfficial) ksuApp.getString(R.string.app_name) else ksuApp.getString(R.string.app_name_kowsu)
         val kernelVersion = getKernelVersion()
         val isManager = Natives.isManager
         val ksuVersion = if (isManager) Natives.version else null
@@ -51,6 +72,7 @@ class HomeViewModel : ViewModel() {
         val managerVersion = getManagerVersion(ksuApp)
 
         return HomeUiState(
+            appName = appName,
             kernelVersion = kernelVersion,
             ksuVersion = ksuVersion,
             lkmMode = lkmMode,
