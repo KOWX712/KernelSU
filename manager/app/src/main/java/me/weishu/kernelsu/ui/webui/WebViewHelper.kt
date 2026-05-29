@@ -28,6 +28,9 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 
+private const val WEB_DOMAIN = "mui.kernelsu.org"
+private const val KSU_SCHEME = "ksu"
+private const val ICON_HOST = "icon"
 private const val DOWNLOAD_JS = """
     (function() {
         if (window.ksu_download_enabled) return;
@@ -142,7 +145,7 @@ internal suspend fun prepareWebView(
 
             val webRoot = File("${webUIState.modDir}/webroot")
             val webViewAssetLoader = WebViewAssetLoader.Builder()
-                .setDomain("mui.kernelsu.org")
+                .setDomain(WEB_DOMAIN)
                 .addPathHandler(
                     "/",
                     SuFilePathHandler(
@@ -158,9 +161,9 @@ internal suspend fun prepareWebView(
             webView.webViewClient = object : WebViewClient() {
                 override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
                     val url = request.url
-                    if (url.scheme.equals("ksu", ignoreCase = true) && url.host.equals("icon", ignoreCase = true)) {
+                    if (url.scheme.equals(KSU_SCHEME, ignoreCase = true) && url.host.equals(ICON_HOST, ignoreCase = true)) {
                         val packageName = url.path?.substring(1)
-                        if (!packageName.isNullOrEmpty()) {
+                        if (!packageName.isNullOrEmpty() && packageName.matches(Regex("[a-zA-Z0-9._]+"))) {
                             val icon = AppIconUtil.loadAppIconSync(activity, packageName, 512)
                             if (icon != null) {
                                 val stream = ByteArrayOutputStream()
