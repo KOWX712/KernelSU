@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -118,6 +120,7 @@ internal fun InstallScreenMiuix(
                             state = uiState,
                             onSelected = actions.onSelectMethod,
                             onSelectBootImage = actions.onSelectBootImage,
+                            onSelectAnyKernel = actions.onSelectAnyKernel,
                         )
                     }
                     AnimatedVisibility(
@@ -146,6 +149,11 @@ internal fun InstallScreenMiuix(
                             )
                         }
                     }
+                    AnimatedVisibility(
+                        visible = uiState.showInstallOptions,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -230,6 +238,7 @@ internal fun InstallScreenMiuix(
                             }
                         }
                     }
+                    }
                     TextButton(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -256,6 +265,7 @@ private fun SelectInstallMethod(
     state: InstallUiState,
     onSelected: (InstallMethod) -> Unit,
     onSelectBootImage: () -> Unit,
+    onSelectAnyKernel: () -> Unit,
 ) {
     val confirmDialog = rememberConfirmDialog(
         onConfirm = {
@@ -270,6 +280,7 @@ private fun SelectInstallMethod(
             is InstallMethod.SelectFile -> onSelectBootImage()
             is InstallMethod.DirectInstall -> onSelected(option)
             is InstallMethod.DirectInstallToInactiveSlot -> confirmDialog.showConfirm(dialogTitle, dialogContent)
+            is InstallMethod.AnyKernel -> onSelectAnyKernel()
         }
     }
 
