@@ -40,6 +40,10 @@ interface SettingsRepository {
     suspend fun getAdbRootPersistValue(): Long?
     fun setAdbRootEnabled(enabled: Boolean): Boolean
 
+    suspend fun getAvcSpoofStatus(): String
+    fun isAvcSpoofEnabled(): Boolean
+    fun setAvcSpoofEnabled(enabled: Boolean): Boolean
+
     fun isDefaultUmountModules(): Boolean
     fun setDefaultUmountModules(enabled: Boolean): Boolean
 
