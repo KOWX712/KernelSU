@@ -45,6 +45,9 @@ class SettingsViewModel(
             val pageScale = repo.pageScale
             val enableWebDebugging = repo.enableWebDebugging
             val enableOfficialLauncher = repo.enableOfficialLauncher
+            val classicUi = repo.classicUi
+            val showSwitchIcon = repo.showSwitchIcon
+            val scrollAnimation = repo.scrollAnimation
             val colorStyle = repo.colorStyle
             val colorSpec = repo.colorSpec
             val isLkmMode = repo.isLkmMode()
@@ -84,6 +87,9 @@ class SettingsViewModel(
                     miuixMonet = miuixMonet,
                     keyColor = keyColor,
                     enableOfficialLauncher = enableOfficialLauncher,
+                    classicUi = classicUi,
+                    showSwitchIcon = showSwitchIcon,
+                    scrollAnimation = scrollAnimation,
                     enablePredictiveBack = enablePredictiveBack,
                     enableBlur = enableBlur,
                     enableFloatingBottomBar = enableFloatingBottomBar,
@@ -203,6 +209,21 @@ class SettingsViewModel(
     fun setEnableOfficialLauncher(enabled: Boolean) {
         repo.enableOfficialLauncher = enabled
         _uiState.update { it.copy(enableOfficialLauncher = enabled) }
+    }
+
+    fun setClassicUi(enabled: Boolean) {
+        repo.classicUi = enabled
+        _uiState.update { it.copy(classicUi = enabled) }
+    }
+
+    fun setShowSwitchIcon(enabled: Boolean) {
+        repo.showSwitchIcon = enabled
+        _uiState.update { it.copy(showSwitchIcon = enabled) }
+    }
+
+    fun setScrollAnimation(enabled: Boolean) {
+        repo.scrollAnimation = enabled
+        _uiState.update { it.copy(scrollAnimation = enabled) }
     }
 
     fun setEnablePredictiveBack(enabled: Boolean) {
