@@ -91,8 +91,13 @@ internal fun InstallScreenMaterial(
                 state = uiState,
                 onSelected = actions.onSelectMethod,
                 onSelectBootImage = actions.onSelectBootImage,
+                onSelectAnyKernel = actions.onSelectAnyKernel,
             )
-
+            AnimatedVisibility(
+                visible = uiState.showInstallOptions,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) { Column {
             SegmentedColumn(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 content = buildList {
@@ -194,6 +199,7 @@ internal fun InstallScreenMaterial(
                     }
                 }
             )
+            }}
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -210,6 +216,7 @@ private fun SelectInstallMethod(
     state: InstallUiState,
     onSelected: (InstallMethod) -> Unit,
     onSelectBootImage: () -> Unit,
+    onSelectAnyKernel: () -> Unit,
 ) {
     val confirmDialog = rememberConfirmDialog(
         onConfirm = {
@@ -225,6 +232,7 @@ private fun SelectInstallMethod(
             is InstallMethod.SelectFile -> onSelectBootImage()
             is InstallMethod.DirectInstall -> onSelected(option)
             is InstallMethod.DirectInstallToInactiveSlot -> confirmDialog.showConfirm(dialogTitle, dialogContent)
+            is InstallMethod.AnyKernel -> onSelectAnyKernel()
         }
     }
 
