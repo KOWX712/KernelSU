@@ -35,6 +35,7 @@ class HomeViewModel : ViewModel() {
     private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         when (key) {
             "enable_official_launcher" -> _uiState.update { it.copy(appName = buildState().appName) }
+            "classic_ui" -> _uiState.update { it.copy(classicUi = buildState().classicUi) }
         }
     }
 
@@ -64,6 +65,7 @@ class HomeViewModel : ViewModel() {
     private fun buildState(): HomeUiState {
         val prefs = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
         val isOfficial = prefs.getBoolean("enable_official_launcher", false)
+        val classicUi = prefs.getBoolean("classic_ui", false)
         val appName = if (isOfficial) ksuApp.getString(R.string.app_name) else ksuApp.getString(R.string.app_name_kowsu)
         val kernelVersion = getKernelVersion()
         val isManager = Natives.isManager
@@ -76,6 +78,7 @@ class HomeViewModel : ViewModel() {
 
         return HomeUiState(
             appName = appName,
+            classicUi = classicUi,
             kernelVersion = kernelVersion,
             ksuVersion = ksuVersion,
             lkmMode = lkmMode,

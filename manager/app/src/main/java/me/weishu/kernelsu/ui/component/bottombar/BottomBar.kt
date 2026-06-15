@@ -24,13 +24,16 @@ import kotlin.math.abs
 
 class MainPagerState(
     val pagerState: PagerState,
-    private val coroutineScope: CoroutineScope
+    private val coroutineScope: CoroutineScope,
+    initialPage: Int = pagerState.currentPage,
 ) {
-    var selectedPage by mutableIntStateOf(pagerState.currentPage)
+    var selectedPage by mutableIntStateOf(initialPage)
         private set
 
     var isNavigating by mutableStateOf(false)
         private set
+
+    var usePager by mutableStateOf(true)
 
     private var navJob: Job? = null
 
@@ -40,6 +43,9 @@ class MainPagerState(
         navJob?.cancel()
 
         selectedPage = targetIndex
+
+        if (!usePager) return
+
         isNavigating = true
 
         val distance = abs(targetIndex - pagerState.currentPage).coerceAtLeast(2)
@@ -68,6 +74,7 @@ class MainPagerState(
     }
 
     fun syncPage() {
+        if (!usePager) return
         if (!isNavigating && selectedPage != pagerState.currentPage) {
             selectedPage = pagerState.currentPage
         }
@@ -77,10 +84,11 @@ class MainPagerState(
 @Composable
 fun rememberMainPagerState(
     pagerState: PagerState,
-    coroutineScope: CoroutineScope = rememberCoroutineScope()
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
+    initialPage: Int = pagerState.currentPage,
 ): MainPagerState {
     return remember(pagerState, coroutineScope) {
-        MainPagerState(pagerState, coroutineScope)
+        MainPagerState(pagerState, coroutineScope, initialPage)
     }
 }
 

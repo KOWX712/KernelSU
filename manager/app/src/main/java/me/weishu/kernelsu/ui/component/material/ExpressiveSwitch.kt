@@ -13,6 +13,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import me.weishu.kernelsu.ui.util.LocalShowSwitchIcon
 
 @Composable
 fun ExpressiveSwitch(
@@ -23,7 +24,7 @@ fun ExpressiveSwitch(
     enabled: Boolean = true,
     colors: SwitchColors = SwitchDefaults.colors(),
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-    showThumbIcon: Boolean = true,
+    showThumbIcon: Boolean = LocalShowSwitchIcon.current,
 ) {
     Switch(
         checked = checked,
