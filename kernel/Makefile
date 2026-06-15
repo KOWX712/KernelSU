@@ -9,7 +9,7 @@ $(info -- OUTPUT DIR: $(ODIR))
 .PHONY: all compdb clean format check-format
 
 all: check_symbol
-	make -C $(KDIR) M=$(ODIR) src=$(MDIR) modules compile_commands.json -j$(shell nproc)
+	CONFIG_KSU=m make -C $(KDIR) M=$(ODIR) src=$(MDIR) modules compile_commands.json -j$(shell nproc)
 	./check_symbol $(ODIR)/kernelsu.ko $(KDIR)/vmlinux
 
 compdb:
