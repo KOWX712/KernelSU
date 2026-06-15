@@ -19,9 +19,11 @@
     <string name="force_stop_app">ಫೋರ್ಸ್ ಸ್ಟಾಪ್</string>
     <string name="reboot_edl">EDL ಗೆ ರೀಬೂಟ್</string>
     <string name="profile_capabilities">ಸಾಮರ್ಥ್ಯಗಳು</string>
+    <string name="home_superuser_count">ಸೂಪರ್‌ಯೂಸರ್‌ಗಳು: %d</string>
     <string name="module_start_downloading">ಡೌನ್‌ಲೋಡ್ ಮಾಡುವುದನ್ನು ಪ್ರಾರಂಭಿಸಿ: %s</string>
     <string name="profile_namespace_global">ಜಾಗತಿಕ</string>
     <string name="settings_umount_modules_default_summary">ಅಪ್ಲಿಕೇಶನ್ ಪ್ರೊಫೈಲ್‌ಗಳಲ್ಲಿ \"Umount ಮಾಡ್ಯೂಲ್\" ಗಾಗಿ ಜಾಗತಿಕ ಡೀಫಾಲ್ಟ್ ಮೌಲ್ಯ. ಸಕ್ರಿಯಗೊಳಿಸಿದರೆ, ಪ್ರೊಫೈಲ್ ಸೆಟ್ ಅನ್ನು ಹೊಂದಿರದ ಅಪ್ಲಿಕೇಶನ್‌ಗಳಿಗಾಗಿ ಸಿಸ್ಟಮ್‌ಗೆ ಎಲ್ಲಾ ಮಾಡ್ಯೂಲ್ ಮಾರ್ಪಾಡುಗಳನ್ನು ಇದು ತೆಗೆದುಹಾಕುತ್ತದೆ.</string>
+    <string name="home_module_count">ಮಾಡ್ಯೂಲ್‌ಗಳು: %d</string>
     <string name="profile_selinux_context">SELinux ಸಂದರ್ಭ</string>
     <string name="profile_default">ಡೀಫಾಲ್ಟ್</string>
     <string name="launch_app">ಲಾಂಚ್</string>
