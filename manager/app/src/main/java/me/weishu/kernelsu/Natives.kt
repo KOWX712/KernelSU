@@ -91,6 +91,15 @@ object Natives {
     external fun setSelinuxHideEnabled(enabled: Boolean): Int
 
     /**
+     * Avc spoof can be enabled/disabled.
+     *  0: disabled
+     *  1: enabled
+     *  negative : error
+     */
+    external fun isAvcSpoofEnabled(): Boolean
+    external fun setAvcSpoofEnabled(enabled: Boolean): Boolean
+
+    /**
      * Get the user name for the uid.
      */
     external fun getUserName(uid: Int): String?
