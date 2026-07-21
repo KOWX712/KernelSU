@@ -174,12 +174,19 @@ internal fun InstallScreenMiuix(
                                     .fillMaxWidth()
                                     .padding(top = 12.dp),
                             ) {
+                                val summaryText = when (uiState.lkmVariant) {
+                                    LkmVariant.KOWSU -> stringResource(id = R.string.install_lkm_kowsu)
+                                    LkmVariant.XXKSU -> stringResource(id = R.string.install_lkm_xxksu)
+                                    LkmVariant.CUSTOM -> {
+                                        (uiState.lkmSelection as? LkmSelection.LkmUri)?.let {
+                                            stringResource(id = R.string.selected_lkm, it.uri.lastPathSegment ?: "(file)")
+                                        } ?: stringResource(id = R.string.install_upload_lkm_file)
+                                    }
+                                }
                                 BasicComponent(
-                                    title = stringResource(id = R.string.install_upload_lkm_file),
-                                    summary = (uiState.lkmSelection as? LkmSelection.LkmUri)?.let {
-                                        stringResource(id = R.string.selected_lkm, it.uri.lastPathSegment ?: "(file)")
-                                    },
-                                    onClick = actions.onUploadLkm,
+                                    title = stringResource(id = R.string.install_select_lkm_variant),
+                                    summary = summaryText,
+                                    onClick = actions.onSelectLkm,
                                     startAction = {
                                         Icon(
                                             MiuixIcons.MoveFile,
@@ -189,7 +196,7 @@ internal fun InstallScreenMiuix(
                                         )
                                     },
                                     endActions = {
-                                        if (uiState.lkmSelection is LkmSelection.LkmUri) {
+                                        if (uiState.lkmVariant == LkmVariant.CUSTOM && uiState.lkmSelection is LkmSelection.LkmUri) {
                                             IconButton(onClick = actions.onClearLkm) {
                                                 Icon(
                                                     MiuixIcons.Close,

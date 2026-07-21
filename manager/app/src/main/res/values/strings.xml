@@ -175,6 +175,9 @@
     <string name="install_next">Next</string>
     <string name="install_select_partition">Select partition</string>
     <string name="install_upload_lkm_file">Use local LKM file</string>
+    <string name="install_select_lkm_variant">Select LKM variant</string>
+    <string name="install_lkm_kowsu">KowSU</string>
+    <string name="install_lkm_xxksu">xxKSU</string>
     <string name="install_force_backup">Backup as stock image</string>
     <string name="install_force_backup_summary">Please make sure your selected boot image is a stock image</string>
     <string name="install_only_support_ko_file">Only .ko files are supported</string>

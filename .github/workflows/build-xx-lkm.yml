@@ -1,0 +1,101 @@
+name: Build XX-branch LKM for KernelSU
+on:
+  workflow_call:
+    inputs:
+      expected_size2:
+        description: 'Second expected signature size (for PR builds)'
+        required: false
+        default: ''
+        type: string
+      expected_hash2:
+        description: 'Second expected signature hash (for PR builds)'
+        required: false
+        default: ''
+        type: string
+  workflow_dispatch:
+jobs:
+  checkout-and-build:
+    name: Build ${{ matrix.kmi }} from xx branch
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ylarod/ddk-min:${{ matrix.kmi }}-20260313
+      options: --privileged
+    strategy:
+      matrix:
+        kmi:
+          - android12-5.10
+          - android13-5.10
+          - android13-5.15
+          - android14-5.15
+          - android14-6.1
+          - android15-6.6
+          - android16-6.12
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+
+    - name: Get KowSU version
+      id: version
+      run: |
+        git config --global --add safe.directory /__w/KernelSU/KernelSU
+        cd kernel
+        KSU_GIT_VERSION=$(git rev-list --count HEAD)
+        KSU_VERSION=$(expr 30000 + $KSU_GIT_VERSION)
+        echo "KSU_VERSION=$KSU_VERSION" >> $GITHUB_OUTPUT
+        echo "Calculated KSU_VERSION: $KSU_VERSION"
+
+    - name: Fetch and checkout xxKSU
+      run: |
+        git remote add xx https://github.com/backslashxx/KernelSU
+        git fetch xx master
+        git checkout xx/master
+
+        sed -i "s/CFLAGS_ksu.o += -DKSU_VERSION=.*/CFLAGS_ksu.o += -DKSU_VERSION=${{ steps.version.outputs.KSU_VERSION }}/" kernel/Makefile
+
+    - name: Build kernelsu.ko
+      env:
+        EXPECTED_SIZE2: ${{ inputs.expected_size2 }}
+        EXPECTED_HASH2: ${{ inputs.expected_hash2 }}
+      run: |
+        git config --global --add safe.directory /__w/KernelSU/KernelSU
+
+        cd kernel
+
+        echo "=== Building kernelsu.ko for KMI: ${{ matrix.kmi }} from xx branch ==="
+
+        EXTRA_ARGS=""
+        if [ -n "$EXPECTED_SIZE2" ] && [ -z "$EXPECTED_HASH2" ]; then
+          echo "ERROR: expected_hash2 must be provided when expected_size2 is set."
+          exit 1
+        fi
+        if [ -z "$EXPECTED_SIZE2" ] && [ -n "$EXPECTED_HASH2" ]; then
+          echo "ERROR: expected_size2 must be provided when expected_hash2 is set."
+          exit 1
+        fi
+        if [ -n "$EXPECTED_SIZE2" ]; then
+          EXTRA_ARGS="KSU_EXPECTED_SIZE2=$EXPECTED_SIZE2 KSU_EXPECTED_HASH2=$EXPECTED_HASH2"
+        fi
+        CONFIG_KSU=m CC=clang make $EXTRA_ARGS
+
+        echo "=== Build completed ==="
+
+        # Create output directory in GitHub workspace
+        mkdir -p /github/workspace/out
+
+        # Copy with xx- prefix and KMI-specific naming
+        OUTPUT_NAME="xx-${{ matrix.kmi }}_kernelsu.ko"
+        cp ksu.ko "/github/workspace/out/$OUTPUT_NAME"
+
+        echo "Copied to: /github/workspace/out/$OUTPUT_NAME"
+        ls -la "/github/workspace/out/$OUTPUT_NAME"
+        echo "Size: $(du -h "/github/workspace/out/$OUTPUT_NAME" | cut -f1)"
+        llvm-strip -d "/github/workspace/out/$OUTPUT_NAME"
+        echo "Size after stripping: $(du -h "/github/workspace/out/$OUTPUT_NAME" | cut -f1)"
+
+    - name: Upload xx-kernelsu.ko artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: xx-${{ matrix.kmi }}-lkm
+        path: /github/workspace/out/xx-${{ matrix.kmi }}_kernelsu.ko
