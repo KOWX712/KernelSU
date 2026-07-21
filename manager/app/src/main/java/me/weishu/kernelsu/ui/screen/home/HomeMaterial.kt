@@ -38,7 +38,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -62,16 +61,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import me.weishu.kernelsu.KernelVersion
 import me.weishu.kernelsu.Natives
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.component.dialog.rememberConfirmDialog
 import me.weishu.kernelsu.ui.component.material.ExpressiveScaffold
+import me.weishu.kernelsu.ui.component.material.SegmentedListItem
 import me.weishu.kernelsu.ui.component.material.TonalCard
 import me.weishu.kernelsu.ui.component.material.expressiveTopAppBarColors
 import me.weishu.kernelsu.ui.component.rebootlistpopup.RebootListPopup
 import me.weishu.kernelsu.ui.component.statustag.StatusTag
+import me.weishu.kernelsu.ui.theme.LocalClassicUi
 import me.weishu.kernelsu.ui.theme.LocalEnableOfficialLauncher
+import me.weishu.kernelsu.ui.util.getModuleCount
+import me.weishu.kernelsu.ui.util.getSuperuserCount
 
 @Composable
 fun HomePagerMaterial(
@@ -208,6 +212,7 @@ private fun StatusCard(
     state: HomeUiState,
     actions: HomeActions,
 ) {
+    val classicUi = LocalClassicUi.current
     Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
         val ksuActive = state.ksuVersion != null
         val notInstalled = !ksuActive && state.kernelVersion.isGKI()
@@ -269,13 +274,13 @@ private fun StatusCard(
             color = containerColor,
             contentColor = contentColor,
             shape = MaterialTheme.shapes.large,
-            onClick = {
-                if (!state.isLateLoadMode) {
-                    actions.onInstallClick()
-                }
-            }
         ) {
-            ListItem(
+            SegmentedListItem(
+                onClick = {
+                    if (!state.isLateLoadMode) {
+                        actions.onInstallClick()
+                    }
+                },
                 colors = ListItemDefaults.colors(
                     containerColor = Color.Transparent,
                     contentColor = contentColor,
@@ -287,7 +292,10 @@ private fun StatusCard(
                     Icon(statusIcon, contentDescription = statusTitle)
                 },
                 headlineContent = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
                             text = statusTitle,
                             style = MaterialTheme.typography.titleMediumEmphasized
@@ -311,15 +319,37 @@ private fun StatusCard(
                     }
                 },
                 supportingContent = {
-                    Text(
-                        text = statusSummary,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Column(
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    ) {
+                        Text(
+                            text = statusSummary,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                lineHeight = 12.sp
+                            )
+                        )
+                        if (classicUi) {
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.home_superuser_count, getSuperuserCount()),
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    lineHeight = 12.sp
+                                )
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.home_module_count, getModuleCount()),
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    lineHeight = 12.sp
+                                )
+                            )
+                        }
+                    }
                 },
                 trailingContent = statusTrailing
             )
         }
-        if (state.isFullFeatured) {
+        if (state.isFullFeatured && !classicUi) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(13.dp)
@@ -469,6 +499,7 @@ private fun DonateCard(onOpenUrl: (String) -> Unit) {
 @Composable
 private fun InfoCard(systemInfo: SystemInfo) {
     val isOfficial = LocalEnableOfficialLauncher.current
+    val isClassicUi = LocalClassicUi.current
 
     TonalCard {
         Column(
@@ -485,8 +516,10 @@ private fun InfoCard(systemInfo: SystemInfo) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    icon()
-                    Spacer(Modifier.width(16.dp))
+                    if (!isClassicUi) {
+                        icon()
+                        Spacer(Modifier.width(16.dp))
+                    }
                     Column {
                         Text(text = label, style = MaterialTheme.typography.bodyLarge)
                         Text(
@@ -632,6 +665,7 @@ private fun HomeScreenPreviewContent(
     superuserCount: Int = 0,
     moduleCount: Int = 0,
     selinuxStatus: String = "Enforcing",
+    classicUi: Boolean = false,
 ) {
     CompositionLocalProvider(LocalUriHandler provides previewUriHandler) {
         Column(
@@ -648,6 +682,7 @@ private fun HomeScreenPreviewContent(
                     superuserCount = superuserCount,
                     moduleCount = moduleCount,
                     selinuxStatus = selinuxStatus,
+                    classicUi = classicUi,
                 ),
                 actions = actions
             )
@@ -690,8 +725,10 @@ private fun previewHomeScreenState(
     superuserCount: Int = 0,
     moduleCount: Int = 0,
     selinuxStatus: String = "Enforcing",
+    classicUi: Boolean = false,
 ) = HomeUiState(
     appName = "KernelSU",
+    classicUi = classicUi,
     kernelVersion = KernelVersion(6, 1, 0),
     ksuVersion = ksuVersion,
     lkmMode = lkmMode,

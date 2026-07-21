@@ -11,6 +11,8 @@ import me.weishu.kernelsu.data.repository.SettingsRepository
 import me.weishu.kernelsu.data.repository.SettingsRepositoryImpl
 import me.weishu.kernelsu.ui.LocalUiMode
 import me.weishu.kernelsu.ui.UiMode
+import me.weishu.kernelsu.ui.util.LocalScrollAnimation
+import me.weishu.kernelsu.ui.util.LocalShowSwitchIcon
 
 enum class ColorMode(val value: Int) {
     SYSTEM(0),
@@ -51,6 +53,9 @@ data class AppSettings(
     val paletteStyle: PaletteStyle,
     val colorSpec: ColorSpec.SpecVersion,
     val enableOfficialLauncher: Boolean,
+    val classicUi: Boolean,
+    val showSwitchIcon: Boolean,
+    val scrollAnimation: Boolean,
 )
 
 val PaletteStyle.supportsSpec2025: Boolean
@@ -97,10 +102,12 @@ object ThemeController {
         } catch (_: Exception) {
             ColorSpec.SpecVersion.SPEC_2025
         }
-
         val enableOfficialLauncher = repo.enableOfficialLauncher
+        val classicUi = repo.classicUi
+        val showSwitchIcon = repo.showSwitchIcon
+        val scrollAnimation = repo.scrollAnimation
 
-        return AppSettings(colorMode, keyColor, paletteStyle, colorSpec, enableOfficialLauncher)
+        return AppSettings(colorMode, keyColor, paletteStyle, colorSpec, enableOfficialLauncher, classicUi, showSwitchIcon, scrollAnimation)
     }
 }
 
@@ -113,6 +120,9 @@ fun KernelSUTheme(
     CompositionLocalProvider(
         LocalColorMode provides appSettings.colorMode.value,
         LocalEnableOfficialLauncher provides appSettings.enableOfficialLauncher,
+        LocalClassicUi provides appSettings.classicUi,
+        LocalShowSwitchIcon provides appSettings.showSwitchIcon,
+        LocalScrollAnimation provides appSettings.scrollAnimation,
     ) {
         when (uiMode) {
             UiMode.Miuix -> MiuixKernelSUTheme(
@@ -142,6 +152,8 @@ fun isInDarkTheme(): Boolean {
 val LocalColorMode = staticCompositionLocalOf { 0 }
 
 val LocalEnableOfficialLauncher = staticCompositionLocalOf { false }
+
+val LocalClassicUi = staticCompositionLocalOf { false }
 
 val LocalEnableBlur = staticCompositionLocalOf { false }
 
