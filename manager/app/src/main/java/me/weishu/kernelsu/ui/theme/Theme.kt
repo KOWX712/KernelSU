@@ -2,6 +2,7 @@ package me.weishu.kernelsu.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.materialkolor.PaletteStyle
@@ -49,6 +50,7 @@ data class AppSettings(
     val keyColor: Int,
     val paletteStyle: PaletteStyle,
     val colorSpec: ColorSpec.SpecVersion,
+    val enableOfficialLauncher: Boolean,
 )
 
 val PaletteStyle.supportsSpec2025: Boolean
@@ -96,7 +98,9 @@ object ThemeController {
             ColorSpec.SpecVersion.SPEC_2025
         }
 
-        return AppSettings(colorMode, keyColor, paletteStyle, colorSpec)
+        val enableOfficialLauncher = repo.enableOfficialLauncher
+
+        return AppSettings(colorMode, keyColor, paletteStyle, colorSpec, enableOfficialLauncher)
     }
 }
 
@@ -106,17 +110,21 @@ fun KernelSUTheme(
     uiMode: UiMode = LocalUiMode.current,
     content: @Composable () -> Unit
 ) {
+    CompositionLocalProvider(
+        LocalColorMode provides appSettings.colorMode.value,
+        LocalEnableOfficialLauncher provides appSettings.enableOfficialLauncher,
+    ) {
+        when (uiMode) {
+            UiMode.Miuix -> MiuixKernelSUTheme(
+                appSettings = appSettings,
+                content = content
+            )
 
-    when (uiMode) {
-        UiMode.Miuix -> MiuixKernelSUTheme(
-            appSettings = appSettings,
-            content = content
-        )
-
-        UiMode.Material -> MaterialKernelSUTheme(
-            appSettings = appSettings,
-            content = content
-        )
+            UiMode.Material -> MaterialKernelSUTheme(
+                appSettings = appSettings,
+                content = content
+            )
+        }
     }
 }
 
@@ -132,6 +140,8 @@ fun isInDarkTheme(): Boolean {
 
 
 val LocalColorMode = staticCompositionLocalOf { 0 }
+
+val LocalEnableOfficialLauncher = staticCompositionLocalOf { false }
 
 val LocalEnableBlur = staticCompositionLocalOf { false }
 
