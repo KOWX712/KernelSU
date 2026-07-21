@@ -24,6 +24,10 @@ data class SettingsUiState(
     val pageScale: Float = 1.0f,
     val enableWebDebugging: Boolean = false,
 
+    // WebUI Modules shortcut entry
+    val isToolkitInstalled: Boolean = false,
+    val isKpatchNextInstalled: Boolean = false,
+
     // Su Compat
     val suCompatStatus: String = "",
     val suCompatMode: Int = 0, // 0: enable default, 1: disable until reboot, 2: disable always
@@ -75,5 +79,6 @@ data class SettingsScreenActions(
     val onSetDefaultUmountModules: (Boolean) -> Unit,
     val onSetEnableWebDebugging: (Boolean) -> Unit,
     val onSetAutoJailbreak: (Boolean) -> Unit,
+    val onOpenWebUi: (String, String) -> Unit,
     val onOpenAbout: () -> Unit,
 )
