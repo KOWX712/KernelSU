@@ -16,6 +16,7 @@ on:
       - 'userspace/**'
       - 'Cargo.lock'
       - 'Cargo.toml'
+      - 'scripts/ksubot.py'
   pull_request:
     branches: [ "main", "dev" ]
     paths:
