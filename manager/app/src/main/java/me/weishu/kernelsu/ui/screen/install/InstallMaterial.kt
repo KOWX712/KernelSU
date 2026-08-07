@@ -118,6 +118,18 @@ internal fun InstallScreenMaterial(
                         )
                     }
                     add {
+                        val summaryText = when (uiState.lkmVariant) {
+                            LkmVariant.KOWSU -> stringResource(R.string.install_lkm_kowsu)
+                            LkmVariant.XXKSU -> stringResource(R.string.install_lkm_xxksu)
+                            LkmVariant.CUSTOM -> {
+                                (uiState.lkmSelection as? LkmSelection.LkmUri)?.let {
+                                    stringResource(
+                                        R.string.selected_lkm,
+                                        it.uri.lastPathSegment ?: "(file)"
+                                    )
+                                } ?: stringResource(R.string.install_upload_lkm_file)
+                            }
+                        }
                         SegmentedListItem(
                             leadingContent = {
                                 Icon(
@@ -125,19 +137,12 @@ internal fun InstallScreenMaterial(
                                     null
                                 )
                             },
-                            headlineContent = { Text(stringResource(R.string.install_upload_lkm_file)) },
+                            headlineContent = { Text(stringResource(R.string.install_select_lkm_variant)) },
                             supportingContent = {
-                                (uiState.lkmSelection as? LkmSelection.LkmUri)?.let {
-                                    Text(
-                                        stringResource(
-                                            R.string.selected_lkm,
-                                            it.uri.lastPathSegment ?: "(file)"
-                                        )
-                                    )
-                                }
+                                Text(summaryText)
                             },
                             trailingContent = {
-                                if (uiState.lkmSelection is LkmSelection.LkmUri) {
+                                if (uiState.lkmVariant == LkmVariant.CUSTOM && uiState.lkmSelection is LkmSelection.LkmUri) {
                                     IconButton(onClick = actions.onClearLkm) {
                                         Icon(
                                             Icons.Filled.Close,
@@ -148,7 +153,7 @@ internal fun InstallScreenMaterial(
                                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null)
                                 }
                             },
-                            onClick = actions.onUploadLkm
+                            onClick = actions.onSelectLkm
                         )
                     }
                 }
