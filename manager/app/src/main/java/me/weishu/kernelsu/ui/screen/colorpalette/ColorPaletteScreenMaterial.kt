@@ -1,6 +1,8 @@
 package me.weishu.kernelsu.ui.screen.colorpalette
 
 import android.annotation.SuppressLint
+import android.content.ComponentName
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -33,9 +35,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -76,7 +80,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -88,6 +94,7 @@ import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.component.bottombar.useNavigationRail
 import me.weishu.kernelsu.ui.component.material.ExpressiveScaffold
 import me.weishu.kernelsu.ui.component.material.ExpressiveToggleButton
+import me.weishu.kernelsu.ui.MainActivity
 import me.weishu.kernelsu.ui.component.material.SegmentedColumn
 import me.weishu.kernelsu.ui.component.material.SegmentedDropdownItem
 import me.weishu.kernelsu.ui.component.material.SegmentedSwitchItem
@@ -110,6 +117,7 @@ fun ColorPaletteScreenMaterial(
     val colorStyle = state.currentPaletteStyle
     val colorSpec = state.currentColorSpec
     val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
 
     ExpressiveScaffold(
         topBar = {
@@ -143,6 +151,7 @@ fun ColorPaletteScreenMaterial(
                 isAmoled = isAmoled,
                 paletteStyle = colorStyle,
                 colorSpec = colorSpec,
+                officialIcon = uiState.enableOfficialLauncher,
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -227,6 +236,54 @@ fun ColorPaletteScreenMaterial(
                                     },
                                     contentDescription = label
                                 )
+                            }
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                ) {
+                    val launcherOptions = listOf(false, true)
+                    launcherOptions.forEachIndexed { index, isOfficial ->
+                        ExpressiveToggleButton(
+                            checked = uiState.enableOfficialLauncher == isOfficial,
+                            onCheckedChange = { enabled ->
+                                if (enabled) {
+                                    actions.onSetEnableOfficialLauncher(isOfficial)
+                                    val pm = context.packageManager
+                                    val mainComponent = ComponentName(context, MainActivity::class.java)
+                                    val aliasComponent = ComponentName(context, "me.weishu.kernelsu.MainActivityOfficial")
+                                    val (enableComp, disableComp) = if (isOfficial) aliasComponent to mainComponent else mainComponent to aliasComponent
+
+                                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                                    pm.setComponentEnabledSetting(enableComp, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
+                                    pm.setComponentEnabledSetting(disableComp, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .semantics { role = Role.RadioButton },
+                            shapes = when (index) {
+                                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                1 -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                            },
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = if (isOfficial) R.drawable.ic_launcher_monochrome else R.drawable.ic_launcher_kowsu),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .wrapContentSize(unbounded = true)
+                                        .requiredSize(48.dp)
+                                )
+                                Text(if (isOfficial) stringResource(R.string.app_name_official) else stringResource(R.string.app_name))
                             }
                         }
                     }
@@ -356,6 +413,7 @@ private fun ThemePreviewCard(
     isAmoled: Boolean = false,
     paletteStyle: PaletteStyle = PaletteStyle.TonalSpot,
     colorSpec: ColorSpec.SpecVersion = ColorSpec.SpecVersion.SPEC_2025,
+    officialIcon: Boolean = false,
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.toFloat()
@@ -381,55 +439,55 @@ private fun ThemePreviewCard(
             border = BorderStroke(1.dp, color = colorScheme.outlineVariant)
         ) {
             val content: @Composable ColumnScope.() -> Unit = {
-                    // top bar
-                    Box(
+                // top bar
+                Box(
+                    modifier = Modifier
+                        .height(if (useRail) 36.dp else 48.dp)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.TopStart
+                ) {
+                    Row(
                         modifier = Modifier
-                            .height(if (useRail) 36.dp else 48.dp)
-                            .fillMaxWidth(),
-                        contentAlignment = Alignment.TopStart
+                            .fillMaxSize()
+                            .padding(start = 12.dp, top = if (useRail) 8.dp else 16.dp, bottom = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(start = 12.dp, top = if (useRail) 8.dp else 16.dp, bottom = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.app_name),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = colorScheme.onSurface
-                            )
-                        }
+                        Text(
+                            text = if (officialIcon) stringResource(R.string.app_name_official) else stringResource(R.string.app_name),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colorScheme.onSurface
+                        )
                     }
+                }
 
-                    BoxWithConstraints(modifier = Modifier.weight(1f)) {
-                        val showInfoCard = maxHeight >= 72.dp
-                        Column(
+                BoxWithConstraints(modifier = Modifier.weight(1f)) {
+                    val showInfoCard = maxHeight >= 72.dp
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        TonalCard(
+                            containerColor = colorScheme.secondaryContainer,
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 6.dp, vertical = 2.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
+                                .fillMaxWidth()
+                                .height(40.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            content = { }
+                        )
+                        if (showInfoCard) {
                             TonalCard(
-                                containerColor = colorScheme.secondaryContainer,
+                                containerColor = colorScheme.surfaceBright,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(40.dp),
+                                    .weight(1f),
                                 shape = RoundedCornerShape(8.dp),
                                 content = { }
                             )
-                            if (showInfoCard) {
-                                TonalCard(
-                                    containerColor = colorScheme.surfaceBright,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f),
-                                    shape = RoundedCornerShape(8.dp),
-                                    content = { }
-                                )
-                            }
                         }
                     }
+                }
             }
 
             if (useRail) {

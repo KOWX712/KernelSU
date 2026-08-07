@@ -309,7 +309,7 @@ private fun AboutContent(
                                 )
                             } else Modifier
                         ),
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    painter = painterResource(id = state.appIconRes),
                     colorFilter = ColorFilter.tint(colorScheme.onBackground),
                     contentDescription = null,
                 )

@@ -124,6 +124,7 @@ import me.weishu.kernelsu.ui.component.miuix.SearchPager
 import me.weishu.kernelsu.ui.component.rebootlistpopup.RebootListPopupMiuix
 import me.weishu.kernelsu.ui.theme.LocalEnableBlur
 import me.weishu.kernelsu.ui.theme.isInDarkTheme
+import me.weishu.kernelsu.ui.util.AppInfo
 import me.weishu.kernelsu.ui.util.BlurredBar
 import me.weishu.kernelsu.ui.util.getFileName
 import me.weishu.kernelsu.ui.util.reboot
@@ -663,7 +664,7 @@ private fun ModuleShortcutDialog(
                                 .background(Color.White)
                         )
                         Image(
-                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            painter = AppInfo.appIconForeground(),
                             contentDescription = null,
                             contentScale = FixedScale(1.5f)
                         )
