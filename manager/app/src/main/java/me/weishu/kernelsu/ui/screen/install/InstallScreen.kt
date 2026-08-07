@@ -72,6 +72,7 @@ fun InstallScreen() {
                 add(InstallMethod.DirectInstall)
                 if (isAbDevice) add(InstallMethod.DirectInstallToInactiveSlot)
             }
+            if (rootAvailable) add(InstallMethod.AnyKernel())
         }
     }
 
@@ -106,6 +107,10 @@ fun InstallScreen() {
 
     val onInstall = {
         installMethod?.let { method ->
+            if (method is InstallMethod.AnyKernel) {
+                method.uri?.let { uri -> navigator.push(Route.Flash(FlashIt.FlashAnyKernel(uri))) }
+                return@let
+            }
             navigator.push(
                 Route.Flash(
                     FlashIt.FlashBoot(
@@ -156,6 +161,13 @@ fun InstallScreen() {
             }
         }
     }
+    val selectAnyKernelLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            it.data?.data?.let { uri -> installMethod = InstallMethod.AnyKernel(uri) }
+        }
+    }
 
     val state = InstallUiState(
         installMethod = installMethod,
@@ -166,6 +178,7 @@ fun InstallScreen() {
         slotSuffix = slotSuffix,
         installMethodOptions = installMethodOptions,
         canSelectPartition = installMethod is InstallMethod.DirectInstall || installMethod is InstallMethod.DirectInstallToInactiveSlot,
+        showInstallOptions = installMethod != null && installMethod !is InstallMethod.AnyKernel,
         advancedOptionsShown = advancedOptionsShown,
         allowShell = allowShell,
         enableAdb = enableAdb,
@@ -177,6 +190,16 @@ fun InstallScreen() {
         onSelectMethod = { method -> installMethod = method },
         onSelectBootImage = {
             selectImageLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply { type = "application/octet-stream" })
+        },
+        onSelectAnyKernel = {
+            selectAnyKernelLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply {
+                type = "application/zip"
+                putExtra(
+                    Intent.EXTRA_MIME_TYPES,
+                    arrayOf("application/zip", "application/x-zip-compressed", "application/octet-stream")
+                )
+                addCategory(Intent.CATEGORY_OPENABLE)
+            })
         },
         onUploadLkm = {
             selectLkmLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply { type = "application/octet-stream" })
@@ -190,7 +213,8 @@ fun InstallScreen() {
             val isLkmSelected = lkmSelection != LkmSelection.KmiNone
             val isKmiUnknown = currentKmi.isBlank()
             val isSelectFileMode = installMethod is InstallMethod.SelectFile
-            if (!isLkmSelected && (isKmiUnknown || isSelectFileMode)) {
+            val isAnyKernelMode = installMethod is InstallMethod.AnyKernel
+            if (!isAnyKernelMode && !isLkmSelected && (isKmiUnknown || isSelectFileMode)) {
                 showChooseKmiDialog.value = true
             } else {
                 onInstall()

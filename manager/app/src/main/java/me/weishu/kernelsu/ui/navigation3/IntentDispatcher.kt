@@ -40,6 +40,7 @@ private sealed interface PendingAction {
         val uri: Uri,
         val displayName: String,
         val requiresConfirmation: Boolean,
+        val isAnyKernel: Boolean = false,
     ) : PendingAction {
         companion object {
             val InstallModuleSaver = listSaver<InstallModule?, Any>(
@@ -50,7 +51,8 @@ private sealed interface PendingAction {
                         listOf(
                             module.uri,
                             module.displayName,
-                            module.requiresConfirmation
+                            module.requiresConfirmation,
+                            module.isAnyKernel,
                         )
                     }
                 },
@@ -61,7 +63,8 @@ private sealed interface PendingAction {
                         InstallModule(
                             uri = list[0] as Uri,
                             displayName = list[1] as String,
-                            requiresConfirmation = list[2] as Boolean
+                            requiresConfirmation = list[2] as Boolean,
+                            isAnyKernel = list.getOrNull(3) as? Boolean ?: false,
                         )
                     }
                 }
@@ -115,10 +118,13 @@ private fun resolveIntent(intent: Intent): PendingAction? {
     // File manager: open ZIP
     val viewUri = intent.data
     if (viewUri != null && viewUri.scheme == "content" && intent.type == "application/zip") {
+        val component = intent.component?.className
+        val isAnyKernel = component?.endsWith("FlashAnyKernel") == true
         return PendingAction.InstallModule(
             uri = viewUri,
             displayName = getDisplayName(viewUri),
             requiresConfirmation = true,
+            isAnyKernel = isAnyKernel,
         )
     }
 
@@ -157,7 +163,12 @@ fun IntentDispatcher(intentChannel: ReceiveChannel<Intent>) {
     val installDialog = rememberConfirmDialog(
         onConfirm = {
             pendingZipInstall?.let { action ->
-                navigator.push(Route.Flash(FlashIt.FlashModules(listOf(action.uri))))
+                val flashIt = if (action.isAnyKernel) {
+                    FlashIt.FlashAnyKernel(action.uri)
+                } else {
+                    FlashIt.FlashModules(listOf(action.uri))
+                }
+                navigator.push(Route.Flash(flashIt))
             }
             pendingZipInstall = null
         },
@@ -180,12 +191,22 @@ fun IntentDispatcher(intentChannel: ReceiveChannel<Intent>) {
                 }
                 if (action.requiresConfirmation) {
                     pendingZipInstall = action
-                    installDialog.showConfirm(
-                        title = resources.getString(R.string.module),
-                        content = resources.getString(
+                    val title = if (action.isAnyKernel) {
+                        resources.getString(R.string.anykernel_install)
+                    } else {
+                        resources.getString(R.string.module)
+                    }
+                    val content = if (action.isAnyKernel) {
+                        action.displayName
+                    } else {
+                        resources.getString(
                             R.string.module_install_prompt_with_name,
                             "\n${action.displayName}"
                         )
+                    }
+                    installDialog.showConfirm(
+                        title = title,
+                        content = content
                     )
                 } else {
                     navigator.push(Route.Flash(FlashIt.FlashModules(listOf(action.uri))))
