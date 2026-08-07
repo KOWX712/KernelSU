@@ -96,15 +96,15 @@ fun SettingPagerMaterial(
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = listOf(
-                        {
-                            SegmentedSwitchItem(
-                                icon = Icons.Filled.Update,
-                                title = stringResource(id = R.string.settings_check_update),
-                                summary = stringResource(id = R.string.settings_check_update_summary),
-                                checked = uiState.checkUpdate,
-                                onCheckedChange = actions.onSetCheckUpdate
-                            )
-                        },
+//                        {
+//                            SegmentedSwitchItem(
+//                                icon = Icons.Filled.Update,
+//                                title = stringResource(id = R.string.settings_check_update),
+//                                summary = stringResource(id = R.string.settings_check_update_summary),
+//                                checked = uiState.checkUpdate,
+//                                onCheckedChange = actions.onSetCheckUpdate
+//                            )
+//                        },
                         {
                             SegmentedSwitchItem(
                                 icon = Icons.Rounded.UploadFile,
