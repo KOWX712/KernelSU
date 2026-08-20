@@ -13,8 +13,6 @@
     <string name="module_update">Cập nhật</string>
     <string name="module_downloading">Đang tải xuống module: %s</string>
     <string name="module_start_downloading">Bắt đầu tải xuống: %s</string>
-    <string name="start_downloading">Bắt đầu tải xuống</string>
-    <string name="download_failed">Tải xuống thất bại: %s</string>
     <string name="new_version_available">Phiên bản mới %s đã có sẵn, nhấn để cập nhật!</string>
     <string name="home_learn_kernelsu">Tìm hiểu về KernelSU</string>
     <string name="home_click_to_learn_kernelsu">Tìm hiểu cách cài đặt KernelSU và sử dụng các module.</string>
@@ -156,6 +154,9 @@
     <string name="log_saved">Đã lưu nhật ký</string>
     <string name="settings_module_check_update">Kiểm tra cập nhật module</string>
     <string name="install_upload_lkm_file">Sử dụng file LKM cục bộ</string>
+    <string name="install_select_lkm_variant">Chọn biến thể LKM</string>
+    <string name="install_lkm_kowsu">KowSU</string>
+    <string name="install_lkm_xxksu">xxKSU</string>
     <string name="install_only_support_ko_file">Chỉ hỗ trợ các file .ko</string>
     <string name="settings_sucompat">Lệnh SU cổ điển</string>
     <string name="settings_sucompat_summary">Cho phép truy cập Root thông qua /system/bin/su, trong các tiến trình mới.</string>
