@@ -109,7 +109,7 @@ int __init kernelsu_init(void)
     }
 #endif
 
-#ifdef MODULE
+#if defined(MODULE) && !defined(CONFIG_KSU_NON_ANDROID)
     ksu_late_loaded = (current->pid != 1);
 #else
     ksu_late_loaded = false;
@@ -144,7 +144,9 @@ int __init kernelsu_init(void)
     ksu_sulog_init();
     ksu_adb_root_init();
     ksu_lsm_hook_init();
+#ifdef CONFIG_KSU_SELINUX
     ksu_selinux_hide_init();
+#endif
     ksu_shell_su_adb_only_init();
 
     ksu_supercalls_init();
@@ -153,9 +155,11 @@ int __init kernelsu_init(void)
     if (ksu_late_loaded) {
         pr_info("late load mode, skipping kprobe hooks\n");
 
+#ifdef CONFIG_KSU_SELINUX
         apply_kernelsu_rules();
         cache_sid();
         setup_ksu_cred();
+#endif
 
         // Grant current process (ksud late-load) root
         // with KSU SELinux domain before enforcing SELinux, so it
@@ -176,10 +180,14 @@ int __init kernelsu_init(void)
 
         ksu_feature_apply_forced();
 
+#ifdef CONFIG_KSU_SELINUX
         if (!getenforce()) {
             pr_info("Permissive SELinux, enforcing\n");
             setenforce(true);
         }
+#else
+        pr_info("SELinux disabled\n");
+#endif
 
     } else {
         ksu_syscall_hook_manager_init();
@@ -194,7 +202,7 @@ int __init kernelsu_init(void)
     }
 
 #ifdef MODULE
-#ifndef CONFIG_KSU_DEBUG
+#if !defined(CONFIG_KSU_DEBUG) && !defined(CONFIG_KSU_NON_ANDROID)
     kobject_del(&THIS_MODULE->mkobj.kobj);
 #endif
 #endif
@@ -221,8 +229,10 @@ void __exit kernelsu_exit(void)
 
     ksu_allowlist_exit();
 
-    ksu_shell_su_adb_only_exit();
+#ifdef CONFIG_KSU_SELINUX
     ksu_selinux_hide_exit();
+#endif
+    ksu_shell_su_adb_only_exit();
     ksu_lsm_hook_exit();
     ksu_adb_root_exit();
     ksu_sulog_exit();

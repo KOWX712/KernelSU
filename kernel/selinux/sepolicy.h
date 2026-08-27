@@ -1,5 +1,6 @@
 #ifndef __KSU_H_SEPOLICY
 #define __KSU_H_SEPOLICY
+#ifdef CONFIG_KSU_SELINUX
 
 #include <linux/types.h>
 
@@ -37,4 +38,5 @@ bool ksu_type_member(struct policydb *db, const char *src, const char *tgt, cons
 // File system labeling
 bool ksu_genfscon(struct policydb *db, const char *fs_name, const char *path, const char *ctx);
 
+#endif
 #endif

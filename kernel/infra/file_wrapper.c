@@ -11,13 +11,16 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 #include <linux/version.h>
+#include <linux/module.h>
 #include <linux/mount.h>
-
-#include "objsec.h"
 
 #include "ksu.h"
 #include "klog.h" // IWYU pragma: keep
+
+#ifdef CONFIG_KSU_SELINUX
+#include "objsec.h"
 #include "selinux/selinux.h"
+#endif
 
 #include "infra/file_wrapper.h"
 
@@ -536,12 +539,14 @@ int ksu_install_file_wrapper(int fd)
     struct inode *wrapper_inode = file_inode(wrapper_file);
     // libc's stdio relies on the fstat() result of the fd to determine its buffer type.
     wrapper_inode->i_mode = file_inode(orig_file)->i_mode;
+#ifdef CONFIG_KSU_SELINUX
     struct inode_security_struct *wrapper_sec = selinux_inode(wrapper_inode);
     // Use ksu_file_sid to bypass SELinux check.
     // When we call `su` from terminal app, this is useful.
     if (wrapper_sec) {
         wrapper_sec->sid = ksu_file_sid;
     }
+#endif
     // Install open file operation for inode.
     wrapper_inode->i_fop = &ksu_file_wrapper_inode_fops;
 

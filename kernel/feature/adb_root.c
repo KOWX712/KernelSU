@@ -172,8 +172,10 @@ static long do_ksu_adb_root_handle_execve(const char __user *filename_user, stru
         return ret;
     }
 
+#ifdef CONFIG_KSU_SELINUX
     pr_info("escape to root for adb\n");
     escape_to_root_for_adb_root();
+#endif
     return 0;
 }
 
