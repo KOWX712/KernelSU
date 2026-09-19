@@ -31,6 +31,7 @@ on:
       - 'userspace/**'
       - 'Cargo.lock'
       - 'Cargo.toml'
+      - 'scripts/ksubot.py'
   workflow_call:
 
 jobs:
