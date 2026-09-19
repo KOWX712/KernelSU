@@ -68,8 +68,8 @@
     <string name="safe_mode">Chế độ An toàn</string>
     <string name="reboot_to_apply">Khởi động lại để có hiệu lực</string>
     <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_superuser_count">Superusers: %d</string>
-    <string name="home_module_count">Modules: %d</string>
+    <string name="home_superuser_count">Superuser: %d</string>
+    <string name="home_module_count">Module: %d</string>
     <string name="profile_selinux_domain">Tên miền</string>
     <string name="profile_selinux_rules">Quy tắc</string>
     <string name="recently_installed">Mới vừa cài đặt</string>
@@ -102,6 +102,10 @@
     <string name="app_profile_import_export">Nhập/Xuất</string>
     <string name="app_profile_template_save_failed">Lưu mẫu thất bại!</string>
     <string name="app_profile_template_edit">Chỉnh sửa mẫu</string>
+    <string name="settings_kernelsu_toolkit">Hộp công cụ KernelSU</string>
+    <string name="settings_kernelsu_toolkit_summary">Các tính năng bổ sung của KernelSU.</string>
+    <string name="settings_kpatch_next">KPatch Next</string>
+    <string name="settings_kpatch_next_summary">Triển khai hệ thống hỗ trợ KPM.</string>
     <string name="settings_profile_template">Mẫu Hồ sơ ứng dụng</string>
     <string name="app_profile_template_description">Mô tả</string>
     <string name="app_profile_template_save">Lưu</string>
@@ -121,6 +125,8 @@
     <string name="install_inactive_slot_warning">Thiết bị của bạn sẽ **BUỘC** phải khởi động vào phân vùng không hoạt động hiện tại sau khi khởi động lại!\nChỉ dùng tùy chọn này khi cập nhật OTA đã hoàn tất!\nTiếp tục?</string>
     <string name="settings_uninstall_temporary_message">Gỡ cài đặt tạm thời KernelSU, khôi phục lại trạng thái ban đầu sau lần khởi động lại tiếp theo.</string>
     <string name="select_kmi">Chọn KMI</string>
+    <string name="anykernel_install">Flashing AnyKernel</string>
+    <string name="flash_module">Flashing Module</string>
     <string name="install_next">Kế tiếp</string>
     <string name="direct_install">Cài đặt trực tiếp (Khuyến nghị)</string>
     <string name="select_file">Chọn và vá file</string>
@@ -150,6 +156,9 @@
     <string name="log_saved">Đã lưu nhật ký</string>
     <string name="settings_module_check_update">Kiểm tra cập nhật module</string>
     <string name="install_upload_lkm_file">Sử dụng file LKM cục bộ</string>
+    <string name="install_select_lkm_variant">Chọn biến thể LKM</string>
+    <string name="install_lkm_kowsu">KowSU</string>
+    <string name="install_lkm_xxksu">xxKSU</string>
     <string name="install_only_support_ko_file">Chỉ hỗ trợ các file .ko</string>
     <string name="settings_sucompat">Lệnh SU cổ điển</string>
     <string name="settings_sucompat_summary">Cho phép truy cập Root thông qua /system/bin/su, trong các tiến trình mới.</string>
@@ -159,6 +168,8 @@
     <string name="settings_selinux_hide_summary">Ngăn chặn các ứng dụng phát hiện các thay đổi của SELinux.</string>
     <string name="settings_selinux_hide_reboot_required">Khởi động lại để có hiệu lực!</string>
     <string name="settings_selinux_hide_failed">Lỗi: %d</string>
+    <string name="settings_avc_spoof">Giả mạo nhật ký AVC</string>
+    <string name="settings_avc_spoof_summary">Khắc phục lỗi rò rỉ ngữ cảnh SELinux do từ chối AVC trong nhật ký.</string>
     <string name="processing">Đang xử lý…</string>
     <string name="refresh_pulling">Kéo xuống để làm mới</string>
     <string name="refresh_release">Thả để làm mới</string>
@@ -177,6 +188,10 @@
     <string name="settings_theme_mode_light">Sáng</string>
     <string name="settings_theme_mode_dark">Tối</string>
     <string name="settings_key_color_default">Mặc định</string>
+    <string name="settings_official_icon">Biểu tượng Bàn cờ</string>
+    <string name="settings_classic_home_ui">Trang chủ cổ điển</string>
+    <string name="settings_switch_icon">Công tắc hiện đại</string>
+    <string name="settings_scroll_animation">Trượt để chuyển tab</string>
     <string name="color_blue">Xanh dương</string>
     <string name="color_red">Đỏ</string>
     <string name="color_green">Xanh lục</string>

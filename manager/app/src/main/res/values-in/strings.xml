@@ -115,6 +115,8 @@
     <string name="module_downloading">Mengunduh modul: %s</string>
     <string name="module_start_downloading">Mulai mengunduh: %s</string>
     <string name="module_action_success">Aksi modul berhasil dieksekusi.</string>
+    <string name="start_downloading">Mulai mengunduh</string>
+    <string name="download_failed">Gagal mengunduh: %s</string>
     <string name="new_version_available">Versi baru %s tersedia, ketuk untuk memperbarui!</string>
     <string name="launch_app">Luncurkan</string>
     <string name="force_stop_app">Paksa henti</string>
@@ -156,6 +158,8 @@
     <string name="enable_web_debugging">Debugging WebView</string>
     <string name="enable_web_debugging_summary">Dapat digunakan untuk mendebug WebUI. Harap aktifkan hanya saat diperlukan.</string>
     <string name="direct_install">Pasang langsung (Disarankan)</string>
+    <string name="flash_module">Pasang modul</string>
+    <string name="anykernel_install">Pasang AnyKernel</string>
     <string name="select_file">Pilih dan tambal berkas</string>
     <string name="download_file">Unduh dan tambal berkas</string>
     <string name="download_dialog_title">Masukkan URL image</string>
@@ -202,6 +206,8 @@
     <string name="settings_mode_enable_by_default">Aktif (Bawaan)</string>
     <string name="settings_mode_disable_until_reboot">Nonaktif hingga mulai ulang</string>
     <string name="settings_mode_disable_always">Selalu nonaktif</string>
+    <string name="settings_avc_spoof">Spoof Log AVC</string>
+    <string name="settings_avc_spoof_summary">Memperbaiki kebocoran konteks SELinux akibat penolakan AVC yang tercatat di log audit</string>
     <string name="processing">Memproses…</string>
     <string name="refresh_pulling">Tarik ke bawah untuk menyegarkan</string>
     <string name="refresh_release">Lepas untuk menyegarkan</string>
@@ -225,6 +231,10 @@
     <string name="settings_page_scale_summary">Sesuaikan skala tampilan</string>
     <string name="settings_color_spec">Spesifikasi warna</string>
     <string name="settings_color_style">Gaya warna</string>
+    <string name="settings_official_icon">Gunakan ikon aplikasi resmi</string>
+    <string name="settings_classic_home_ui">Tampilan beranda klasik</string>
+    <string name="settings_switch_icon">Beralih ikon tombol</string>
+    <string name="settings_scroll_animation">Gunakan animasi gulir</string>
     <string name="color_blue">Biru</string>
     <string name="color_red">Merah</string>
     <string name="color_green">Hijau</string>
@@ -245,6 +255,10 @@
     <string name="tab_readme">Baca Aku</string>
     <string name="tab_releases">Rilis</string>
     <string name="tab_info">Informasi</string>
+    <string name="settings_kernelsu_toolkit">KernelSU Toolkit</string>
+    <string name="settings_kernelsu_toolkit_summary">Alat bantu untuk fitur tambahan KernelSU</string>
+    <string name="settings_kpatch_next">KPatch Next</string>
+    <string name="settings_kpatch_next_summary">Implementasi mandiri dukungan KPM</string>
     <string name="module_shortcut_title">Buat pintasan</string>
     <string name="module_shortcut_name_label">Nama pintasan</string>
     <string name="module_shortcut_icon_pick">Pilih ikon kustom</string>
