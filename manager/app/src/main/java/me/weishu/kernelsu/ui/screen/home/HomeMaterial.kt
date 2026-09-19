@@ -291,7 +291,7 @@ private fun StatusCard(
                         if (state.showCustomLkmBadge) {
                             Spacer(Modifier.width(8.dp))
                             StatusTag(
-                                label = stringResource(R.string.home_lkm_custom),
+                                label = state.customLkmBadgeLabel ?: stringResource(R.string.home_lkm_custom),
                                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                                 backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
                             )
@@ -386,7 +386,7 @@ private fun ClassicStatusCard(
                     )
                     if (state.showCustomLkmBadge) {
                         StatusTag(
-                            label = stringResource(R.string.home_lkm_custom),
+                            label = state.customLkmBadgeLabel ?: stringResource(R.string.home_lkm_custom),
                             contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                             backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
                         )
@@ -825,6 +825,7 @@ private fun previewHomeScreenState(
     ksuVersion = ksuVersion,
     lkmMode = lkmMode,
     isLkmBundled = lkmMode == true,
+    lkmVariant = null,
     isManager = true,
     isManagerPrBuild = false,
     isKernelPrBuild = false,

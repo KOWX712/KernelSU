@@ -75,6 +75,8 @@ class HomeViewModel(
         val kernelUAPIVersion = if (isManager) Natives.kernelUAPIVersion else null
         val managerUAPIVersion = Natives.managerUAPIVersion
         val lkmMode = ksuVersion?.let { if (kernelVersion.isGKI()) Natives.isLkmMode else null }
+        val isLkmBundled = lkmMode == true && Natives.isLkmBundled
+        val lkmVariant = if (lkmMode == true && !isLkmBundled) Natives.lkmVariant else null
         val isRootAvailable = rootAvailable()
         val managerVersion = getManagerVersion(ksuApp)
 
@@ -84,7 +86,8 @@ class HomeViewModel(
             kernelVersion = kernelVersion,
             ksuVersion = ksuVersion,
             lkmMode = lkmMode,
-            isLkmBundled = lkmMode == true && Natives.isLkmBundled,
+            isLkmBundled = isLkmBundled,
+            lkmVariant = lkmVariant,
             isManager = isManager,
             isManagerPrBuild = BuildConfig.IS_PR_BUILD,
             isKernelPrBuild = Natives.isPrBuild,

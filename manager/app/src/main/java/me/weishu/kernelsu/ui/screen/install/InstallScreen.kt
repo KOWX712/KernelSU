@@ -29,6 +29,8 @@ import me.weishu.kernelsu.ui.UiMode
 import me.weishu.kernelsu.ui.component.choosekmidialog.ChooseKmiDialog
 import me.weishu.kernelsu.ui.component.dialog.DownloadDialog
 import me.weishu.kernelsu.ui.component.dialog.rememberLoadingDialog
+import me.weishu.kernelsu.ui.component.selectlkmdialog.SelectLkmDialog
+import me.weishu.kernelsu.ui.component.selectlkmdialog.SelectLkmDialogMiuix
 import me.weishu.kernelsu.ui.navigation3.LocalNavigator
 import me.weishu.kernelsu.ui.navigation3.Route
 import me.weishu.kernelsu.ui.screen.flash.FlashIt
@@ -59,6 +61,8 @@ fun InstallScreen() {
     var remotePartitions by rememberSaveable { mutableStateOf(emptyList<String>()) }
     var remotePartitionSelectionIndex by rememberSaveable { mutableIntStateOf(0) }
     var lkmSelection by rememberSaveable { mutableStateOf<LkmSelection>(LkmSelection.KmiNone) }
+    var lkmVariant by rememberSaveable { mutableStateOf(LkmVariant.KOWSU) }
+    val showLkmDialog = rememberSaveable { mutableStateOf(false) }
     var partitionSelectionIndex by rememberSaveable { mutableIntStateOf(0) }
     var hasCustomSelected by rememberSaveable { mutableStateOf(false) }
     val showChooseKmiDialog = rememberSaveable { mutableStateOf(false) }
@@ -127,20 +131,33 @@ fun InstallScreen() {
                 method.uri?.let { uri -> navigator.push(Route.Flash(FlashIt.FlashAnyKernel(uri))) }
                 return@let
             }
+            // Determine final LKM selection based on variant
+            val finalLkmSelection = when (lkmVariant) {
+                LkmVariant.KOWSU -> lkmSelection
+                LkmVariant.XXKSU -> {
+                    // Convert current selection to XX variant
+                    val currentSelection = lkmSelection
+                    when (currentSelection) {
+                        is LkmSelection.KmiString -> LkmSelection.KmiStringXX(currentSelection.value)
+                        else -> currentSelection
+                    }
+                }
+                LkmVariant.CUSTOM -> lkmSelection
+            }
             navigator.push(
                 Route.Flash(
                     when (method) {
                         is InstallMethod.DownloadFile -> FlashIt.DownloadBoot(
                             url = method.url ?: return@let,
                             partition = method.partition ?: return@let,
-                            lkm = lkmSelection,
+                            lkm = finalLkmSelection,
                             allowShell = allowShell,
                             enableAdb = enableAdb,
                             backup = forceBackup
                         )
                         else -> FlashIt.FlashBoot(
                             boot = if (method is InstallMethod.SelectFile) method.uri else null,
-                            lkm = lkmSelection,
+                            lkm = finalLkmSelection,
                             ota = method is InstallMethod.DirectInstallToInactiveSlot,
                             partition = partitions.getOrNull(partitionSelectionIndex),
                             allowShell = allowShell,
@@ -158,7 +175,11 @@ fun InstallScreen() {
         onDismissRequest = { showChooseKmiDialog.value = false },
         onSelected = { kmi ->
             kmi?.let {
-                lkmSelection = LkmSelection.KmiString(it)
+                lkmSelection = when (lkmVariant) {
+                    LkmVariant.KOWSU -> LkmSelection.KmiString(it)
+                    LkmVariant.XXKSU -> LkmSelection.KmiStringXX(it)
+                    LkmVariant.CUSTOM -> LkmSelection.KmiString(it)
+                }
                 onInstall()
             }
         }
@@ -208,9 +229,13 @@ fun InstallScreen() {
                     lkmSelection = LkmSelection.LkmUri(uri)
                 } else {
                     lkmSelection = LkmSelection.KmiNone
+                    lkmVariant = LkmVariant.KOWSU
                     showMessage(resources.getString(R.string.install_only_support_ko_file))
                 }
             }
+        } else {
+            lkmVariant = LkmVariant.KOWSU
+            lkmSelection = LkmSelection.KmiNone
         }
     }
     val selectImageLauncher = rememberLauncherForActivityResult(
@@ -233,6 +258,7 @@ fun InstallScreen() {
     val state = InstallUiState(
         installMethod = installMethod,
         lkmSelection = lkmSelection,
+        lkmVariant = lkmVariant,
         partitionSelectionIndex = partitionSelectionIndex,
         displayPartitions = displayPartitions,
         remoteDisplayPartitions = remoteDisplayPartitions,
@@ -267,10 +293,26 @@ fun InstallScreen() {
                 addCategory(Intent.CATEGORY_OPENABLE)
             })
         },
-        onUploadLkm = {
-            selectLkmLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply { type = "application/octet-stream" })
+        onSelectLkm = {
+            showLkmDialog.value = true
         },
-        onClearLkm = { lkmSelection = LkmSelection.KmiNone },
+        onClearLkm = {
+            lkmSelection = LkmSelection.KmiNone
+            lkmVariant = LkmVariant.KOWSU
+        },
+        onSelectLkmVariant = { variant ->
+            lkmVariant = variant
+            when (variant) {
+                LkmVariant.KOWSU, LkmVariant.XXKSU -> {
+                    lkmSelection = LkmSelection.KmiNone
+                    showLkmDialog.value = false
+                }
+                LkmVariant.CUSTOM -> {
+                    showLkmDialog.value = false
+                    selectLkmLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply { type = "application/octet-stream" })
+                }
+            }
+        },
         onSelectPartition = { index ->
             hasCustomSelected = true
             val method = installMethod
@@ -282,7 +324,7 @@ fun InstallScreen() {
             }
         },
         onNext = {
-            val isLkmSelected = lkmSelection != LkmSelection.KmiNone
+            val isLkmSelected = lkmSelection != LkmSelection.KmiNone || lkmVariant == LkmVariant.CUSTOM
             val isKmiUnknown = currentKmi.isBlank()
             val isKmiUnresolved = when (installMethod) {
                 // The download flow extracts the KMI itself; no manual
@@ -292,7 +334,11 @@ fun InstallScreen() {
                 is InstallMethod.SelectFile -> true
                 else -> isKmiUnknown
             }
-            if (!isLkmSelected && isKmiUnresolved) {
+            val needsXxKsuKmi = lkmVariant == LkmVariant.XXKSU &&
+                lkmSelection == LkmSelection.KmiNone &&
+                installMethod !is InstallMethod.DownloadFile &&
+                installMethod !is InstallMethod.AnyKernel
+            if ((!isLkmSelected && isKmiUnresolved) || needsXxKsuKmi) {
                 showChooseKmiDialog.value = true
             } else {
                 onInstall()
@@ -311,6 +357,21 @@ fun InstallScreen() {
             forceBackup = it
         }
     )
+
+    when (uiMode) {
+        UiMode.Material -> SelectLkmDialog(
+            show = showLkmDialog.value,
+            currentVariant = lkmVariant,
+            onDismissRequest = { showLkmDialog.value = false },
+            onSelectVariant = actions.onSelectLkmVariant
+        )
+        UiMode.Miuix -> SelectLkmDialogMiuix(
+            show = showLkmDialog.value,
+            currentVariant = lkmVariant,
+            onDismissRequest = { showLkmDialog.value = false },
+            onSelectVariant = actions.onSelectLkmVariant
+        )
+    }
 
     when (LocalUiMode.current) {
         UiMode.Miuix -> InstallScreenMiuix(state, actions, miuixSnackbarHost)
