@@ -17,6 +17,8 @@ import androidx.compose.material.icons.automirrored.filled.Rule
 import androidx.compose.material.icons.filled.Adb
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.ContactPage
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.DeveloperMode
@@ -170,6 +172,56 @@ fun SettingPagerMaterial(
                                 )
                             }
                         )
+                    }
+                )
+            }
+
+            if (uiState.isToolkitInstalled || uiState.isKpatchNextInstalled) KsuIsValid {
+                SegmentedColumn(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
+                    content = buildList {
+                        if (uiState.isToolkitInstalled) add {
+                            SegmentedListItem(
+                                onClick = {
+                                    actions.onOpenWebUi("ksu_toolkit", "KernelSU Toolkit")
+                                },
+                                headlineContent = { Text(stringResource(R.string.settings_kernelsu_toolkit)) },
+                                supportingContent = { Text(stringResource(R.string.settings_kernelsu_toolkit_summary)) },
+                                leadingContent = {
+                                    Icon(
+                                        Icons.Filled.Build,
+                                        stringResource(R.string.settings_kernelsu_toolkit)
+                                    )
+                                },
+                                trailingContent = {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                        null
+                                    )
+                                }
+                            )
+                        }
+                        if (uiState.isKpatchNextInstalled) add {
+                            SegmentedListItem(
+                                onClick = {
+                                    actions.onOpenWebUi("KPatch-Next", "KPatch-Next")
+                                },
+                                headlineContent = { Text(stringResource(R.string.settings_kpatch_next)) },
+                                supportingContent = { Text(stringResource(R.string.settings_kpatch_next_summary)) },
+                                leadingContent = {
+                                    Icon(
+                                        Icons.Filled.Build,
+                                        stringResource(R.string.settings_kpatch_next)
+                                    )
+                                },
+                                trailingContent = {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                        null
+                                    )
+                                }
+                            )
+                        }
                     }
                 )
             }
