@@ -1,24 +1,29 @@
 package me.weishu.kernelsu.ui.util.module
 
 import android.app.AppOpsManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
+import me.weishu.kernelsu.MainActivityKowsu
+import me.weishu.kernelsu.MainActivityOfficial
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.data.repository.SettingsRepositoryImpl
-import me.weishu.kernelsu.ui.MainActivity
 import me.weishu.kernelsu.ui.screen.module.ShortcutType
 import me.weishu.kernelsu.ui.util.getRootShell
 import me.weishu.kernelsu.ui.util.isColorOS
@@ -52,7 +57,8 @@ object Shortcut {
         iconUri: String?
     ) {
         val shortcutId = "module_action_$moduleId"
-        val shortcutIntent = Intent(context, MainActivity::class.java).apply {
+        val shortcutIntent = Intent().apply {
+            component = getLauncherComponent(context)
             action = Intent.ACTION_VIEW
             data = buildShortcutUri(moduleId, ShortcutType.Action)
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -75,7 +81,8 @@ object Shortcut {
         iconUri: String?
     ) {
         val shortcutId = "module_webui_$moduleId"
-        val shortcutIntent = Intent(context, MainActivity::class.java).apply {
+        val shortcutIntent = Intent().apply {
+            component = getLauncherComponent(context)
             action = Intent.ACTION_VIEW
             data = buildShortcutUri(moduleId, ShortcutType.WebUI)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -104,7 +111,7 @@ object Shortcut {
         Log.d(TAG, "$logPrefix: shortcutId=$shortcutId, hasPinned=$hasPinned")
 
         val iconCompat = createShortcutIcon(context, iconUri)
-        val finalIcon = iconCompat ?: IconCompat.createWithResource(context, R.mipmap.ic_launcher)
+        val finalIcon = iconCompat ?: getDefaultIconBitmap(context)?.let { IconCompat.createWithBitmap(it) }
 
         val shortcut = ShortcutInfoCompat.Builder(context, shortcutId)
             .setShortLabel(name)
@@ -287,6 +294,32 @@ object Shortcut {
         } catch (t: Throwable) {
             Log.w(TAG, "deleteShortcut: disableShortcuts exception for id=$id: ${t.message}", t)
         }
+    }
+
+    fun getDefaultIconBitmap(context: Context): Bitmap? {
+        val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val isOfficial = prefs.getBoolean("enable_official_launcher", false)
+        val resId = if (isOfficial) R.mipmap.ic_launcher_official else R.mipmap.ic_launcher_kowsu
+        return getBitmapFromVectorDrawable(context, resId)
+    }
+
+    fun getLauncherComponent(context: Context): ComponentName {
+        val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val isOfficial = prefs.getBoolean("enable_official_launcher", false)
+        return if (isOfficial) {
+            ComponentName(context, MainActivityOfficial::class.java)
+        } else {
+            ComponentName(context, MainActivityKowsu::class.java)
+        }
+    }
+
+    private fun getBitmapFromVectorDrawable(context: Context, drawableId: Int): Bitmap? {
+        val drawable = ContextCompat.getDrawable(context, drawableId) ?: return null
+        val bitmap = createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return bitmap
     }
 
     private enum class ShortcutPermissionState {

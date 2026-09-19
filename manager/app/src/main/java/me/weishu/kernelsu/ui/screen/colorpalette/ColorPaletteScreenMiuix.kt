@@ -1,6 +1,8 @@
 package me.weishu.kernelsu.ui.screen.colorpalette
 
 import android.annotation.SuppressLint
+import android.content.ComponentName
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -27,9 +29,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -60,7 +64,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -69,6 +75,8 @@ import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.rememberDynamicColorScheme
 import me.weishu.kernelsu.R
+import me.weishu.kernelsu.MainActivityKowsu
+import me.weishu.kernelsu.MainActivityOfficial
 import me.weishu.kernelsu.ui.component.bottombar.useNavigationRail
 import me.weishu.kernelsu.ui.component.miuix.ScaleDialog
 import me.weishu.kernelsu.ui.theme.LocalEnableBlur
@@ -109,6 +117,8 @@ fun ColorPaletteScreenMiuix(
     val uiState = state.uiState
     val currentColorMode = state.currentColorMode
     val isDark = currentColorMode.isDark || currentColorMode.isSystem && isSystemInDarkTheme()
+
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -161,6 +171,7 @@ fun ColorPaletteScreenMiuix(
                         enableFloatingBottomBarBlur = uiState.enableFloatingBottomBarBlur,
                         paletteStyle = state.currentPaletteStyle,
                         colorSpec = state.currentColorSpec,
+                        officialIcon = uiState.enableOfficialLauncher,
                     )
                     Spacer(modifier = Modifier.height(72.dp))
 
@@ -281,6 +292,39 @@ fun ColorPaletteScreenMiuix(
                                 }
                             }
                         }
+                    }
+
+                    Card(
+                        modifier = Modifier
+                            .padding(top = 12.dp)
+                            .fillMaxWidth(),
+                    ) {
+                        SwitchPreference(
+                            title = stringResource(id = R.string.settings_official_icon),
+                            startAction = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_launcher_monochrome),
+                                    contentDescription = stringResource(id = R.string.settings_official_icon),
+                                    modifier = Modifier
+                                        .padding(end = 6.dp)
+                                        .size(24.dp)
+                                        .wrapContentSize(unbounded = true)
+                                        .requiredSize(48.dp),
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            checked = uiState.enableOfficialLauncher,
+                            onCheckedChange = { enabled ->
+                                actions.onSetEnableOfficialLauncher(enabled)
+                                val pm = context.packageManager
+                                val kowsuComponent = ComponentName(context, MainActivityKowsu::class.java)
+                                val officialComponent = ComponentName(context, MainActivityOfficial::class.java)
+                                val (enableComp, disableComp) = if (enabled) officialComponent to kowsuComponent else kowsuComponent to officialComponent
+
+                                pm.setComponentEnabledSetting(enableComp, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
+                                pm.setComponentEnabledSetting(disableComp, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
+                            }
+                        )
                     }
 
                     Card(
@@ -495,6 +539,7 @@ private fun ThemePreviewCardMiuix(
     enableFloatingBottomBarBlur: Boolean = false,
     paletteStyle: PaletteStyle = PaletteStyle.TonalSpot,
     colorSpec: ColorSpec.SpecVersion = ColorSpec.SpecVersion.SPEC_2021,
+    officialIcon: Boolean = false,
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.toFloat()
@@ -549,7 +594,7 @@ private fun ThemePreviewCardMiuix(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = stringResource(id = R.string.app_name),
+                            text = if (officialIcon) stringResource(R.string.app_name_official) else stringResource(R.string.app_name),
                             fontSize = 12.sp,
                             color = textColor
                         )

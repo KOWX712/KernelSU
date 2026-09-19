@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.data.repository.SettingsRepositoryImpl
 import me.weishu.kernelsu.ksuApp
-import me.weishu.kernelsu.ui.MainActivity
+import me.weishu.kernelsu.ui.util.module.Shortcut
 import okhttp3.Call
 import okhttp3.Request
 import java.io.IOException
@@ -291,7 +291,8 @@ class DownloadService : Service() {
 
         val primaryPendingIntent = when (completionAction) {
             DownloadCompletionAction.INSTALL_MODULE -> PendingIntent.getActivity(
-                this, id, Intent(this, MainActivity::class.java).apply {
+                this, id, Intent().apply {
+                    component = Shortcut.getLauncherComponent(this@DownloadService)
                     action = ACTION_INSTALL_MODULE
                     putExtra(EXTRA_MODULE_URI, uri.toString())
                     putExtra(EXTRA_DOWNLOAD_ID, id)
