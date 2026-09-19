@@ -207,6 +207,14 @@ public final class SuFilePathHandler implements WebViewAssetLoader.PathHandler {
                     new ByteArrayInputStream(css.getBytes(StandardCharsets.UTF_8))
             );
         }
+        if ("internal/eruda.min.js".equals(path)) {
+            try {
+                InputStream is = mContext.getAssets().open("eruda.min.js");
+                return new WebResourceResponse("application/javascript", "UTF-8", is);
+            } catch (IOException e) {
+                Log.e(TAG, "Error loading eruda.min.js", e);
+            }
+        }
         try {
             File file = getCanonicalFileIfChild(mDirectory, path);
             if (file != null) {
