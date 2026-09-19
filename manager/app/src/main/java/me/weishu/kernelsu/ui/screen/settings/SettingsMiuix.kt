@@ -26,6 +26,10 @@ import androidx.compose.material.icons.rounded.DisplaySettings
 import androidx.compose.material.icons.rounded.FlashOn
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LayersClear
+import androidx.compose.material.icons.rounded.EditNote
+import androidx.compose.material.icons.rounded.ElectricalServices
+import androidx.compose.material.icons.rounded.Fence
+import androidx.compose.material.icons.rounded.FolderDelete
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Security
@@ -332,6 +336,27 @@ fun SettingPagerMiuix(
                                 enabled = !uiState.isLateLoadMode,
                                 checked = uiState.isLateLoadMode || uiState.useSoftReboot,
                                 onCheckedChange = actions.onSetUseSoftReboot
+                            )
+
+                            val avcSpoofSummary = when (uiState.avcSpoofStatus) {
+                                "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                                "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                                else -> stringResource(id = R.string.settings_avc_spoof_summary)
+                            }
+                            SwitchPreference(
+                                title = stringResource(id = R.string.settings_avc_spoof),
+                                summary = avcSpoofSummary,
+                                startAction = {
+                                    Icon(
+                                        Icons.Rounded.EditNote,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = stringResource(id = R.string.settings_avc_spoof),
+                                        tint = colorScheme.onBackground
+                                    )
+                                },
+                                enabled = uiState.avcSpoofStatus == "supported",
+                                checked = uiState.isAvcSpoofEnabled,
+                                onCheckedChange = actions.onSetAvcSpoofEnabled
                             )
                         }
 

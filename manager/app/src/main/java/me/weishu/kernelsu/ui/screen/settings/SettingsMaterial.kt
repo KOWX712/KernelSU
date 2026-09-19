@@ -24,6 +24,10 @@ import androidx.compose.material.icons.filled.DisplaySettings
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LayersClear
+import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.ElectricalServices
+import androidx.compose.material.icons.filled.Fence
+import androidx.compose.material.icons.filled.FolderDelete
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Security
@@ -264,6 +268,21 @@ fun SettingPagerMaterial(
                                 enabled = !uiState.isLateLoadMode,
                                 checked = uiState.isLateLoadMode || uiState.useSoftReboot,
                                 onCheckedChange = actions.onSetUseSoftReboot
+                            )
+                        },
+                        {
+                            val avcSpoofSummary = when (uiState.avcSpoofStatus) {
+                                "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                                "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                                else -> stringResource(id = R.string.settings_avc_spoof_summary)
+                            }
+                            SegmentedSwitchItem(
+                                icon = Icons.Filled.EditNote,
+                                title = stringResource(id = R.string.settings_avc_spoof),
+                                summary = avcSpoofSummary,
+                                enabled = uiState.avcSpoofStatus == "supported",
+                                checked = uiState.isAvcSpoofEnabled,
+                                onCheckedChange = actions.onSetAvcSpoofEnabled
                             )
                         },
                     )
