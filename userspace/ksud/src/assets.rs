@@ -35,6 +35,11 @@ mod android {
 #[cfg(target_os = "android")]
 pub use android::*;
 
+#[cfg(all(target_arch = "arm", target_os = "android"))]
+#[derive(RustEmbed)]
+#[folder = "bin/arm"]
+struct Asset;
+
 #[cfg(all(target_arch = "x86_64", target_os = "android"))]
 #[derive(RustEmbed)]
 #[folder = "bin/x86_64"]
