@@ -142,6 +142,40 @@ export function getPackagesInfo(packages) {
   }
 }
 
+export const pm = {
+  listPackages(type) {
+    if (typeof ksu === "undefined" || typeof ksu.pm !== "function") {
+      return [...new Set(listPackages(type))];
+    }
+    try {
+      return JSON.parse(ksu.pm().listPackages(type));
+    } catch (error) {
+      return [];
+    }
+  },
+  getPackagesInfo(packages) {
+    if (typeof ksu === "undefined" || typeof ksu.pm !== "function") {
+      return getPackagesInfo(packages).map((info) => {
+        if ("error" in info) {
+          return info;
+        }
+        return {
+          ...info,
+          userId: typeof info.uid === "number" ? Math.floor(info.uid / 100000) : null,
+        };
+      });
+    }
+    try {
+      if (typeof packages !== "string") {
+        packages = JSON.stringify(packages);
+      }
+      return JSON.parse(ksu.pm().getPackagesInfo(packages));
+    } catch (error) {
+      return [];
+    }
+  },
+};
+
 export function exit() {
   ksu.exit();
 }
