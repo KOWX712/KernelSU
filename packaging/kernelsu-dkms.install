@@ -1,0 +1,26 @@
+# DKMS lifecycle hooks for kernelsu-dkms.
+# Rebuild/reinstall for the running kernel on install/upgrade; remove on uninstall.
+
+_kernelsu_dkms_install() {
+  # Register (no-op if already registered) and build for the running kernel.
+  dkms add kernelsu/${pkgver} >/dev/null 2>&1 || true
+  dkms install kernelsu/${pkgver} -k "$(uname -r)" >/dev/null 2>&1 || \
+    dkms install kernelsu/${pkgver} -k "$(uname -r)"
+}
+
+post_install() {
+  _kernelsu_dkms_install
+}
+
+post_upgrade() {
+  _kernelsu_dkms_install
+}
+
+pre_remove() {
+  dkms remove kernelsu/${pkgver} -k "$(uname -r)" >/dev/null 2>&1 || true
+}
+
+post_remove() {
+  # Drop any remaining kernels this version was built for.
+  dkms remove kernelsu/${pkgver} --all >/dev/null 2>&1 || true
+}
