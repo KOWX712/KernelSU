@@ -10,6 +10,7 @@
 #include "infra/symbol_resolver.h"
 #include "hook/lsm_hook.h"
 #include "hook/patch_memory.h"
+#include "infra/unexported.h"
 #include "klog.h" // IWYU pragma: keep
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
 #include "linux/static_call.h"
@@ -148,7 +149,7 @@ int ksu_lsm_hook(struct ksu_lsm_hook *hook)
     if (scalls_count == 0) {
         unsigned long sym_size = sizeof(struct lsm_static_calls_table);
         u32 lsm_active_cnt = 5;
-        if (!kallsyms_lookup_size_offset(scalls_addr, &sym_size, NULL)) {
+        if (!ksu_kallsyms_lookup_size_offset(scalls_addr, &sym_size, NULL)) {
             pr_err("failed to get size\n");
         }
         unsigned long addr = find_kernel_symbol_exact("lsm_active_cnt");
@@ -284,7 +285,7 @@ int ksu_lsm_hook(struct ksu_lsm_hook *hook)
         goto out_unlock;
     }
     unsigned long heads_size = sizeof(struct security_hook_heads);
-    if (!kallsyms_lookup_size_offset(heads_addr, &heads_size, NULL)) {
+    if (!ksu_kallsyms_lookup_size_offset(heads_addr, &heads_size, NULL)) {
         pr_warn("lookup head size failed");
     }
 

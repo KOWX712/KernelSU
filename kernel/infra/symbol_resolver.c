@@ -1,9 +1,54 @@
+#include <linux/errno.h>
 #include <linux/kallsyms.h>
+#include <linux/kprobes.h>
 #include <linux/module.h>
 #include <linux/string.h>
 #include <linux/version.h>
 
 #include "infra/symbol_resolver.h"
+
+// kallsyms_lookup_name() is no longer exported to modules (since 5.7), so we
+// bootstrap it (and the helpers built on top of it) at module init.
+static typeof(&kallsyms_lookup_name) ksu_kallsyms_lookup_name;
+static typeof(&kallsyms_lookup) ksu_kallsyms_lookup;
+static typeof(&kallsyms_on_each_symbol) ksu_kallsyms_on_each_symbol;
+
+// register_kprobe() resolves .symbol_name through kallsyms internally, and
+// kp.addr then points at the probed function itself: a portable way to grab
+// the address of a non-exported symbol without kprobes on the target.
+static int ksu_bootstrap_kallsyms(void)
+{
+    struct kprobe kp = { .symbol_name = "kallsyms_lookup_name" };
+    int ret;
+
+    if (ksu_kallsyms_lookup_name)
+        return 0;
+
+    ret = register_kprobe(&kp);
+    if (ret < 0) {
+        pr_err("failed to probe kallsyms_lookup_name: %d\n", ret);
+        return ret;
+    }
+    ksu_kallsyms_lookup_name = (typeof(ksu_kallsyms_lookup_name))kp.addr;
+    unregister_kprobe(&kp);
+
+    if (!ksu_kallsyms_lookup_name) {
+        pr_err("kallsyms_lookup_name not found\n");
+        return -ENOENT;
+    }
+
+    // resolve the remaining kallsyms helpers through it
+    ksu_kallsyms_lookup = (void *)ksu_kallsyms_lookup_name("kallsyms_lookup");
+    ksu_kallsyms_on_each_symbol = (void *)ksu_kallsyms_lookup_name("kallsyms_on_each_symbol");
+
+    if (!ksu_kallsyms_lookup || !ksu_kallsyms_on_each_symbol) {
+        pr_err("failed to resolve kallsyms helpers (lookup: %ps, on_each_symbol: %ps)\n",
+               (void *)ksu_kallsyms_lookup, (void *)ksu_kallsyms_on_each_symbol);
+        return -ENOENT;
+    }
+
+    return 0;
+}
 
 // https://github.com/torvalds/linux/commit/89245600941e4e0f87d77f60ee269b5e61ef4e49
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
@@ -66,9 +111,12 @@ unsigned long __nocfi find_kernel_symbol_exact(const char *symbol_name)
     char *module_name = NULL;
     char buf[KSYM_SYMBOL_LEN];
 
-    addr = kallsyms_lookup_name(symbol_name);
+    if (unlikely(!ksu_kallsyms_lookup_name))
+        return 0;
+    addr = ksu_kallsyms_lookup_name(symbol_name);
     // check if it is kernel symbol
-    kallsyms_lookup(addr, NULL, NULL, &module_name, buf);
+    if (ksu_kallsyms_lookup)
+        ksu_kallsyms_lookup(addr, NULL, NULL, &module_name, buf);
     if (unlikely(module_name)) {
         pr_warn("ignore symbol %s of module %s\n", symbol_name, module_name);
         return 0;
@@ -133,7 +181,8 @@ static __nocfi void *resolve_symbol_variant(const char *symbol_name, size_t symb
     }
     // TODO: iterate kallsyms by sprint_symbol
 #else
-    kallsyms_on_each_symbol(lookup_symbol_variant_cb, &ctx);
+    if (ksu_kallsyms_on_each_symbol)
+        ksu_kallsyms_on_each_symbol(lookup_symbol_variant_cb, &ctx);
 #endif
     return ctx.match;
 }
@@ -172,8 +221,12 @@ void *ksu_resolve_symbol_for_functable_hook(const char *symbol_name)
 #endif
 }
 
-void __init ksu_init_symbol_resolver()
+int __init ksu_init_symbol_resolver(void)
 {
+    int ret = ksu_bootstrap_kallsyms();
+
+    if (ret)
+        return ret;
 #if !ALWAYS_HAVE_ON_EACH_SYMBOL
     kallsyms_on_each_symbol_fn = find_kernel_symbol_exact("kallsyms_on_each_symbol");
     if (!kallsyms_on_each_symbol_fn) {
@@ -186,4 +239,5 @@ void __init ksu_init_symbol_resolver()
         pr_warn("kallsyms_on_each_match_symbol not found!\n");
     }
 #endif
+    return 0;
 }

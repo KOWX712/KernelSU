@@ -16,6 +16,7 @@
 #include "manager/manager_identity.h"
 #include "selinux/selinux.h"
 #include "infra/file_wrapper.h"
+#include "infra/unexported.h"
 #include "hook/tp_marker.h"
 #include "policy/app_profile.h"
 #include "sulog/event.h"
@@ -671,7 +672,7 @@ static int do_set_init_pgrp(void __user *arg)
     struct pid *pids[PIDTYPE_MAX] = { 0 };
 #endif
 
-    write_lock_irq(&tasklist_lock);
+    write_lock_irq(ksu_tasklist_lock);
     struct task_struct *p = current->group_leader;
     struct pid *init_group = task_pgrp(&init_task);
 
@@ -682,16 +683,16 @@ static int do_set_init_pgrp(void __user *arg)
     err = 0;
     if (task_pgrp(p) != init_group) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
-        change_pid(pids, p, PIDTYPE_PGID, init_group);
+        ksu_change_pid(pids, p, PIDTYPE_PGID, init_group);
 #else
-        change_pid(p, PIDTYPE_PGID, init_group);
+        ksu_change_pid(p, PIDTYPE_PGID, init_group);
 #endif
     }
 
 out:
-    write_unlock_irq(&tasklist_lock);
+    write_unlock_irq(ksu_tasklist_lock);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
-    free_pids(pids);
+    ksu_free_pids(pids);
 #endif
 
     return err;

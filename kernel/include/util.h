@@ -11,6 +11,7 @@
 #include <linux/ptrace.h>
 
 #include "arch.h"
+#include "infra/unexported.h"
 
 #if defined(__aarch64__)
 #define KSU_SYS_PREFIX(name) __arm64_sys_##name
@@ -57,8 +58,9 @@ static_assert(1 == 0, "Unsupported architecture!");
 #define __ksyscall_exp(func, arg) __ksyscall_concat(func, arg)
 #define ksyscall(...) __ksyscall_exp(ksyscall_, __ksyscall_count_args(__VA_ARGS__))(__VA_ARGS__)
 
-#define ksu_close_fd(fd) ({ ksyscall(close, fd); })
-#define ksu_sys_setns(fd, flags) ({ ksyscall(setns, fd, flags); })
+/* close/setns syscall entries are unexported: dispatch to the resolved ptr. */
+#define ksu_close_fd(fd) ksu_sys_close_impl(fd)
+#define ksu_sys_setns(fd, flags) ksu_sys_setns_impl(fd, flags)
 
 static inline struct file *ksu_filp_open_nonotify(const char *path, int flags)
 {
@@ -71,7 +73,7 @@ static inline struct file *ksu_filp_open_nonotify(const char *path, int flags)
     }
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
-    f = dentry_open_nonotify(&p, flags, current_cred());
+    f = ksu_dentry_open_nonotify(&p, flags, current_cred());
 #else
     f = dentry_open(&p, flags | __FMODE_NONOTIFY, current_cred());
 #endif
