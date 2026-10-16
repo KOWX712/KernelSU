@@ -202,6 +202,9 @@
     <string name="install_next">Berikutnya</string>
     <string name="install_select_partition">Pilih partisi</string>
     <string name="install_upload_lkm_file">Gunakan berkas LKM lokal</string>
+    <string name="install_select_lkm_variant">Pilih varian LKM</string>
+    <string name="install_lkm_kowsu">KowSU</string>
+    <string name="install_lkm_xxksu">xxKSU</string>
     <string name="install_force_backup">Cadangkan sebagai image bawaan</string>
     <string name="install_force_backup_summary">Pastikan image boot yang Anda pilih adalah image bawaan</string>
     <string name="install_only_support_ko_file">Hanya berkas .ko yang didukung</string>
@@ -235,7 +238,7 @@
     <string name="settings_mode_enable_by_default">Aktifkan (Bawaan)</string>
     <string name="settings_mode_disable_until_reboot">Nonaktifkan hingga mulai ulang</string>
     <string name="settings_mode_disable_always">Selalu nonaktifkan</string>
-    <string name="settings_avc_spoof">Spoof Log AVC</string>
+    <string name="settings_avc_spoof">Spoof log AVC</string>
     <string name="settings_avc_spoof_summary">Memperbaiki kebocoran konteks SELinux akibat penolakan AVC yang tercatat di log audit</string>
     <string name="processing">Memproses…</string>
     <string name="refresh_pulling">Tarik ke bawah untuk menyegarkan</string>
