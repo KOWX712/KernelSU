@@ -107,6 +107,9 @@ static int do_get_info_legacy(void __user *arg)
     return 0;
 }
 
+static bool post_fs_data_event_lock = false;
+static bool boot_complete_event_lock = false;
+
 static int do_report_event(void __user *arg)
 {
     static bool services_started = false;
@@ -118,12 +121,11 @@ static int do_report_event(void __user *arg)
 
     switch (cmd.event) {
     case EVENT_POST_FS_DATA: {
-        static bool post_fs_data_lock = false;
 
         // Reset for emulated soft reboot
         services_started = false;
-        if (!post_fs_data_lock) {
-            post_fs_data_lock = true;
+        if (!post_fs_data_event_lock) {
+            post_fs_data_event_lock = true;
             if (ksu_late_loaded) {
                 pr_info("post-fs-data skipped (late load)\n");
             } else {
@@ -134,9 +136,8 @@ static int do_report_event(void __user *arg)
         break;
     }
     case EVENT_BOOT_COMPLETED: {
-        static bool boot_complete_lock = false;
-        if (!boot_complete_lock) {
-            boot_complete_lock = true;
+        if (!boot_complete_event_lock) {
+            boot_complete_event_lock = true;
             if (ksu_late_loaded) {
                 pr_info("boot_complete skipped (late load)\n");
             } else {
@@ -996,7 +997,7 @@ long ksu_supercall_handle_ioctl(const struct file *filp, unsigned int cmd, void 
     return -ENOTTY;
 }
 
-void __init ksu_supercall_dump_commands(void)
+void ksu_supercall_dump_commands(void)
 {
     int i;
 
@@ -1017,4 +1018,6 @@ void ksu_supercall_cleanup_state(void)
         kfree(entry);
     }
     up_write(&mount_list_lock);
+    post_fs_data_event_lock = false;
+    boot_complete_event_lock = false;
 }

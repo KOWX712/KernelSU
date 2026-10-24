@@ -150,14 +150,15 @@ fail:
     return false;
 }
 
+static bool first_zygote = true;
+static bool init_second_stage_executed = false;
+
 void ksu_handle_execveat_ksud(const char *path, struct user_arg_ptr *argv)
 {
     static const char app_process[] = "/system/bin/app_process";
-    static bool first_zygote = true;
 
     /* This applies to versions Android 10+ */
     static const char system_bin_init[] = "/system/bin/init";
-    static bool init_second_stage_executed = false;
 
     // https://cs.android.com/android/platform/superproject/+/android-16.0.0_r2:system/core/init/main.cpp;l=77
     if (unlikely(!memcmp(path, system_bin_init, sizeof(system_bin_init) - 1) && argv)) {
@@ -225,9 +226,10 @@ static struct file *open_module_rc(const char **chosen_path)
     return f;
 }
 
+static bool module_rc_loaded = false;
+
 static void load_module_rc_once(void)
 {
-    static bool loaded = false;
     struct file *f;
     const char *path = NULL;
     loff_t pos = 0;
@@ -235,9 +237,9 @@ static void load_module_rc_once(void)
     size_t fsize;
     const struct cred *old_cred;
 
-    if (loaded)
+    if (module_rc_loaded)
         return;
-    loaded = true;
+    module_rc_loaded = true;
     if (ksu_no_custom_rc) {
         pr_info("custom rc is disabled\n");
         return;
@@ -433,6 +435,8 @@ static bool is_init_rc(struct file *fp)
     return true;
 }
 
+static bool init_rc_hooked = false;
+
 static void ksu_install_rc_hook(struct file *file)
 {
     if (!is_init_rc(file)) {
@@ -440,14 +444,15 @@ static void ksu_install_rc_hook(struct file *file)
     }
 
     // we only process the first read
-    static bool rc_hooked = false;
-    if (rc_hooked) {
+    if (init_rc_hooked) {
         // we don't need these hooks, unregister it!
 
         return;
     }
-    rc_hooked = true;
+    init_rc_hooked = true;
+#ifndef CONFIG_KSU_NON_ANDROID
     stop_init_rc_hook();
+#endif
 
     // now we can sure that the init process is reading
     // `/system/etc/init/init.rc`
@@ -669,8 +674,19 @@ void ksu_stop_input_hook_runtime(void)
 }
 #endif
 
+void ksu_reset_ksud_status(void) {
+    first_zygote = true;
+    init_rc_hooked = false;
+    init_second_stage_executed = false;
+    module_rc_loaded = false;
+    post_fs_data_done = false;
+    ksu_module_mounted = false;
+    ksu_boot_completed = false;
+    ksu_rc_pos = 0;
+}
+
 // ksud: module support
-void __init ksu_ksud_init()
+void ksu_ksud_init()
 {
     int ret;
 
@@ -685,11 +701,9 @@ void __init ksu_ksud_init()
 #endif
 }
 
-void __exit ksu_ksud_exit()
+void ksu_ksud_exit()
 {
-    // TODO:
-    // this should be done before unregister vfs_read_kp
-    // stop_init_rc_hook();
+    stop_init_rc_hook();
 #ifndef CONFIG_KSU_NON_ANDROID
     unregister_kprobe(&input_event_kp);
 #endif
