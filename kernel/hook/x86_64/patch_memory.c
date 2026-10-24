@@ -7,6 +7,7 @@
 
 #include <linux/cache.h>
 #include "../patch_memory.h"
+#include "infra/unexported.h"
 #include "klog.h" // IWYU pragma: keep
 #include <linux/cpumask.h>
 #include <linux/gfp.h> // IWYU pragma: keep
@@ -29,7 +30,7 @@
 // init_mm page tables.
 unsigned long phys_from_virt(unsigned long addr, int *err)
 {
-    struct mm_struct *mm = &init_mm;
+    struct mm_struct *mm = ksu_init_mm;
     pgd_t *pgd;
     p4d_t *p4d;
     pud_t *pud;
@@ -37,6 +38,10 @@ unsigned long phys_from_virt(unsigned long addr, int *err)
     pte_t *pte;
 
     *err = 0;
+    if (unlikely(!mm)) {
+        *err = -ENOENT;
+        return 0;
+    }
 
     pgd = pgd_offset(mm, addr);
     if (pgd_none(*pgd) || pgd_bad(*pgd))
@@ -141,7 +146,7 @@ static int ksu_patch_text_nosync(void *dst, void *src, size_t len, int flags)
 
     pr_debug("fixmap addr for patch 0x%lx: 0x%lx\n", p, (unsigned long)map);
 
-    ret = (int)copy_to_kernel_nofault(map, src, len);
+    ret = (int)ksu_copy_to_kernel_nofault(map, src, len);
 
     clear_fixmap(FIX_BTMAP_BEGIN);
 

@@ -24,6 +24,7 @@
 #include "policy/allowlist.h"
 #include "manager/manager_identity.h"
 #include "infra/su_mount_ns.h"
+#include "infra/unexported.h"
 #include "feature/shell_su_adb_only.h"
 
 #define FILE_MAGIC 0x7f4b5355 // ' KSU', u32
@@ -480,7 +481,7 @@ void ksu_persistent_allow_list()
         goto put_task;
     }
     cb->func = do_persistent_allow_list;
-    if (task_work_add(tsk, cb, TWA_RESUME)) {
+    if (ksu_task_work_add(tsk, cb, TWA_RESUME)) {
         kfree(cb);
         pr_warn("save_allow_list add task_work failed\n");
     }

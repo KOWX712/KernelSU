@@ -29,6 +29,7 @@
 #include "feature/shell_su_adb_only.h"
 #include "infra/symbol_resolver.h"
 #include "preinit/preinit.h"
+#include "infra/unexported.h"
 
 #if defined(__x86_64__) && !defined(CONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER)
 #include <asm/cpufeature.h>
@@ -75,6 +76,8 @@ __attribute__((naked)) int __init kernelsu_init_early(void)
 
 struct cred *ksu_cred;
 bool ksu_late_loaded;
+
+static bool ksu_init_done;
 
 #ifdef CONFIG_KSU_DEBUG
 bool allow_shell = true;
@@ -135,7 +138,10 @@ int __init kernelsu_init(void)
         return -ENOSYS;
     }
 
-    ksu_init_symbol_resolver();
+    if (ksu_init_symbol_resolver() || ksu_init_unexported_symbols()) {
+        pr_err("failed to resolve kernel symbols!\n");
+        return -ENOSYS;
+    }
     ksu_syscall_hook_init();
 
     // Block modules early, before vendor modules are loaded in second stage.
@@ -209,11 +215,17 @@ int __init kernelsu_init(void)
     kobject_del(&THIS_MODULE->mkobj.kobj);
 #endif
 #endif
+    ksu_init_done = true;
     return 0;
 }
 
 void __exit kernelsu_exit(void)
 {
+    if (!ksu_init_done) {
+        pr_info("kernelsu: init did not complete, skipping exit cleanup\n");
+        return;
+    }
+
     // Phase 1: Stop all hooks first to prevent new callbacks
     ksu_syscall_hook_manager_exit();
 

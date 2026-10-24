@@ -19,10 +19,8 @@
 #include "klog.h" // IWYU pragma: keep
 #include "ksu.h"
 #include "infra/su_mount_ns.h"
+#include "infra/unexported.h"
 #include "util.h"
-
-extern int path_mount(const char *dev_name, struct path *path, const char *type_page, unsigned long flags,
-                      void *data_page);
 
 // global mode , need CAP_SYS_ADMIN and CAP_SYS_CHROOT to perform setns
 static void ksu_mnt_ns_global(void)
@@ -68,7 +66,7 @@ try_setns:
         goto out;
     }
     struct path ns_path;
-    long ret = ns_get_path(&ns_path, pid1_task, &mntns_operations);
+    long ret = ksu_ns_get_path(&ns_path, pid1_task, ksu_mntns_operations);
     put_task_struct(pid1_task);
     if (ret) {
         pr_warn("failed get path for init mount namespace: %ld\n", ret);
@@ -90,7 +88,7 @@ try_setns:
     }
 
     fd_install(fd, ns_file);
-    ret = ksyscall(setns, fd, CLONE_NEWNS);
+    ret = ksu_sys_setns_impl(fd, CLONE_NEWNS);
 
     ksu_close_fd(fd);
 
@@ -103,7 +101,7 @@ try_setns:
         struct path new_pwd;
         int err = kern_path(pwd_path, 0, &new_pwd);
         if (!err) {
-            set_fs_pwd(current->fs, &new_pwd);
+            ksu_set_fs_pwd(current->fs, &new_pwd);
             path_put(&new_pwd);
         } else {
             pr_warn("restore pwd failed: %d, path: %s\n", err, pwd_path);
@@ -116,7 +114,7 @@ out:
 // individual mode , need CAP_SYS_ADMIN to perform unshare and remount
 static void ksu_mnt_ns_individual(void)
 {
-    long ret = ksyscall(unshare, CLONE_NEWNS);
+    long ret = ksu_sys_unshare_impl(CLONE_NEWNS);
     if (ret) {
         pr_warn("call sys_unshare failed: %ld\n", ret);
         return;
@@ -125,7 +123,7 @@ static void ksu_mnt_ns_individual(void)
     // make root mount private
     struct path root_path;
     get_fs_root(current->fs, &root_path);
-    int pm_ret = path_mount(NULL, &root_path, NULL, MS_PRIVATE | MS_REC, NULL);
+    int pm_ret = ksu_path_mount(NULL, &root_path, NULL, MS_PRIVATE | MS_REC, NULL);
     path_put(&root_path);
 
     if (pm_ret < 0) {

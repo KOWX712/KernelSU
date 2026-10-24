@@ -7,6 +7,7 @@
 #include <linux/sched/task.h>
 
 #include "policy/allowlist.h"
+#include "infra/unexported.h"
 #include "klog.h" // IWYU pragma: keep
 #include "selinux/selinux.h"
 
@@ -55,14 +56,14 @@ void ksu_clear_task_tracepoint_flag_if_needed(struct task_struct *t)
 static void handle_process_mark(bool mark)
 {
     struct task_struct *p, *t;
-    read_lock(&tasklist_lock);
+    read_lock(ksu_tasklist_lock);
     for_each_process_thread (p, t) {
         if (mark)
             ksu_set_task_tracepoint_flag(t);
         else
             ksu_clear_task_tracepoint_flag(t);
     }
-    read_unlock(&tasklist_lock);
+    read_unlock(ksu_tasklist_lock);
 }
 
 void ksu_mark_all_process(void)
@@ -80,7 +81,7 @@ void ksu_unmark_all_process(void)
 void ksu_mark_running_process_locked(void)
 {
     struct task_struct *p, *t;
-    read_lock(&tasklist_lock);
+    read_lock(ksu_tasklist_lock);
     for_each_process_thread (p, t) {
         if (t->pid != 1 && !t->mm) {
             // skip kernel threads, but always allow pid 1
@@ -102,7 +103,7 @@ void ksu_mark_running_process_locked(void)
         }
         put_cred(cred);
     }
-    read_unlock(&tasklist_lock);
+    read_unlock(ksu_tasklist_lock);
 }
 
 void ksu_mark_running_process(void)
@@ -125,7 +126,7 @@ int ksu_get_task_mark(pid_t pid)
     int marked = -ESRCH;
 
     rcu_read_lock();
-    task = find_task_by_vpid(pid);
+    task = ksu_find_task_by_vpid(pid);
     if (task) {
         get_task_struct(task);
         rcu_read_unlock();
@@ -150,7 +151,7 @@ int ksu_set_task_mark(pid_t pid, bool mark)
     int ret = -ESRCH;
 
     rcu_read_lock();
-    task = find_task_by_vpid(pid);
+    task = ksu_find_task_by_vpid(pid);
     if (task) {
         get_task_struct(task);
         rcu_read_unlock();

@@ -12,6 +12,7 @@
 #include <linux/uaccess.h>
 
 #include "arch.h"
+#include "infra/unexported.h"
 
 #if defined(__aarch64__)
 #define KSU_SYS_PREFIX(name) __arm64_sys_##name
@@ -67,7 +68,8 @@ static inline void __user *userspace_stack_buffer(const void *d, size_t len)
     return copy_to_user(p, d, len) ? NULL : p;
 }
 
-#define ksu_close_fd(fd) ({ ksyscall(close, fd); })
+/* The close syscall entry is unexported: dispatch to the resolved ptr. */
+#define ksu_close_fd(fd) ksu_sys_close_impl(fd)
 
 static inline struct file *ksu_filp_open_nonotify(const char *path, int flags)
 {
@@ -80,7 +82,7 @@ static inline struct file *ksu_filp_open_nonotify(const char *path, int flags)
     }
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
-    f = dentry_open_nonotify(&p, flags, current_cred());
+    f = ksu_dentry_open_nonotify(&p, flags, current_cred());
 #else
     f = dentry_open(&p, flags | __FMODE_NONOTIFY, current_cred());
 #endif
