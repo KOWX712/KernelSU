@@ -10,6 +10,9 @@ void ksu_ksud_exit();
 
 void ksu_execve_hook_ksud(const struct pt_regs *regs);
 void ksu_execveat_hook_ksud(const struct pt_regs *regs);
+
+#ifndef CONFIG_KSU_NON_ANDROID
 void ksu_stop_input_hook_runtime(void);
+#endif
 
 #endif

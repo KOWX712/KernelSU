@@ -169,6 +169,7 @@ static int do_report_event(void __user *arg)
 
 static int do_set_sepolicy(void __user *arg)
 {
+#ifdef CONFIG_KSU_SELINUX
     struct ksu_set_sepolicy_cmd cmd;
 
     if (copy_from_user(&cmd, arg, sizeof(cmd))) {
@@ -176,6 +177,9 @@ static int do_set_sepolicy(void __user *arg)
     }
 
     return handle_sepolicy((void __user *)cmd.data, cmd.data_len);
+#else
+    return 0;
+#endif
 }
 
 static int do_check_safemode(void __user *arg)
@@ -455,9 +459,11 @@ static int do_set_feature(void __user *arg)
 
 static int do_get_wrapper_fd(void __user *arg)
 {
+#ifdef CONFIG_KSU_SELINUX
     if (!ksu_file_sid) {
         return -EINVAL;
     }
+#endif
 
     struct ksu_get_wrapper_fd_cmd cmd;
     if (copy_from_user(&cmd, arg, sizeof(cmd))) {

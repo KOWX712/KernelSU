@@ -1,3 +1,4 @@
+#ifdef CONFIG_KSU_SELINUX
 #include "selinux_hide.h"
 #include "infra/symbol_resolver.h"
 #include "linux/jump_label.h"
@@ -1252,3 +1253,4 @@ allow:
     avd->allowed = 0xffffffff;
     goto out;
 }
+#endif
