@@ -1,0 +1,66 @@
+# Maintainer: KernelSU waydroid DKMS port
+# Build the KernelSU out-of-tree kernel module as a DKMS package.
+#
+#   makepkg -srf && sudo pacman -U --noconfirm kernelsu-dkms-git-*.pkg.tar.*
+#                      # build, then install; the dkms package's alpm hooks then
+#                      # build the module for every installed kernel with headers
+#   sudo dkms install kernelsu/1.0.0 -k $(uname -r)   # (re)build for a specific kernel
+#
+# Sources are taken from this git checkout (git HEAD), packed into the DKMS
+# source tree /usr/src/kernelsu-$pkgver, then registered with dkms.
+# Named -git to avoid clashing with the AUR package kernelsu-dkms
+# (shadichy's packaging of the same supechicken/KernelSU waydroid port).
+pkgname=kernelsu-dkms-git
+pkgver=1.0.0
+pkgrel=3
+pkgdesc="KernelSU out-of-tree kernel module (DKMS, Waydroid/non-Android)"
+arch=('x86_64' 'aarch64')
+url="https://github.com/tiann/KernelSU"
+license=('GPL-3.0-only')
+depends=('dkms')
+makedepends=('git')
+source=()
+# Build straight from the local git checkout; no network needed.
+md5sums=()
+
+_pkgsrc="kernelsu-$pkgver"
+
+prepare() {
+  # This PKGBUILD lives in packaging/; repo root is one level up.
+  # $startdir is the directory containing the PKGBUILD (set by makepkg).
+  local _repo="$startdir/.."
+  rm -rf "$srcdir/$_pkgsrc"
+  mkdir -p "$srcdir/$_pkgsrc"
+
+  # Copy tracked module sources only (git ls-files is deterministic and skips
+  # build artifacts / untracked junk). The module has no submodules. We also
+  # need the root-level uapi/ dir — kernel/include/uapi is a symlink to it
+  # (../../uapi) and git does not follow symlinks, so it must be packed
+  # explicitly alongside kernel/.
+  git -C "$_repo" ls-files -z kernel uapi |
+    (cd "$_repo" && tar --null -T - -cf -) |
+    tar -xf - -C "$srcdir/$_pkgsrc"
+
+  # DKMS metadata lives in packaging/dkms/ (this PKGBUILD is in packaging/).
+  install -Dm644 "$startdir/dkms/dkms.conf" "$srcdir/$_pkgsrc/dkms.conf"
+
+  # Bake the real KSU_VERSION (30000 + commit count). The DKMS source tree's
+  # synthetic git repo has only 1 commit, so dkms.conf passes this explicitly.
+  local _count
+  _count=$(git -C "$_repo" rev-list --count HEAD)
+  printf '%s\n' "$((30000 + _count))" > "$srcdir/$_pkgsrc/ksu_version"
+
+  # Make the source tree its own git repo so Kbuild's version detection works
+  # exactly as in a normal checkout: KSU_KERNEL_DIR = .../kernel and its parent
+  # is the git root (counting only the module's history → same KSU_VERSION).
+  git -C "$srcdir/$_pkgsrc" init -q
+  git -C "$srcdir/$_pkgsrc" add kernel uapi dkms.conf
+  git -C "$srcdir/$_pkgsrc" -c user.name=PKGBUILD -c user.email=build@localhost \
+    commit -qm "kernelsu $pkgver DKMS source"
+}
+
+package() {
+  # Install the DKMS source tree. dkms reads ksu_version and dkms.conf from here.
+  install -dm755 "$pkgdir/usr/src/$_pkgsrc"
+  cp -a "$srcdir/$_pkgsrc/." "$pkgdir/usr/src/$_pkgsrc/"
+}
