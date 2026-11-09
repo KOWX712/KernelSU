@@ -29,9 +29,14 @@ void on_post_fs_data(void)
 
     ksu_load_allow_list();
     ksu_observer_init();
+#ifndef CONFIG_KSU_NON_ANDROID
     // Sanity check for safe mode only needs early-boot input samples.
     ksu_stop_input_hook_runtime();
+#endif
+#ifdef CONFIG_KSU_SELINUX
     ksu_selinux_hide_handle_post_fs_data();
+#endif
+
     // retry forced features which failed at second stage
     ksu_feature_apply_forced();
 }
@@ -70,5 +75,7 @@ void on_boot_completed(void)
     ksu_boot_completed = true;
     pr_info("on_boot_completed!\n");
     track_throne(true);
+#ifdef CONFIG_KSU_SELINUX
     ksu_selinux_hide_drop_backup_if_unused();
+#endif
 }

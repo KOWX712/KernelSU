@@ -14,6 +14,8 @@
 #define INIT_CONTEXT "u:r:init:s0"
 #define ADBD_CONTEXT "u:r:adbd:s0"
 
+#ifdef CONFIG_KSU_SELINUX
+
 void setup_selinux(const char *, struct cred *);
 
 void setenforce(bool);
@@ -55,4 +57,13 @@ static inline int ksu_selinux_inode_init(void)
 
 extern u32 ksu_file_sid;
 
+#else
+
+bool is_task_ksu_domain(const struct cred *cred);
+
+bool is_zygote(const struct cred *cred);
+
+bool is_init(const struct cred *cred);
+
+#endif
 #endif
