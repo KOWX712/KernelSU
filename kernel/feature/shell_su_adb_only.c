@@ -31,7 +31,13 @@ static bool has_trusted_ancestor(void)
     // Stop at init: orphans reparented to it are not attached to a session any more
     for (t = current; t->pid > 1 && depth < MAX_ANCESTOR_DEPTH; t = rcu_dereference(t->real_parent), depth++) {
         const struct cred *cred = __task_cred(t);
+#ifdef CONFIG_KSU_SELINUX
         if (is_adbd(cred) || is_task_ksu_domain(cred)) {
+#else
+        // is_adbd() only exists when SELinux support is compiled in; the
+        // non-SELinux is_task_ksu_domain() cannot inspect domains, so rely on it.
+        if (is_task_ksu_domain(cred)) {
+#endif
             found = true;
             break;
         }

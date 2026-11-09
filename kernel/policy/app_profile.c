@@ -1,5 +1,6 @@
 #include "hook/patch_memory.h"
 #include "infra/symbol_resolver.h"
+#include "infra/unexported.h"
 #include "linux/kallsyms.h"
 #include <linux/capability.h>
 #include <linux/cred.h>
@@ -118,7 +119,7 @@ static void disable_seccomp(void)
     fake->sighand = NULL;
 #endif
 
-    seccomp_filter_release(fake);
+    ksu_seccomp_filter_release(fake);
     kfree(fake);
 }
 
@@ -173,7 +174,7 @@ int escape_with_root_profile(void)
      * https://github.com/torvalds/linux/blob/v5.14/kernel/sys.c
      * https://github.com/torvalds/linux/blob/v5.14/kernel/cred.c
      */
-    new_user = alloc_uid(cred->uid);
+    new_user = ksu_alloc_uid(cred->uid);
     if (!new_user) {
         ret = -ENOMEM;
         goto out_abort_creds;
@@ -186,7 +187,7 @@ int escape_with_root_profile(void)
     // https://github.com/torvalds/linux/commit/905ae01c4ae2ae3df05bb141801b1db4b7d83c61#diff-ff6060da281bd9ef3f24e17b77a9b0b5b2ed2d7208bb69b29107bee69732bd31
     // on older kernels, per-UID process accounting lives in user_struct.
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
-    if (set_cred_ucounts(cred)) {
+    if (ksu_set_cred_ucounts(cred)) {
         goto out_abort_creds;
     }
 #endif
@@ -250,7 +251,7 @@ void __init ksu_app_profile_init(void)
     int ret;
     void *raw_spin_lock_irq_sym = find_kernel_symbol_exact("_raw_spin_lock_irq");
     void *seccomp_filter_release_sym = find_kernel_symbol_exact("seccomp_filter_release");
-    ret = kallsyms_lookup_size_offset(seccomp_filter_release_sym, &size, NULL);
+    ret = ksu_kallsyms_lookup_size_offset(seccomp_filter_release_sym, &size, NULL);
     if (!ret || !size) {
         pr_err("failed to get size of seccomp_filter_release: %d, use 128\n", ret);
         size = 128;

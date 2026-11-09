@@ -11,6 +11,7 @@
 #include <linux/types.h>
 
 #include "feature/kernel_umount.h"
+#include "infra/unexported.h"
 #include "klog.h" // IWYU pragma: keep
 #include "policy/allowlist.h"
 #include "selinux/selinux.h"
@@ -41,11 +42,9 @@ static const struct ksu_feature_handler kernel_umount_handler = {
     .set_handler = kernel_umount_feature_set,
 };
 
-extern int path_umount(struct path *path, int flags);
-
 static void ksu_umount_mnt(const char *mnt, struct path *path, int flags)
 {
-    int err = path_umount(path, flags);
+    int err = ksu_path_umount(path, flags);
     if (err) {
         pr_info("umount %s failed: %d\n", mnt, err);
     }

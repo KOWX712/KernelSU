@@ -9,6 +9,7 @@
 #include "klog.h" // IWYU pragma: keep
 #include "runtime/ksud_boot.h"
 #include "runtime/ksud.h"
+#include "infra/unexported.h"
 #include "manager/manager_observer.h"
 #include "manager/throne_tracker.h"
 
@@ -40,8 +41,6 @@ void on_post_fs_data(void)
     ksu_feature_apply_forced();
 }
 
-extern void ext4_unregister_sysfs(struct super_block *sb);
-
 int nuke_ext4_sysfs(const char *mnt)
 {
     struct path path;
@@ -58,7 +57,7 @@ int nuke_ext4_sysfs(const char *mnt)
         return -EINVAL;
     }
 
-    ext4_unregister_sysfs(path.dentry->d_inode->i_sb);
+    ksu_ext4_unregister_sysfs(path.dentry->d_inode->i_sb);
     path_put(&path);
     return 0;
 }
