@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -94,9 +96,12 @@ fun FlashScreenMaterial(
             if (state.flashingStatus == FlashingStatus.SUCCESS) {
                 val isRebootAction = state.showRebootAction
                 SmallExtendedFloatingActionButton(
-                    onClick = { if (isRebootAction) actions.onReboot() else actions.onClose() },
+                    onClick = { if (!state.actionInProgress) { if (isRebootAction) actions.onReboot() else actions.onClose() } },
+                    expanded = !state.actionInProgress,
                     icon = {
-                        if (isRebootAction) {
+                        if (state.actionInProgress) {
+                            CircularWavyProgressIndicator(modifier = Modifier.size(24.dp))
+                        } else if (isRebootAction) {
                             Icon(Icons.Filled.Refresh, null)
                         } else {
                             Icon(Icons.Filled.Close, null)

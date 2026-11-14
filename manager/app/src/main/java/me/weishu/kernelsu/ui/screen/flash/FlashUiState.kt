@@ -10,6 +10,7 @@ data class FlashUiState(
     val flashingStatus: FlashingStatus,
     val showJailbreakWarning: Boolean,
     @param:StringRes val rebootLabelRes: Int,
+    val actionInProgress: Boolean = false,
 )
 
 @Immutable
