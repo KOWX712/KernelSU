@@ -29,15 +29,10 @@ data class HomeUiState(
         get() = systemInfo.selinuxStatus == "Permissive"
 
     val showGkiWarning: Boolean
-        get() = ksuVersion != null && lkmMode == false
+        get() = false
 
     val showLkmUpdate: Boolean
-        get() = isManager &&
-                lkmMode == true &&
-                isLkmBundled &&
-                ksuVersion?.toLong() != currentManagerVersionCode &&
-                !requiresNewKernel &&
-                !requiresNewManager
+        get() = false
 
     // Jailbreak mode runs on locked bootloaders, so flashing a boot image would brick the device.
     val canInstallKernelUpdate: Boolean
