@@ -56,9 +56,11 @@ import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.DesignServices
+import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Pin
 import androidx.compose.material.icons.rounded.Style
 import androidx.compose.material.icons.rounded.Swipe
+import androidx.compose.material.icons.rounded.ToggleOn
 import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Icon
@@ -155,6 +157,7 @@ fun ColorPaletteScreenMaterial(
                     paletteStyle = colorStyle,
                     colorSpec = colorSpec,
                     officialIcon = uiState.enableOfficialLauncher,
+                    classicUi = uiState.classicUi,
                 )
             }
 
@@ -325,6 +328,44 @@ fun ColorPaletteScreenMaterial(
                                 selectedIndex = specs.indexOf(colorSpec).coerceAtLeast(0),
                                 onItemSelected = { index ->
                                     actions.onSetColorSpec(specs[index].name)
+                                }
+                            )
+                        },
+                    )
+                )
+            }
+
+            item {
+                SegmentedColumn(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    content = listOf(
+                        {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.Home,
+                                title = stringResource(R.string.settings_classic_home_ui),
+                                checked = uiState.classicUi,
+                                onCheckedChange = {
+                                    actions.onSetClassicUi(it)
+                                }
+                            )
+                        },
+                        {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.ToggleOn,
+                                title = stringResource(R.string.settings_switch_icon),
+                                checked = uiState.showSwitchIcon,
+                                onCheckedChange = {
+                                    actions.onSetShowSwitchIcon(it)
+                                }
+                            )
+                        },
+                        {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.ViewCarousel,
+                                title = stringResource(R.string.settings_scroll_animation),
+                                checked = uiState.scrollAnimation,
+                                onCheckedChange = {
+                                    actions.onSetScrollAnimation(it)
                                 }
                             )
                         }
@@ -519,6 +560,7 @@ private fun ThemePreviewCard(
     paletteStyle: PaletteStyle = PaletteStyle.TonalSpot,
     colorSpec: ColorSpec.SpecVersion = ColorSpec.SpecVersion.SPEC_2025,
     officialIcon: Boolean = false,
+    classicUi: Boolean = false,
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.toFloat()
@@ -577,7 +619,7 @@ private fun ThemePreviewCard(
                             containerColor = colorScheme.secondaryContainer,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(40.dp),
+                                .height(if (classicUi) 64.dp else 40.dp),
                             shape = RoundedCornerShape(8.dp),
                             content = { }
                         )
