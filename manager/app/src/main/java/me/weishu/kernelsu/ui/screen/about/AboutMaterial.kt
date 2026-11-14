@@ -79,7 +79,7 @@ fun AboutScreenMaterial(
                             .background(Color.White)
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            painter = painterResource(id = state.appIconRes),
                             contentDescription = null,
                             contentScale = FixedScale(1f)
                         )
