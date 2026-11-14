@@ -87,6 +87,7 @@ fun FlashScreen(flashIt: FlashIt, onBackEnabledChange: (Boolean) -> Unit) {
                 }
             }
         },
+        onClose = dropUnlessResumed { navigator.pop() },
         onConfirmJailbreakWarning = { flashingEnabled = true },
         onDismissJailbreakWarning = dropUnlessResumed { navigator.pop() },
     )
