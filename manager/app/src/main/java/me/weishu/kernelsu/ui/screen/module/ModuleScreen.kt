@@ -89,7 +89,7 @@ fun ModulePager(
             if (!state.isRefreshing) {
                 viewModel.fetchModuleList(
                     checkUpdate = !state.hasLoaded || viewModel.isNeedRefresh,
-                    resort = !state.hasLoaded,
+                    resort = !state.hasLoaded || viewModel.isNeedRefresh,
                 )
             }
         }
