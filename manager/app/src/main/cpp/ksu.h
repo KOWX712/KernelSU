@@ -6,11 +6,14 @@
 #define KERNELSU_KSU_H
 
 #include <cstdint>
+#include <string>
 #include <sys/ioctl.h>
 #include <sys/prctl.h>
 #include <utility>
 
 #include "uapi/ksu.h"
+
+constexpr int KSU_GET_LKM_VARIANT = 20000;
 
 uint32_t get_kernel_uapi_version();
 
@@ -25,6 +28,8 @@ bool is_safe_mode();
 bool is_lkm_mode();
 
 bool is_lkm_bundled();
+
+std::string get_lkm_variant();
 
 bool is_late_load_mode();
 

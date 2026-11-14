@@ -64,6 +64,13 @@ Java_me_weishu_kernelsu_Natives_isLkmBundled(JNIEnv *env, jclass clazz) {
 }
 
 extern "C"
+JNIEXPORT jstring JNICALL
+Java_me_weishu_kernelsu_Natives_getLkmVariant(JNIEnv *env, jclass clazz) {
+    const auto variant = get_lkm_variant();
+    return variant.empty() ? nullptr : env->NewStringUTF(variant.c_str());
+}
+
+extern "C"
 JNIEXPORT jboolean JNICALL
 Java_me_weishu_kernelsu_Natives_isLateLoadMode(JNIEnv *env, jclass clazz) {
     return is_late_load_mode();

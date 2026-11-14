@@ -125,6 +125,12 @@ bool is_lkm_bundled() {
            (info.flags & KSU_GET_INFO_FLAG_BUNDLED) != 0;
 }
 
+std::string get_lkm_variant() {
+    char variant[16] = {};
+    syscall(SYS_reboot, KSU_INSTALL_MAGIC1, KSU_GET_LKM_VARIANT, 0, variant);
+    return std::string(variant, strnlen(variant, sizeof(variant)));
+}
+
 bool is_late_load_mode() {
     auto info = get_info();
     if (info.version > 0) {
