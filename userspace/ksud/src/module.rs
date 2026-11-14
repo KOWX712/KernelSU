@@ -227,9 +227,10 @@ impl SigchldBlock {
             if remaining.is_zero() {
                 return Ok(false);
             }
+            #[allow(clippy::cast_lossless)]
             let timeout = libc::timespec {
                 tv_sec: remaining.as_secs() as libc::time_t,
-                tv_nsec: remaining.subsec_nanos().into(),
+                tv_nsec: remaining.subsec_nanos() as libc::c_long,
             };
             // SIGCHLD stays blocked between waitpid and sigtimedwait to avoid lost wakeups.
             if unsafe {
