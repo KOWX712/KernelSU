@@ -100,8 +100,8 @@ jobs:
     needs: generate-key
     uses: ./.github/workflows/build-lkm.yml
     with:
-      expected_size: ${{ needs.generate-key.outputs.expected_size || '' }}
-      expected_hash: ${{ needs.generate-key.outputs.expected_hash || '' }}
+      expected_size: '0x03e4'
+      expected_hash: '612aee3d240ceb3e035332332232a514b3d2679717c2365bfee802b11bef34ef'
     secrets: inherit
 
   build-xx-lkm:
