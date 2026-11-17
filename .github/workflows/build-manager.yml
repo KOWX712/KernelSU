@@ -19,6 +19,7 @@ on:
       - 'userspace/**'
       - 'Cargo.lock'
       - 'Cargo.toml'
+
   pull_request:
     branches: [ "main", "dev" ]
     paths:
@@ -37,6 +38,7 @@ on:
       - 'Cargo.lock'
       - 'Cargo.toml'
       - 'scripts/ksubot.py'
+
   workflow_call:
   workflow_dispatch:
 
@@ -49,6 +51,7 @@ jobs:
       keystore: ${{ steps.gen.outputs.keystore }}
       keystore_password: ${{ steps.gen.outputs.keystore_password }}
       key_password: ${{ steps.gen.outputs.key_password }}
+
     steps:
       - name: Generate temporary keystore
         if: github.event_name == 'pull_request'
@@ -56,6 +59,7 @@ jobs:
         run: |
           KEYSTORE_PASSWORD=$(openssl rand -hex 32)
           KEY_PASSWORD=$(openssl rand -hex 32)
+
           echo "keystore_password=$KEYSTORE_PASSWORD" >> $GITHUB_OUTPUT
           echo "key_password=$KEY_PASSWORD" >> $GITHUB_OUTPUT
 
@@ -77,19 +81,17 @@ jobs:
         env:
           STORE_PASS: ${{ steps.gen.outputs.keystore_password }}
         run: |
-          # Export DER certificate
           keytool -exportcert \
             -alias pr-key \
             -keystore pr-key.jks \
             -storepass "$STORE_PASS" \
             -file pr-cert.der
 
-          # Calculate size in hex
           SIZE_DEC=$(stat -c%s pr-cert.der)
           SIZE_HEX=$(printf '0x%04x' "$SIZE_DEC")
+
           echo "expected_size=$SIZE_HEX" >> $GITHUB_OUTPUT
 
-          # Calculate SHA256 hash
           HASH=$(sha256sum pr-cert.der | awk '{print $1}')
           echo "expected_hash=$HASH" >> $GITHUB_OUTPUT
 
@@ -129,21 +131,21 @@ jobs:
       target: ${{ matrix.target }}
       pack_lkm: true
       pack_ksuinit: true
-  
+
   build-ksud-extra:
     needs: [build-lkm, build-xx-lkm, build-ksuinit]
     strategy:
       matrix:
         include:
-          - target: x86_64-pc-windows-gnu # windows pc
+          - target: x86_64-pc-windows-gnu
             os: ubuntu-latest
-          - target: x86_64-apple-darwin # Intel mac
+          - target: x86_64-apple-darwin
             os: macos-latest
-          - target: aarch64-apple-darwin # M chip mac
+          - target: aarch64-apple-darwin
             os: macos-latest
-          - target: aarch64-unknown-linux-musl # arm64 Linux
+          - target: aarch64-unknown-linux-musl
             os: ubuntu-latest
-          - target: x86_64-unknown-linux-musl # x86 Linux
+          - target: x86_64-unknown-linux-musl
             os: ubuntu-latest
     uses: ./.github/workflows/ksud-extra.yml
     with:
@@ -168,15 +170,21 @@ jobs:
 
       - name: Write key
         if: ${{ github.event_name != 'pull_request' || github.ref_type == 'tag' }}
+        env:
+          PROD_KEYSTORE: ${{ secrets.KEYSTORE }}
+          PROD_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          PROD_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          PROD_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
+          if [ -n "$PROD_KEYSTORE" ]; then
             {
-              echo KEYSTORE_PASSWORD='${{ secrets.KEYSTORE_PASSWORD }}'
-              echo KEY_ALIAS='${{ secrets.KEY_ALIAS }}'
-              echo KEY_PASSWORD='${{ secrets.KEY_PASSWORD }}'
-              echo KEYSTORE_FILE='key.jks'
+              echo "KEYSTORE_PASSWORD=$PROD_KEYSTORE_PASSWORD"
+              echo "KEY_ALIAS=$PROD_KEY_ALIAS"
+              echo "KEY_PASSWORD=$PROD_KEY_PASSWORD"
+              echo "KEYSTORE_FILE=key.jks"
             } >> gradle.properties
-            echo "${{ secrets.KEYSTORE }}" | base64 -d > key.jks
+
+            echo "$PROD_KEYSTORE" | base64 -d > key.jks
           fi
 
       - name: Write PR key
@@ -187,11 +195,12 @@ jobs:
           PR_KEY_PASSWORD: ${{ needs.generate-key.outputs.key_password }}
         run: |
           echo "$PR_KEYSTORE" | base64 -d > pr-key.jks
+
           {
-            echo KEYSTORE_PASSWORD="$PR_KEYSTORE_PASSWORD"
-            echo KEY_ALIAS='pr-key'
-            echo KEY_PASSWORD="$PR_KEY_PASSWORD"
-            echo KEYSTORE_FILE='pr-key.jks'
+            echo "KEYSTORE_PASSWORD=$PR_KEYSTORE_PASSWORD"
+            echo "KEY_ALIAS=pr-key"
+            echo "KEY_PASSWORD=$PR_KEY_PASSWORD"
+            echo "KEYSTORE_FILE=pr-key.jks"
           } >> gradle.properties
 
       - name: Setup Java
@@ -212,18 +221,17 @@ jobs:
           fi
 
       - name: Upload build artifact
-        if: ${{ github.event_name == 'pull_request' || (github.event_name != 'pull_request') || github.ref_type == 'tag' }}
         uses: actions/upload-artifact@v7
         with:
           name: manager-gradle
           path: manager/app/build/outputs/apk/release/*.apk
 
       - name: Upload mappings
+        if: ${{ github.event_name != 'pull_request' || github.ref_type == 'tag' }}
         uses: actions/upload-artifact@v7
-        if: ${{ ( github.event_name != 'pull_request') || github.ref_type == 'tag' }}
         with:
-          name: "mappings"
-          path: "manager/app/build/outputs/mapping/release/"
+          name: mappings
+          path: manager/app/build/outputs/mapping/release/
 
   repack-manager:
     needs: [build-manager, build-ksud, generate-key]
@@ -236,10 +244,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
       - name: Setup need_upload
         id: need_upload
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
-          if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
+          if [ -n "$BOT_TOKEN" ]; then
             echo "UPLOAD=true" >> $GITHUB_OUTPUT
           else
             echo "UPLOAD=false" >> $GITHUB_OUTPUT
@@ -278,6 +294,7 @@ jobs:
       - name: Place manager apk and ksud artifacts
         run: |
           mkdir -p manager/app/build/outputs/apk/release
+
           APK=$(find artifacts/manager-gradle -type f -name "*.apk" | head -n 1)
           test -n "$APK"
           cp -f "$APK" manager/app/build/outputs/apk/release/
@@ -286,21 +303,23 @@ jobs:
           mkdir -p target/armv7-linux-androideabi/release
           mkdir -p target/x86_64-linux-android/release
           mkdir -p target/riscv64-linux-android/release
+
           ARM64_KSUD=$(find artifacts/ksud-aarch64-linux-android -type f -name ksud | head -n 1)
           ARM_KSUD=$(find artifacts/ksud-armv7-linux-androideabi -type f -name ksud | head -n 1)
           X86_64_KSUD=$(find artifacts/ksud-x86_64-linux-android -type f -name ksud | head -n 1)
           RISCV64_KSUD=$(find artifacts/ksud-riscv64-linux-android -type f -name ksud | head -n 1)
+
           test -n "$ARM64_KSUD"
           test -n "$ARM_KSUD"
           test -n "$X86_64_KSUD"
           test -n "$RISCV64_KSUD"
+
           cp -f "$ARM64_KSUD" target/aarch64-linux-android/release/ksud
           cp -f "$ARM_KSUD" target/armv7-linux-androideabi/release/ksud
           cp -f "$X86_64_KSUD" target/x86_64-linux-android/release/ksud
           cp -f "$RISCV64_KSUD" target/riscv64-linux-android/release/ksud
 
       - name: Prepare signing inputs
-        if: ${{ github.event_name == 'pull_request' || (github.event_name != 'pull_request') || github.ref_type == 'tag' }}
         env:
           PR_KEYSTORE: ${{ needs.generate-key.outputs.keystore }}
           PR_KEYSTORE_PASSWORD: ${{ needs.generate-key.outputs.keystore_password }}
@@ -312,21 +331,44 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "$PR_KEYSTORE" | base64 -d > pr-key.jks
+
             echo "SIGN_KEYSTORE_FILE=pr-key.jks" >> $GITHUB_ENV
             echo "SIGN_KEY_ALIAS=pr-key" >> $GITHUB_ENV
             echo "SIGN_KEYSTORE_PASSWORD=$PR_KEYSTORE_PASSWORD" >> $GITHUB_ENV
             echo "SIGN_KEY_PASSWORD=$PR_KEY_PASSWORD" >> $GITHUB_ENV
-          else
-            test -n "$PROD_KEYSTORE"
+
+          elif [ -n "$PROD_KEYSTORE" ]; then
             echo "$PROD_KEYSTORE" | base64 -d > key.jks
+
             echo "SIGN_KEYSTORE_FILE=key.jks" >> $GITHUB_ENV
             echo "SIGN_KEY_ALIAS=$PROD_KEY_ALIAS" >> $GITHUB_ENV
             echo "SIGN_KEYSTORE_PASSWORD=$PROD_KEYSTORE_PASSWORD" >> $GITHUB_ENV
             echo "SIGN_KEY_PASSWORD=$PROD_KEY_PASSWORD" >> $GITHUB_ENV
+
+          else
+            echo "No production keystore found. Generating temporary keystore..."
+
+            STORE_PASS=$(openssl rand -hex 24)
+            KEY_PASS=$(openssl rand -hex 24)
+
+            keytool -genkeypair -noprompt \
+              -alias kowsu-temp \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storetype JKS \
+              -keystore temp-key.jks \
+              -storepass "$STORE_PASS" \
+              -keypass "$KEY_PASS" \
+              -dname "CN=Kowsu Temporary Build"
+
+            echo "SIGN_KEYSTORE_FILE=temp-key.jks" >> $GITHUB_ENV
+            echo "SIGN_KEY_ALIAS=kowsu-temp" >> $GITHUB_ENV
+            echo "SIGN_KEYSTORE_PASSWORD=$STORE_PASS" >> $GITHUB_ENV
+            echo "SIGN_KEY_PASSWORD=$KEY_PASS" >> $GITHUB_ENV
           fi
 
       - name: Repack and resign
-        if: ${{ github.event_name == 'pull_request' || (github.event_name != 'pull_request') || github.ref_type == 'tag' }}
         run: |
           python3 repack_apk.py repack \
             -b release \
@@ -342,7 +384,6 @@ jobs:
             --strip
 
       - name: Upload build artifact
-        if: ${{ github.event_name == 'pull_request' || (github.event_name != 'pull_request') || github.ref_type == 'tag' }}
         uses: actions/upload-artifact@v7
         with:
           name: manager
@@ -359,7 +400,7 @@ jobs:
           TITLE: Manager
           BRANCH: ${{ github.ref_name }}
         run: |
-          if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
+          if [ -n "$BOT_TOKEN" ]; then
             export VERSION=$(git rev-list --count HEAD)
             APK=$(find ./dist -name "*.apk")
             pip3 install telethon
