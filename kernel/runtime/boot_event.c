@@ -14,17 +14,16 @@
 
 bool ksu_module_mounted __read_mostly = false;
 bool ksu_boot_completed __read_mostly = false;
+bool post_fs_data_done = false;
 
 void on_post_fs_data(void)
 {
-    static bool done = false;
-
-    if (done) {
+    if (post_fs_data_done) {
         pr_info("on_post_fs_data already done\n");
         return;
     }
 
-    done = true;
+    post_fs_data_done = true;
     pr_info("on_post_fs_data!\n");
 
     ksu_load_allow_list();

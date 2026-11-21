@@ -66,6 +66,11 @@ long __nocfi ksu_hook_faccessat(int orig_nr, const struct pt_regs *regs)
 
 DEFINE_STATIC_KEY_TRUE(ksud_execve_key);
 
+void ksu_start_ksud_execve_hook()
+{
+    static_branch_enable(&ksud_execve_key);
+}
+
 void ksu_stop_ksud_execve_hook()
 {
     static_branch_disable(&ksud_execve_key);
