@@ -1,5 +1,6 @@
 package me.weishu.kernelsu.ui.screen.home
 
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -224,7 +225,7 @@ private fun StatusCard(
         }
         val workingMode = if (ksuActive) {
             when (state.lkmMode) {
-                null -> ""
+                null -> if (Build.SUPPORTED_64_BIT_ABIS.isEmpty()) "32-BIT" else "LEGACY"
                 true -> "LKM"
                 else -> "GKI"
             }
