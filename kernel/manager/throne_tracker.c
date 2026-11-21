@@ -38,7 +38,8 @@ static void crown_manager(const char *apk, struct list_head *uid_data)
     struct uid_data *np;
 
     list_for_each_entry (np, list, list) {
-        if (strncmp(np->package, KSU_PACKAGE_NAME, KSU_MAX_PACKAGE_NAME) == 0) {
+        if (strncmp(np->package, KSU_PACKAGE_NAME, KSU_MAX_PACKAGE_NAME) == 0 ||
+            strncmp(np->package, KOWSU_PACKAGE_NAME, KSU_MAX_PACKAGE_NAME) == 0) {
             pr_info("Crowning manager: uid=%d\n", np->uid);
             ksu_set_manager_appid(np->uid);
             break;
@@ -81,7 +82,8 @@ static bool maybe_manager_apk_dir(const char *path)
     }
 
     // pkg is `<real package>`
-    return strncmp(pkg, KSU_PACKAGE_NAME, sizeof(KSU_PACKAGE_NAME)) == 0;
+    return strncmp(pkg, KSU_PACKAGE_NAME, sizeof(KSU_PACKAGE_NAME)) == 0 ||
+           strncmp(pkg, KOWSU_PACKAGE_NAME, sizeof(KOWSU_PACKAGE_NAME)) == 0;
 }
 
 static FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name, int namelen, loff_t off, u64 ino,
@@ -299,7 +301,7 @@ void track_throne(bool prune_only)
     uid_t manager_package_uid = KSU_INVALID_APPID;
     bool need_rescan = false;
     list_for_each_entry (np, &uid_list, list) {
-        if (strcmp(np->package, KSU_PACKAGE_NAME) == 0) {
+        if (strcmp(np->package, KSU_PACKAGE_NAME) == 0 || strcmp(np->package, KOWSU_PACKAGE_NAME) == 0) {
             manager_package_uid = np->uid;
             break;
         }
