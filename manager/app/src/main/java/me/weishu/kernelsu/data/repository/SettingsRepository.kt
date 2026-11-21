@@ -10,6 +10,9 @@ interface SettingsRepository {
     var colorStyle: String
     var colorSpec: String
     var enableOfficialLauncher: Boolean
+    var classicUi: Boolean
+    var showSwitchIcon: Boolean
+    var scrollAnimation: Boolean
     var enablePredictiveBack: Boolean
     var enableSwipeDismiss: Boolean
     var pagerInterceptionMode: Int
