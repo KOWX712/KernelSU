@@ -9,6 +9,7 @@
 #include <linux/task_work.h>
 #include <linux/version.h>
 #include "klog.h" // IWYU pragma: keep
+#include "infra/unexported.h"
 #include "manager/throne_tracker.h"
 
 #define MASK_SYSTEM (FS_CREATE | FS_MOVE | FS_EVENT_ON_CHILD)
@@ -45,7 +46,7 @@ static void ksu_defer_track_throne(void)
         cb = kzalloc(sizeof(*cb), GFP_KERNEL);
         if (cb) {
             cb->func = ksu_track_throne_tw_func;
-            if (!task_work_add(current, cb, TWA_RESUME))
+            if (!ksu_task_work_add(current, cb, TWA_RESUME))
                 return;
             kfree(cb);
         }

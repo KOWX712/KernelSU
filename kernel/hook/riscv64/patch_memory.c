@@ -16,6 +16,7 @@
 #endif
 
 #include "infra/symbol_resolver.h"
+#include "infra/unexported.h"
 #include "../patch_memory.h"
 #include "insn.h"
 
@@ -102,7 +103,7 @@ static int write_patch(struct patch_info *info)
         if (err)
             return err;
         alias = (void *)set_fixmap_offset(FIX_TEXT_POKE0, phys);
-        err = copy_to_kernel_nofault(alias, src, len);
+        err = ksu_copy_to_kernel_nofault(alias, src, len);
         clear_fixmap(FIX_TEXT_POKE0);
         if (err)
             return err;

@@ -23,6 +23,7 @@
 #include "arch.h"
 #include "klog.h" // IWYU pragma: keep
 #include "ksu.h"
+#include "infra/unexported.h"
 #include "runtime/ksud.h"
 #include "runtime/ksud_boot.h"
 #include "policy/feature.h"
@@ -139,7 +140,7 @@ static bool check_argv(struct user_arg_ptr argv, int index, const char *expected
     if (!p || IS_ERR(p))
         goto fail;
 
-    if (strncpy_from_user_nofault(buf, p, buf_len) <= 0)
+    if (ksu_strncpy_from_user_nofault(buf, p, buf_len) <= 0)
         goto fail;
 
     buf[buf_len - 1] = '\0';

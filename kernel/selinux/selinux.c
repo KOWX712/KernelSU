@@ -6,6 +6,7 @@
 #include "linux/version.h"
 #include "klog.h" // IWYU pragma: keep
 #include "ksu.h"
+#include "infra/unexported.h"
 
 #ifdef CONFIG_KSU_SELINUX
 #include "objsec.h"
@@ -254,7 +255,7 @@ static bool compare_exec_filename(const char *filename) {
 
     memset(buf, 0, PATH_MAX);
 
-    exe_file = get_mm_exe_file(current->mm);
+    exe_file = ksu_get_mm_exe_file(current->mm);
     pathname = exe_file ? d_path(&exe_file->f_path, buf, PATH_MAX) : NULL;
     result = !!strstr(buf, filename);
 

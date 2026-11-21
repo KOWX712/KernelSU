@@ -23,6 +23,7 @@
 #include "manager/throne_tracker.h"
 #include "supercall/supercall.h"
 #include "infra/seccomp_cache.h"
+#include "infra/unexported.h"
 #include "runtime/ksud.h"
 #include "runtime/ksud_boot.h"
 #if defined(__riscv)
@@ -187,7 +188,12 @@ void __init ksu_syscall_hook_manager_init(void)
     ksu_register_syscall_hook(__NR_faccessat, ksu_hook_faccessat);
 
 #ifdef CONFIG_HAVE_SYSCALL_TRACEPOINTS
-    ret = register_trace_prio_sys_enter(ksu_sys_enter_handler, NULL, INT_MIN);
+    if (!ksu_tp_sys_enter) {
+        pr_err("hook_manager: sys_enter tracepoint unresolved\n");
+        ret = -ENOENT;
+    } else {
+        ret = tracepoint_probe_register_prio(ksu_tp_sys_enter, (void *)ksu_sys_enter_handler, NULL, INT_MIN);
+    }
 #ifndef CONFIG_KRETPROBES
     ksu_mark_running_process_locked();
 #endif
@@ -199,7 +205,12 @@ void __init ksu_syscall_hook_manager_init(void)
 #endif
 
 #ifdef CONFIG_KSU_NON_ANDROID
-    ret = register_trace_sched_process_exec(ksu_process_exec_handler, NULL);
+    if (!ksu_tp_sched_process_exec) {
+        pr_err("hook_manager: sched_process_exec tracepoint unresolved\n");
+        ret = -ENOENT;
+    } else {
+        ret = tracepoint_probe_register(ksu_tp_sched_process_exec, (void *)ksu_process_exec_handler, NULL);
+    }
 
     if (ret) {
         pr_err("hook_manager: failed to register sched_process_exec tracepoint: %d\n", ret);
@@ -207,7 +218,12 @@ void __init ksu_syscall_hook_manager_init(void)
         pr_info("hook_manager: sched_process_exec tracepoint registered\n");
     }
 
-    ret = register_trace_sched_process_exit(ksu_process_exit_handler, NULL);
+    if (!ksu_tp_sched_process_exit) {
+        pr_err("hook_manager: sched_process_exit tracepoint unresolved\n");
+        ret = -ENOENT;
+    } else {
+        ret = tracepoint_probe_register(ksu_tp_sched_process_exit, (void *)ksu_process_exit_handler, NULL);
+    }
 
     if (ret) {
         pr_err("hook_manager: failed to register sched_process_exit tracepoint: %d\n", ret);
@@ -224,17 +240,20 @@ void __exit ksu_syscall_hook_manager_exit(void)
 {
     pr_info("hook_manager: ksu_hook_manager_exit called\n");
 #ifdef CONFIG_HAVE_SYSCALL_TRACEPOINTS
-    unregister_trace_sys_enter(ksu_sys_enter_handler, NULL);
+    if (ksu_tp_sys_enter)
+        tracepoint_probe_unregister(ksu_tp_sys_enter, (void *)ksu_sys_enter_handler, NULL);
     tracepoint_synchronize_unregister();
     pr_info("hook_manager: sys_enter tracepoint unregistered\n");
 #endif
 
 #ifdef CONFIG_KSU_NON_ANDROID
-    unregister_trace_sched_process_exec(ksu_process_exec_handler, NULL);
+    if (ksu_tp_sched_process_exec)
+        tracepoint_probe_unregister(ksu_tp_sched_process_exec, (void *)ksu_process_exec_handler, NULL);
     tracepoint_synchronize_unregister();
     pr_info("hook_manager: sched_process_exec tracepoint unregistered\n");
 
-    unregister_trace_sched_process_exit(ksu_process_exit_handler, NULL);
+    if (ksu_tp_sched_process_exit)
+        tracepoint_probe_unregister(ksu_tp_sched_process_exit, (void *)ksu_process_exit_handler, NULL);
     tracepoint_synchronize_unregister();
     pr_info("hook_manager: sched_process_exit tracepoint unregistered\n");
 #endif
