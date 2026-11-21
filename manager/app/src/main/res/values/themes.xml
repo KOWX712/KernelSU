@@ -13,6 +13,10 @@
         <item name="postSplashScreenTheme">@style/Theme.KernelSU</item>
     </style>
 
+    <style name="Theme.KernelSU.Starting.Kowsu" parent="Theme.KernelSU.Starting">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_kowsu_splash</item>
+    </style>
+
     <style name="Theme.KernelSU.WebUI" parent="Theme.KernelSU">
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
