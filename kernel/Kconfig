@@ -35,6 +35,24 @@ config KSU_DISABLE_POLICY
 	  Escalation will always use the default full root profile, and
 	  non-root handling will follow the global umount policy only.
 
+config KSU_NON_ANDROID
+	bool "KernelSU for non-Android Linux distributions"
+	depends on KSU && KALLSYMS
+	default n
+	help
+	  Enable running KernelSU on non-Android Linux
+	  distributions.
+	  This will disable PID=1 checker.
+	  Consider enabling this when targetting Waydroid.
+
+config KSU_SELINUX
+	bool "SELinux for KernelSU"
+	depends on KSU && SECURITY_SELINUX
+	default y
+	help
+	  Enable SELinux for KernelSU.
+	  Requires CONFIG_SECURITY_SELINUX to work.
+
 config KSU_X86_PATCH_SYSCALL_DISPATCHER
 	bool "Dynamically patch x64's hardened syscall dispatcher to support syscall hooks"
 	depends on KSU && X86_64
